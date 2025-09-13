@@ -1,0 +1,74 @@
+from launch_ros.actions import Node
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition, UnlessCondition
+import os
+from ament_index_python.packages import get_package_share_directory
+
+
+def generate_launch_description():
+    # File paths
+    share_dir = get_package_share_directory('x650_description')
+    uav_urdf = os.path.join(share_dir, 'urdf', 'X650_UAV.urdf') 
+    rviz_config_file = os.path.join(share_dir, 'rviz', 'display.rviz')
+
+    # Read the urdf file
+    with open(uav_urdf, 'r') as infp:
+        robot_description = infp.read()
+
+    # Declare launch arguments and default parameters
+    show_gui = LaunchConfiguration('gui')
+    use_sim_time = LaunchConfiguration('use_sim_time')
+
+    gui_arg = DeclareLaunchArgument(
+        name='gui',
+        default_value='true'
+    )
+
+    use_sim_time_arg = DeclareLaunchArgument(
+        name="use_sim_time",
+        default_value='true'
+    )
+
+    # Create the robot-state-publisher node
+    robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        parameters=[{
+                'use_sim_time': use_sim_time, 
+                'robot_description': robot_description}]
+    )
+
+    # Create the joint-state-publisher node (with/without UI)
+    joint_state_publisher_node = Node(
+        condition=UnlessCondition(show_gui),
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        name='joint_state_publisher'
+    )
+    joint_state_publisher_gui_node = Node(
+        condition=IfCondition(show_gui),
+        package='joint_state_publisher_gui',
+        executable='joint_state_publisher_gui',
+        name='joint_state_publisher_gui'
+    )
+
+    # Create RViz node
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', rviz_config_file],
+        output='screen'
+    )
+
+    return LaunchDescription([
+        gui_arg,
+        use_sim_time_arg,
+        robot_state_publisher_node,
+        joint_state_publisher_node,
+        joint_state_publisher_gui_node,
+        rviz_node
+    ])
