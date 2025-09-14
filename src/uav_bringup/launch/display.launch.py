@@ -8,7 +8,7 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    # File paths
+    # Package and file paths
     share_dir = get_package_share_directory('uav_description')
     uav_urdf = os.path.join(share_dir, 'urdf', 'uav.urdf') 
     rviz_config_file = os.path.join(share_dir, 'rviz', 'display.rviz')
@@ -64,11 +64,12 @@ def generate_launch_description():
         output='screen'
     )
 
-    return LaunchDescription([
-        gui_arg,
-        use_sim_time_arg,
-        robot_state_publisher_node,
-        joint_state_publisher_node,
-        joint_state_publisher_gui_node,
-        rviz_node
-    ])
+    ld = LaunchDescription()
+    ld.add_action(gui_arg)
+    ld.add_action(use_sim_time_arg)
+    ld.add_action(robot_state_publisher_node)
+    ld.add_action(joint_state_publisher_node)
+    ld.add_action(joint_state_publisher_gui_node)
+    ld.add_action(rviz_node)
+
+    return ld
