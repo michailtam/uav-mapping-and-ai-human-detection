@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(x650_description)
+project(uav_gazebo_sim)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -10,7 +10,7 @@ find_package(ament_cmake REQUIRED)
 
 # install the packages
 install(
-  DIRECTORY launch urdf meshes rviz
+  DIRECTORY launch worlds
   DESTINATION share/${PROJECT_NAME}
 )
 

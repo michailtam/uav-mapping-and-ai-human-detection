@@ -9,8 +9,8 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     # File paths
-    share_dir = get_package_share_directory('x650_description')
-    uav_urdf = os.path.join(share_dir, 'urdf', 'X650_UAV.urdf') 
+    share_dir = get_package_share_directory('uav_description')
+    uav_urdf = os.path.join(share_dir, 'urdf', 'uav.urdf') 
     rviz_config_file = os.path.join(share_dir, 'rviz', 'display.rviz')
 
     # Read the urdf file

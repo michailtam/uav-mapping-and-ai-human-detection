@@ -2,8 +2,9 @@
 <!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
      Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
-<robot
-  name="X650_UAV">
+<robot name="uav_uav" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="$(find uav_description)/urdf/uav_uav.gazebo.xacro"/>
+
   <link
     name="base_link">
     <inertial>
@@ -26,7 +27,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/base_link.STL" />
+          filename="package://uav_description/meshes/base_link.STL" />
       </geometry>
       <material
         name="">
@@ -40,7 +41,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/base_link.STL" />
+          filename="package://uav_description/meshes/base_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -66,7 +67,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_arm_ccw_link.STL" />
+          filename="package://uav_description/meshes/front_arm_ccw_link.STL" />
       </geometry>
       <material
         name="">
@@ -80,7 +81,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_arm_ccw_link.STL" />
+          filename="package://uav_description/meshes/front_arm_ccw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -119,7 +120,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_motor_ccw_link.STL" />
+          filename="package://uav_description/meshes/front_motor_ccw_link.STL" />
       </geometry>
       <material
         name="">
@@ -133,7 +134,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_motor_ccw_link.STL" />
+          filename="package://uav_description/meshes/front_motor_ccw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -172,7 +173,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_prop_ccw_link.STL" />
+          filename="package://uav_description/meshes/front_prop_ccw_link.STL" />
       </geometry>
       <material
         name="">
@@ -186,7 +187,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_prop_ccw_link.STL" />
+          filename="package://uav_description/meshes/front_prop_ccw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -228,7 +229,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_arm_cw_link.STL" />
+          filename="package://uav_description/meshes/front_arm_cw_link.STL" />
       </geometry>
       <material
         name="">
@@ -242,7 +243,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_arm_cw_link.STL" />
+          filename="package://uav_description/meshes/front_arm_cw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -281,7 +282,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_motor_cw_link.STL" />
+          filename="package://uav_description/meshes/front_motor_cw_link.STL" />
       </geometry>
       <material
         name="">
@@ -295,7 +296,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_motor_cw_link.STL" />
+          filename="package://uav_description/meshes/front_motor_cw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -334,7 +335,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_prop_cw_link.STL" />
+          filename="package://uav_description/meshes/front_prop_cw_link.STL" />
       </geometry>
       <material
         name="">
@@ -348,7 +349,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/front_prop_cw_link.STL" />
+          filename="package://uav_description/meshes/front_prop_cw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -390,7 +391,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_arm_ccw_link.STL" />
+          filename="package://uav_description/meshes/back_arm_ccw_link.STL" />
       </geometry>
       <material
         name="">
@@ -404,7 +405,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_arm_ccw_link.STL" />
+          filename="package://uav_description/meshes/back_arm_ccw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -443,7 +444,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_motor_ccw_link.STL" />
+          filename="package://uav_description/meshes/back_motor_ccw_link.STL" />
       </geometry>
       <material
         name="">
@@ -457,7 +458,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_motor_ccw_link.STL" />
+          filename="package://uav_description/meshes/back_motor_ccw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -496,7 +497,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_prop_ccw_link.STL" />
+          filename="package://uav_description/meshes/back_prop_ccw_link.STL" />
       </geometry>
       <material
         name="">
@@ -510,7 +511,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_prop_ccw_link.STL" />
+          filename="package://uav_description/meshes/back_prop_ccw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -552,7 +553,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_arm_cw_link.STL" />
+          filename="package://uav_description/meshes/back_arm_cw_link.STL" />
       </geometry>
       <material
         name="">
@@ -566,7 +567,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_arm_cw_link.STL" />
+          filename="package://uav_description/meshes/back_arm_cw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -605,7 +606,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_motor_cw_link.STL" />
+          filename="package://uav_description/meshes/back_motor_cw_link.STL" />
       </geometry>
       <material
         name="">
@@ -619,7 +620,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_motor_cw_link.STL" />
+          filename="package://uav_description/meshes/back_motor_cw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -658,7 +659,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_prop_cw_link.STL" />
+          filename="package://uav_description/meshes/back_prop_cw_link.STL" />
       </geometry>
       <material
         name="">
@@ -672,7 +673,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/back_prop_cw_link.STL" />
+          filename="package://uav_description/meshes/back_prop_cw_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -714,7 +715,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/depth_camera_link.STL" />
+          filename="package://uav_description/meshes/depth_camera_link.STL" />
       </geometry>
       <material
         name="">
@@ -728,7 +729,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/depth_camera_link.STL" />
+          filename="package://uav_description/meshes/depth_camera_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -767,7 +768,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/lidar_link.STL" />
+          filename="package://uav_description/meshes/lidar_link.STL" />
       </geometry>
       <material
         name="">
@@ -781,7 +782,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/lidar_link.STL" />
+          filename="package://uav_description/meshes/lidar_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -820,7 +821,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/telemetry_link.STL" />
+          filename="package://uav_description/meshes/telemetry_link.STL" />
       </geometry>
       <material
         name="">
@@ -834,7 +835,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/telemetry_link.STL" />
+          filename="package://uav_description/meshes/telemetry_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -873,7 +874,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/gps_module_link.STL" />
+          filename="package://uav_description/meshes/gps_module_link.STL" />
       </geometry>
       <material
         name="">
@@ -887,7 +888,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/gps_module_link.STL" />
+          filename="package://uav_description/meshes/gps_module_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -926,7 +927,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/pixhawk_jetson_mc_link.STL" />
+          filename="package://uav_description/meshes/pixhawk_jetson_mc_link.STL" />
       </geometry>
       <material
         name="">
@@ -940,7 +941,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/pixhawk_jetson_mc_link.STL" />
+          filename="package://uav_description/meshes/pixhawk_jetson_mc_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -979,7 +980,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/left_landing_gear_link.STL" />
+          filename="package://uav_description/meshes/left_landing_gear_link.STL" />
       </geometry>
       <material
         name="">
@@ -993,7 +994,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/left_landing_gear_link.STL" />
+          filename="package://uav_description/meshes/left_landing_gear_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -1032,7 +1033,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/right_landing_gear_link.STL" />
+          filename="package://uav_description/meshes/right_landing_gear_link.STL" />
       </geometry>
       <material
         name="">
@@ -1046,7 +1047,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://x650_description/meshes/right_landing_gear_link.STL" />
+          filename="package://uav_description/meshes/right_landing_gear_link.STL" />
       </geometry>
     </collision>
   </link>

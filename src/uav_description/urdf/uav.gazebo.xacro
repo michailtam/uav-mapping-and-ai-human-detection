@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+
+<robot name="uav_uav" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <!-- Color definitions-->
+    <xacro:property name="prop_color" value="Gazebo/Black" />
+    <xacro:property name="rgbd_cam_color" value="Gazebo/White" />
+    <xacro:property name="lidar_color" value="Gazebo/Black" />
+
+    <!-- Propellers -->
+    <gazebo reference="front_prop_cw_link">
+        <material>${prop_color}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="front_prop_ccw_link">
+        <material>${prop_color}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="back_prop_cw_link">
+        <material>${prop_color}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="back_prop_ccw_link">
+        <material>${prop_color}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <!-- Depth camera -->
+    <gazebo reference="depth_camera_link">
+        <material>${rgbd_cam_color}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+        <sensor name="rgbd_cam" type="rgbd_camera">
+            <camera>
+                <horizontal_fov>1.5184</horizontal_fov>
+                <image>
+                    <width>424</width>
+                    <height>240</height>
+                </image>
+                <clip>
+                    <near>0.05</near>
+                    <far>1.5</far>
+                </clip>
+            </camera>
+            <always_on>1</always_on>
+            <gz_frame_id>depth_camera_link</gz_frame_id>
+            <topic>cam_1</topic>
+            <update_rate>15.0</update_rate>
+            <visualize>true</visualize>
+        </sensor>
+    </gazebo>
+
+    <!-- Lidar sensor -->
+    <gazebo reference="lidar_link">
+        <material>${lidar_color}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+        <sensor name="laser_sensor" type="gpu_lidar">
+            <pose>0 0 0 0 0 0</pose>
+            <topic>scan</topic>
+            <update_rate>10</update_rate>
+            <always_on>true</always_on>
+            <visualize>true</visualize>
+            <lidar>
+                <scan>
+                    <horizontal>
+                        <samples>720</samples>  <!-- TODO: Has to be adjusted -->
+                        <resolution>1</resolution>
+                        <min_angle>-3.14159</min_angle>
+                        <max_angle>3.14159</max_angle>
+                    </horizontal>
+                    
+                    <!-- 2D Lidar settings -->
+                    <vertical>
+                        <samples>1</samples>
+                        <resolution>1</resolution>
+                        <min_angle>0.0</min_angle>
+                        <max_angle>0.0</max_angle>
+                    </vertical>
+                    
+                    <!-- 3D Lidar settings (PointCloud)-->
+                    <!-- <vertical>
+                        <samples>32</samples>
+                        <min_angle>-0.5353</min_angle>
+                        <max_angle>0.1862</max_angle>
+                    </vertical> -->
+                </scan>
+                <range>
+                    <min>0.2</min>                  <!-- TODO: Has to be adjusted -->
+                    <max>25.0</max>                 <!-- TODO: Has to be adjusted -->
+                    <resolution>0.225</resolution>  <!-- TODO: Has to be adjusted -->
+                </range>
+            </lidar>
+            <gz_frame_id>lidar_link</gz_frame_id>
+        </sensor>
+    </gazebo>
+
+</robot>
