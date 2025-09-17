@@ -4,6 +4,7 @@
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot name="uav_uav" xmlns:xacro="http://www.ros.org/wiki/xacro">
   
+  <xacro:include filename="$(find uav_description)/urdf/core.xacro"/>
   <xacro:include filename="$(find uav_description)/urdf/uav.gazebo.xacro"/>
   
   <link name="base_link">
@@ -160,9 +161,9 @@
       <geometry>
         <mesh filename="file://$(find uav_description)/meshes/front_arm_cw_link.STL" />
       </geometry>
-      <material name="">
-        <color rgba="0.529411764705882 0.549019607843137 0.549019607843137 1" />
-      </material>
+      <material name="dark_gray" />
+        <!-- <color rgba="0.529411764705882 0.549019607843137 0.549019607843137 1" /> -->
+      <!-- </material> -->
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />

@@ -46,12 +46,12 @@ def generate_launch_description():
 
     declare_y_pos_arg = DeclareLaunchArgument(
         name='y',
-        default_value='3.0',
+        default_value='0.0',
         description='y-position')
     
     declare_z_pos_arg = DeclareLaunchArgument(
         name='z',
-        default_value='0.0',
+        default_value='3.0',
         description='z-position')
 
     declare_roll_arg = DeclareLaunchArgument(
@@ -66,7 +66,7 @@ def generate_launch_description():
 
     declare_yaw_arg = DeclareLaunchArgument(
         name='yaw',
-        default_value='-1.57',
+        default_value='0.0',
         description='yaw angle of initial orientation in radians')
 
     ros_gz_bridge_config = PathJoinSubstitution([

@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Color Definitions for Rviz -->
+    <material name="burlywood">
+        <color rgba="0.87 0.72 0.53 1.0"/>
+    </material>
+
+    <material name="dark_blue">
+        <color rgba="0.0 0.0 0.7 1.0"/>
+    </material>
+
+    <material name="light_blue">
+        <color rgba="0.0 0.3 1.0 1.0"/>
+    </material>
+
+    <material name="light_green">
+        <color rgba="0.0 1.0 0.0 1.0"/>
+    </material>
+
+    <material name="red">
+        <color rgba="1.0 0.0 0.0 1.0"/>
+    </material>
+    
+    <material name="orange">
+        <color rgba="1.0 0.6 0.0 1.0"/>
+    </material>
+
+    <material name="yellow">
+        <color rgba="1.0 1.0 0.0 1.0"/>
+    </material>
+
+    <material name="black">
+        <color rgba="0.0 0.0 0.0 1.0"/>
+    </material>
+
+    <material name="white">
+        <color rgba="1.0 1.0 1.0 1.0"/>
+    </material>
+
+    <material name="dark_gray">
+        <color rgba="0.4 0.4 0.4 1.0"/>
+    </material>
+
+    <material name="light_gray">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+    </material>
+
+    <material name="plexiglass">
+        <color rgba="1.0 1.0 1.0 0.2"/>
+    </material>
+
+    <material name="transparent">
+        <color rgba="1.0 1.0 1.0 0.0"/>
+    </material>
+    
+    <!-- Color Definitions for Gazebo -->
+    <xacro:property name="gazebo_dark_grey" value="Gazebo/DarkGrey"/>
+    <xacro:property name="gazebo_grey" value="Gazebo/Grey"/>
+    <xacro:property name="gazebo_white" value="Gazebo/White"/>
+    <xacro:property name="gazebo_blue_transparent" value="Gazebo/BlueTransparent"/>
+    <xacro:property name="gazebo_blue" value="Gazebo/Blue"/>
+    <xacro:property name="gazebo_sky_blue" value="Gazebo/BlueGlow"/>
+    <xacro:property name="gazebo_orange" value="Gazebo/Orange"/>
+    <xacro:property name="gazebo_red" value="Gazebo/Red"/>
+    <xacro:property name="gazebo_black" value="Gazebo/Black"/>
+    <xacro:property name="gazebo_gazebo_flatblack" value="Gazebo/FlatBlack"/>
+    <xacro:property name="gazebo_zinc_yellow" value="Gazebo/ZincYellow"/>
+
+</robot>
