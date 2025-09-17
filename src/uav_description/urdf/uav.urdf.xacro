@@ -1,0 +1,715 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot name="uav_uav" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  
+  <xacro:include filename="$(find uav_description)/urdf/uav.gazebo.xacro"/>
+  
+  <link name="base_link">
+    <inertial>
+      <origin xyz="-0.0025838 0.00051225 -0.019551" rpy="0 0 0" />
+      <mass value="1.4371" />
+      <inertia
+        ixx="0.00098413"
+        ixy="4.9253E-05"
+        ixz="6.648E-07"
+        iyy="0.0038692"
+        iyz="2.8305E-08"
+        izz="0.0047748" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/base_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="front_arm_ccw_link">
+    <inertial>
+      <origin xyz="5.14187352146367E-06 0.000103088445734027 0.101201605126024" rpy="0 0 0" />
+      <mass value="0.163581488184572" />
+      <inertia
+        ixx="0.000495858318312467"
+        ixy="1.69719015225508E-08"
+        ixz="-1.5555901263121E-08"
+        iyy="0.000496622426658751"
+        iyz="3.01279610270572E-08"
+        izz="1.58530814438199E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_arm_ccw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.529411764705882 0.549019607843137 0.549019607843137 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_arm_ccw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_arm_ccw_joint" type="fixed">
+    <origin xyz="0.080474 -0.082381 0.043625" rpy="-1.5708 0 -2.3562" />
+    <parent link="base_link" />
+    <child link="front_arm_ccw_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="front_motor_ccw_link">
+    <inertial>
+      <origin xyz="-5.94792757824258E-08 0.0089323100189773 0.000144520880497323" rpy="0 0 0" />
+      <mass value="0.107028077375073" />
+      <inertia
+        ixx="1.99852843592467E-05"
+        ixy="-9.14808285986034E-11"
+        ixz="-2.70349866236598E-09"
+        iyy="2.60832369889382E-05"
+        iyz="2.20707374208015E-07"
+        izz="1.97284529490253E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_motor_ccw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_motor_ccw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_motor_ccw_joint" type="fixed">
+    <origin xyz="0 -0.022 0.209" rpy="0 0 3.1416" />
+    <parent link="front_arm_ccw_link" />
+    <child link="front_motor_ccw_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="front_prop_ccw_link">
+    <inertial>
+      <origin xyz="2.11228381036821E-05 -0.000575623595751584 0.00874250262086616" rpy="0 0 0" />
+      <mass value="0.0232885965258771" />
+      <inertia
+        ixx="7.81406911098823E-07"
+        ixy="-1.93046094872738E-06"
+        ixz="-5.84228099790564E-08"
+        iyy="2.83657143471591E-05"
+        iyz="-3.95826230995061E-08"
+        izz="2.90964600411815E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_prop_ccw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_prop_ccw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_prop_ccw_joint" type="continuous">
+    <origin xyz="0 0.024318 0" rpy="1.5108 0.40362 3.1394" />
+    <parent link="front_motor_ccw_link" />
+    <child link="front_prop_ccw_link" />
+    <axis xyz="0 0 1" />
+    <limit
+      effort="100"
+      velocity="100" />
+  </joint>
+
+  <link name="front_arm_cw_link">
+    <inertial>
+      <origin xyz="5.14187362136292E-06 0.000103088445712607 0.10120160512516" rpy="0 0 0" />
+      <mass value="0.163581488183559" />
+      <inertia
+        ixx="0.000495858318312464"
+        ixy="1.69719015255707E-08"
+        ixz="-1.55559012619851E-08"
+        iyy="0.000496622426658752"
+        iyz="3.01279610276289E-08"
+        izz="1.58530814438145E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_arm_cw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.529411764705882 0.549019607843137 0.549019607843137 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_arm_cw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_arm_cw_joint" type="fixed">
+    <origin xyz="0.0804741042413417 0.0818613658673572 0.0436254108086869" rpy="-1.5707963267949 0 -0.785398163397448" />
+    <parent link="base_link" />
+    <child link="front_arm_cw_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="front_motor_cw_link">
+    <inertial>
+      <origin xyz="-5.94792757269147E-08 0.00893231001897728 0.000144520880497323" rpy="0 0 0" />
+      <mass value="0.107028077375073" />
+      <inertia
+        ixx="1.99852843592467E-05"
+        ixy="-9.14808285889419E-11"
+        ixz="-2.70349866238292E-09"
+        iyy="2.60832369889382E-05"
+        iyz="2.20707374208015E-07"
+        izz="1.97284529490253E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_motor_cw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_motor_cw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_motor_cw_joint" type="fixed">
+    <origin xyz="0 -0.022 0.209" rpy="0 0 3.14159265358979" />
+    <parent link="front_arm_cw_link" />
+    <child link="front_motor_cw_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="front_prop_cw_link">
+    <inertial>
+      <origin xyz="1.70322207349027E-06 -0.000131171076623415 0.00551466266249338" rpy="0 0 0" />
+      <mass value="0.023286089430334" />
+      <inertia
+        ixx="6.48766355495004E-07"
+        ixy="-1.71425530770085E-07"
+        ixz="1.31741915464193E-10"
+        iyy="2.84758053692334E-05"
+        iyz="5.4172324392471E-11"
+        izz="2.90783664832776E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_prop_cw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/front_prop_cw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_prop_cw_joint" type="continuous">
+    <origin xyz="0 0.027 0" rpy="-1.5708 0.94181 0" />
+    <parent link="front_motor_cw_link" />
+    <child link="front_prop_cw_link" />
+    <axis xyz="0 0 1" />
+    <limit
+      effort="100"
+      velocity="100" />
+  </joint>
+
+  <link name="back_arm_ccw_link">
+    <inertial>
+      <origin xyz="5.1418737516476E-06 0.000103088445681951 0.101201605122122" rpy="0 0 0" />
+      <mass value="0.163581488181259" />
+      <inertia
+        ixx="0.000495858318312453"
+        ixy="1.69719015333838E-08"
+        ixz="-1.55559012587393E-08"
+        iyy="0.000496622426658752"
+        iyz="3.01279610291379E-08"
+        izz="1.58530814438022E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_arm_ccw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.529411764705882 0.549019607843137 0.549019607843137 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_arm_ccw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="back_arm_ccw_joint" type="fixed">
+    <origin xyz="-0.0837685364457783 0.0818613658673572 0.0436254108086869" rpy="-1.5707963267949 0 0.785398163397448" />
+    <parent link="base_link" />
+    <child link="back_arm_ccw_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="back_motor_ccw_link">
+    <inertial>
+      <origin xyz="-5.94792757546703E-08 0.00893231001897728 0.000144520880497268" rpy="0 0 0" />
+      <mass value="0.107028077375073" />
+      <inertia
+        ixx="1.99852843592467E-05"
+        ixy="-9.14808285776261E-11"
+        ixz="-2.70349866238376E-09"
+        iyy="2.60832369889382E-05"
+        iyz="2.20707374208025E-07"
+        izz="1.97284529490253E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_motor_ccw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_motor_ccw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="back_motor_ccw_joint" type="fixed">
+    <origin xyz="0 -0.022 0.209" rpy="0 0 3.14159265358979" />
+    <parent link="back_arm_ccw_link" />
+    <child link="back_motor_ccw_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="back_prop_ccw_link">
+    <inertial>
+      <origin xyz="2.11084475078838E-05 -0.000575616574168103 0.00874246753673161" rpy="0 0 0" />
+      <mass value="0.0232874208355566" />
+      <inertia
+        ixx="7.81255330319095E-07"
+        ixy="-1.92969901663437E-06"
+        ixz="-5.83835421242838E-08"
+        iyy="2.83627343839516E-05"
+        iyz="-3.95752885069779E-08"
+        izz="2.90933307991966E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_prop_ccw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_prop_ccw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="back_prop_ccw_joint" type="continuous">
+    <origin xyz="0 0.024318 0" rpy="-1.6317 -0.71466 0.0026132" />
+    <parent link="back_motor_ccw_link" />
+    <child link="back_prop_ccw_link" />
+    <axis xyz="0 0 1" />
+    <limit
+      effort="100"
+      velocity="100" />
+  </joint>
+
+  <link name="back_arm_cw_link">
+    <inertial>
+      <origin xyz="5.14187358731377E-06 0.000103088445712947 0.101201605123568" rpy="0 0 0" />
+      <mass value="0.163581488182937" />
+      <inertia
+        ixx="0.000495858318312459"
+        ixy="1.69719015281368E-08"
+        ixz="-1.555590126059E-08"
+        iyy="0.000496622426658752"
+        iyz="3.01279610281771E-08"
+        izz="1.58530814438118E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_arm_cw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.529411764705882 0.549019607843137 0.549019607843137 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_arm_cw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="back_arm_cw_joint" type="fixed">
+    <origin xyz="-0.0837685364457783 -0.0823812748197628 0.0436254108086869" rpy="-1.5707963267949 0 2.35619449019234" />
+    <parent link="base_link" />
+    <child link="back_arm_cw_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="back_motor_cw_link">
+    <inertial>
+      <origin xyz="-5.94792757269147E-08 0.0089323100189773 0.000144520880497323" rpy="0 0 0" />
+      <mass value="0.107028077375073" />
+      <inertia
+        ixx="1.99852843592466E-05"
+        ixy="-9.14808285823906E-11"
+        ixz="-2.70349866238037E-09"
+        iyy="2.60832369889382E-05"
+        iyz="2.20707374207996E-07"
+        izz="1.97284529490252E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_motor_cw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_motor_cw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="back_motor_cw_joint" type="fixed">
+    <origin xyz="0 -0.022 0.209" rpy="0 0 3.14159265358979" />
+    <parent link="back_arm_cw_link" />
+    <child link="back_motor_cw_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="back_prop_cw_link">
+    <inertial>
+      <origin xyz="2.01600434951432E-06 -0.000131195382900184 0.00551466607183501" rpy="0 0 0" />
+      <mass value="0.0232863496485807" />
+      <inertia
+        ixx="6.48765892273756E-07"
+        ixy="-1.71386894670728E-07"
+        ixz="1.316861419099E-10"
+        iyy="2.84770797891742E-05"
+        iyz="5.41589319117329E-11"
+        izz="2.90796404442591E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_prop_cw_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/back_prop_cw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="back_prop_cw_joint" type="continuous">
+    <origin xyz="0 0.027 0" rpy="1.5708 -0.83821 3.1416" />
+    <parent link="back_motor_cw_link" />
+    <child link="back_prop_cw_link" />
+    <axis xyz="0 0 1" />
+    <limit
+      effort="100"
+      velocity="100" />
+  </joint>
+
+  <link name="depth_camera_link">
+    <inertial>
+      <origin xyz="-7.366734119163E-06 -6.98368398159342E-05 9.2241584007894E-06" rpy="0 0 0" />
+      <mass value="0.0907155514174442" />
+      <inertia
+        ixx="0.000111301930039104"
+        ixy="4.98381251724305E-09"
+        ixz="9.62362302137436E-09"
+        iyy="1.04040263556578E-05"
+        iyz="-3.66422974933274E-12"
+        izz="0.000109744132149808" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/depth_camera_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 0.35" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/depth_camera_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="depth_camera_joint" type="fixed">
+    <origin xyz="0.15251 0.00094005 -0.0055746" rpy="3.1416 0 0" />
+    <parent link="base_link" />
+    <child link="depth_camera_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="lidar_link">
+    <inertial>
+      <origin xyz="4.89440663804838E-06 -4.43964162024255E-06 -1.3812162453497E-06" rpy="0 0 0" />
+      <mass value="0.176960287088196" />
+      <inertia
+        ixx="8.43864925700227E-05"
+        ixy="5.21492121593894E-08"
+        ixz="2.33776208214623E-06"
+        iyy="8.04534827821915E-05"
+        iyz="3.09845475948483E-08"
+        izz="0.00011764357999356" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/lidar_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 0.35" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/lidar_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="lidar_joint" type="fixed">
+    <origin xyz="0 0 0.13143" rpy="0 0 0" />
+    <parent link="base_link" />
+    <child link="lidar_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="telemetry_link">
+    <inertial>
+      <origin xyz="0.0148961876406002 0.0141596275423504 0.00277818099909896" rpy="0 0 0" />
+      <mass value="0.0217042216085899" />
+      <inertia
+        ixx="3.81137572694548E-06"
+        ixy="3.72531692602976E-08"
+        ixz="-1.15177452378755E-08"
+        iyy="3.8302773899507E-06"
+        iyz="-9.49014295916824E-08"
+        izz="5.63442708703829E-06" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/telemetry_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/telemetry_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="telemetry_joint" type="fixed">
+    <origin xyz="0.0086156 -0.078024 0.070825" rpy="-1.5708 0 3.1416" />
+    <parent link="base_link" />
+    <child link="telemetry_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="gps_module_link">
+    <inertial>
+      <origin xyz="0.000137933965444488 0.000103618862632354 -0.0171213514877413" rpy="0 0 0" />
+      <mass value="0.0362212043422479" />
+      <inertia
+        ixx="7.48419196925988E-06"
+        ixy="8.39991048815852E-10"
+        ixz="9.97728091181044E-10"
+        iyy="7.46530815194579E-06"
+        iyz="4.46041895131925E-09"
+        izz="6.69196816346871E-06" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/gps_module_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 0.35" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/gps_module_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="gps_module_joint" type="fixed">
+    <origin xyz="-0.13565 -0.00025995 0.10513" rpy="0 0 -1.8171" />
+    <parent link="base_link" />
+    <child link="gps_module_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="pixhawk_jetson_mc_link">
+    <inertial>
+      <origin xyz="0.053328160857166 0.0387469871436744 0.00640110047670922" rpy="0 0 0" />
+      <mass value="0.0709988883339184" />
+      <inertia
+        ixx="2.1251111342056E-05"
+        ixy="-4.87583782961505E-08"
+        ixz="-2.54207313090682E-08"
+        iyy="3.176459259196E-05"
+        iyz="-9.72004834088894E-08"
+        izz="5.16018249043034E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/pixhawk_jetson_mc_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/pixhawk_jetson_mc_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pixhawk_jetson_mc_joint" type="fixed">
+    <origin xyz="-0.066001 -0.038689 0.076111" rpy="-0.0052969 0 0" />
+    <parent link="base_link" />
+    <child link="pixhawk_jetson_mc_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="left_landing_gear_link">
+    <inertial>
+      <origin xyz="-0.0420938755140544 -0.0133856882957778 0.149700003124657" rpy="0 0 0" />
+      <mass value="0.105117728110096" />
+      <inertia
+        ixx="0.000177954535606045"
+        ixy="-6.07368643643095E-05"
+        ixz="4.52220142134236E-12"
+        iyy="0.000350245160531095"
+        iyz="-2.07387976250726E-11"
+        izz="0.000216053238510137" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/left_landing_gear_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/left_landing_gear_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="left_landing_gear_joint" type="fixed">
+    <origin xyz="-0.15135 0.15862 -0.27588" rpy="0 1.5708 0" />
+    <parent link="base_link" />
+    <child link="left_landing_gear_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <link name="right_landing_gear_link">
+    <inertial>
+      <origin xyz="-0.0421162765733715 0.0133150851053672 0.149699984840993" rpy="0 0 0" />
+      <mass value="0.105117769059469" />
+      <inertia
+        ixx="0.00017795251828581"
+        ixy="6.07340026620217E-05"
+        ixz="-5.76750103039677E-12"
+        iyy="0.000350247180814001"
+        iyz="-1.666573183629E-11"
+        izz="0.000216053240015872" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/right_landing_gear_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find uav_description)/meshes/right_landing_gear_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="right_landing_gear_joint" type="fixed">
+    <origin xyz="-0.15135 -0.15914 -0.27588" rpy="0 1.5708 0" />
+    <parent link="base_link" />
+    <child link="right_landing_gear_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+</robot>

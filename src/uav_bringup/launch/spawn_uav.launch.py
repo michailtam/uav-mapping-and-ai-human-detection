@@ -1,8 +1,7 @@
-import os
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, Command
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, TextSubstitution, EnvironmentVariable
 from launch_ros.actions import Node
 from os.path import join
 from ament_index_python.packages import get_package_share_directory
@@ -10,12 +9,19 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
+    # IMPORTANT: Adding the environment variable must be done at first
+    #uav_description_path = get_package_share_directory('uav_description')
+    #set_gazebo_model_path = SetEnvironmentVariable(
+    #    name='GAZEBO_MODEL_PATH',
+    #    value=[
+    #        EnvironmentVariable('GAZEBO_MODEL_PATH', default_value=''),
+    #        TextSubstitution(text=':' + uav_description_path)
+    #    ])
+
     # Package and file paths
     pkg_share_gazebo = get_package_share_directory('uav_gazebo_sim')
-    pkg_ros_gz_rbot = get_package_share_directory('uav_description')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
-    ros_gz_bridge_config = os.path.join(pkg_ros_gz_rbot, 'config', 'ros_gz_bridge_gazebo.yaml')
-
+    
     # Set the launch configuration for the world
     world_name = LaunchConfiguration('world_name')
 
@@ -69,7 +75,11 @@ def generate_launch_description():
         'ros_gz_bridge.yaml'])
     
     # Gazebo simulator launch
-    world_path = Command(['echo ', pkg_share_gazebo, '/worlds/', world_name, '.world'])
+    world_path = PathJoinSubstitution([
+        pkg_share_gazebo,
+        'worlds',
+        [world_name, TextSubstitution(text='.world')]
+    ])
 
     # Start Gazebo Sim
     gazebo_launch = IncludeLaunchDescription(
@@ -86,7 +96,6 @@ def generate_launch_description():
         arguments=[
             "-topic", "/robot_description",
             "-name", "uav",
-            "-allow_renaming", "true",
             '-x', x,
             '-y', y,
             '-z', z,
@@ -103,6 +112,7 @@ def generate_launch_description():
     gazebo_ros_bridge_cmd = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
+        name='gazebo_bridge',
         parameters=[{
           'config_file': ros_gz_bridge_config,
           'use_sim_time': True
@@ -111,6 +121,7 @@ def generate_launch_description():
     )
 
     ld = LaunchDescription()
+    #ld.add_action(set_gazebo_model_path)
     ld.add_action(declare_world_arg)
     ld.add_action(declare_x_pos_arg)
     ld.add_action(declare_y_pos_arg)

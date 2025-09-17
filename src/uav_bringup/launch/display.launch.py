@@ -1,21 +1,22 @@
+import os
 from launch_ros.actions import Node
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
-import os
 from ament_index_python.packages import get_package_share_directory
+import xacro
 
 
 def generate_launch_description():
     # Package and file paths
     share_dir = get_package_share_directory('uav_description')
-    uav_urdf = os.path.join(share_dir, 'urdf', 'uav.urdf') 
     rviz_config_file = os.path.join(share_dir, 'rviz', 'display.rviz')
 
-    # Read the urdf file
-    with open(uav_urdf, 'r') as infp:
-        robot_description = infp.read()
+    # Create the robot_description from xacro file
+    xacro_file = os.path.join(share_dir, 'urdf', 'uav.urdf.xacro') 
+    robot_description_config = xacro.process_file(xacro_file)
+    robot_urdf = robot_description_config.toxml()
 
     # Declare launch arguments and default parameters
     show_gui = LaunchConfiguration('gui')
@@ -38,7 +39,7 @@ def generate_launch_description():
         name='robot_state_publisher',
         parameters=[{
                 'use_sim_time': use_sim_time, 
-                'robot_description': robot_description}]
+                'robot_description': robot_urdf}]
     )
 
     # Create the joint-state-publisher node (with/without UI)
