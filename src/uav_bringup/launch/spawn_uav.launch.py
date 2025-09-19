@@ -51,7 +51,7 @@ def generate_launch_description():
     
     declare_z_pos_arg = DeclareLaunchArgument(
         name='z',
-        default_value='3.0',
+        default_value='1.0',
         description='z-position')
 
     declare_roll_arg = DeclareLaunchArgument(

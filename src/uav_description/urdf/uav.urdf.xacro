@@ -139,9 +139,8 @@
     <parent link="front_motor_ccw_link" />
     <child link="front_prop_ccw_link" />
     <axis xyz="0 0 1" />
-    <limit
-      effort="100"
-      velocity="100" />
+    <limit effort="100" velocity="100" />
+    <dynamics damping="0.01" friction="0.0"/>
   </joint>
 
   <link name="front_arm_cw_link">
@@ -247,9 +246,8 @@
     <parent link="front_motor_cw_link" />
     <child link="front_prop_cw_link" />
     <axis xyz="0 0 1" />
-    <limit
-      effort="100"
-      velocity="100" />
+    <limit effort="100" velocity="100" />
+    <dynamics damping="0.01" friction="0.0"/>
   </joint>
 
   <link name="back_arm_ccw_link">
@@ -355,9 +353,8 @@
     <parent link="back_motor_ccw_link" />
     <child link="back_prop_ccw_link" />
     <axis xyz="0 0 1" />
-    <limit
-      effort="100"
-      velocity="100" />
+    <limit effort="100" velocity="100" />
+    <dynamics damping="0.01" friction="0.0"/>
   </joint>
 
   <link name="back_arm_cw_link">
@@ -463,9 +460,8 @@
     <parent link="back_motor_cw_link" />
     <child link="back_prop_cw_link" />
     <axis xyz="0 0 1" />
-    <limit
-      effort="100"
-      velocity="100" />
+    <limit effort="100" velocity="100" />
+    <dynamics damping="0.01" friction="0.0"/>
   </joint>
 
   <link name="depth_camera_link">
