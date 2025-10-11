@@ -25,20 +25,6 @@
     </gazebo>
 
     <!-- Front CCW --> 
-    <gazebo reference="front_arm_ccw_link">
-        <material>${gazebo_grey}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
-    <gazebo reference="front_motor_ccw_link">
-        <material>${gazebo_grey}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
     <gazebo reference="front_prop_ccw_link">
         <material>${gazebo_black}</material>
         <mu1>0.1</mu1>
@@ -47,20 +33,6 @@
     </gazebo>
 
     <!-- Front CW --> 
-    <gazebo reference="front_arm_cw_link">
-        <material>${gazebo_grey}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
-    <gazebo reference="front_motor_cw_link">
-        <material>${gazebo_dark_grey}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
     <gazebo reference="front_prop_cw_link">
         <material>${gazebo_black}</material>
         <mu1>0.1</mu1>
@@ -69,20 +41,6 @@
     </gazebo>
 
     <!-- Back CCW --> 
-    <gazebo reference="back_arm_ccw_link">
-        <material>${gazebo_grey}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
-    <gazebo reference="back_motor_ccw_link">
-        <material>${gazebo_dark_grey}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
     <gazebo reference="back_prop_ccw_link">
         <material>${gazebo_black}</material>
         <mu1>0.1</mu1>
@@ -91,29 +49,7 @@
     </gazebo>
 
     <!-- Back CW --> 
-    <gazebo reference="back_arm_cw_link">
-        <material>${gazebo_dark_grey}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
-    <gazebo reference="back_motor_cw_link">
-        <material>${gazebo_dark_grey}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
     <gazebo reference="back_prop_cw_link">
-        <material>${gazebo_black}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
-    <!-- Telemetry -->
-    <gazebo reference="telemetry_link">
         <material>${gazebo_black}</material>
         <mu1>0.1</mu1>
         <mu2>0.1</mu2>
@@ -123,30 +59,6 @@
     <!-- GPS module -->
     <gazebo reference="gps_module_link">
         <material>${gazebo_black}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-    
-    <!-- Pixhawk Jetson Nanon microcontroller -->
-    <gazebo reference="pixhawk_jetson_mc_link">
-        <material>${gazebo_gazebo_flatblack}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
-    <!-- Left landing gear -->
-    <gazebo reference="left_landing_gear_link">
-        <material>${gazebo_gazebo_flatblack}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
-    <!-- Right landing gear -->
-    <gazebo reference="right_landing_gear_link">
-        <material>${gazebo_gazebo_flatblack}</material>
         <mu1>0.1</mu1>
         <mu2>0.1</mu2>
         <gravity>true</gravity>
