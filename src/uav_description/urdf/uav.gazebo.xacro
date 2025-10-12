@@ -2,20 +2,6 @@
 
 <robot name="uav_uav" xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <gazebo reference="back_prop_cw_link">
-        <material>${gazebo_black}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
-    <gazebo reference="back_prop_ccw_link">
-        <material>${gazebo_black}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
     <!-- Base link -->
     <gazebo reference="base_link">
         <material>${gazebo_grey}</material>
@@ -138,6 +124,7 @@
         </sensor>
     </gazebo>
 
+    <!-- Plugin for sensor handling -->
     <gazebo>
         <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
             <render_engine>ogre2</render_engine>
@@ -145,11 +132,11 @@
     </gazebo>
 
     <!-- Enables the communication with ros2_control -->
-    <!-- <gazebo>
+    <gazebo>
         <plugin name="gz_ros2_control::GazeboSimROS2ControlPlugin" filename="libgz_ros2_control-system.so">
-            <parameters>$(find hospibot_bringup)/config/controllers.yaml</parameters>
+            <parameters>$(find uav_bringup)/config/uav_controllers.yaml</parameters>
             <controller_manager_node_name>controller_manager</controller_manager_node_name>
         </plugin>
-    </gazebo> -->
+    </gazebo>
 
 </robot>

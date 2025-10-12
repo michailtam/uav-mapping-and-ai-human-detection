@@ -1,0 +1,23 @@
+# The controller_manager manages multiple controllers using ROS 2 Control.
+controller_manager:
+  ros__parameters:
+    update_rate: 100 # Specifies how often the controllers should be updated (in Hz).
+
+    # Publishes joint states (position, velocity, effort) on /joint_states topic
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    # Main controller to send velocity commands to the propeller joints 
+    propellers_controller:
+      type: forward_command_controller/ForwardCommandController
+
+# ros2_control controllers for UAV propellers
+arm_controller:
+  ros__parameters:
+    joints:
+      - front_prop_ccw_joint
+      - front_prop_cw_joint
+      - back_prop_ccw_joint
+      - back_prop_cw_joint
+
+    interface_name: velocity # Control interface: velocity (rad/s)

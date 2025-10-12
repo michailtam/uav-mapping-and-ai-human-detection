@@ -19,7 +19,7 @@
   gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS
 
-# gz topic published by the 2D Lidar plugin
+# gz topic published by the sensors plugin 
 - ros_topic_name: "scan"
   gz_topic_name: "scan"
   ros_type_name: "sensor_msgs/msg/LaserScan"
@@ -33,11 +33,11 @@
 #  gz_type_name: "gz.msgs.PointCloudPacked"
 #  direction: GZ_TO_ROS
 
-# gz topic published by the RGBD-camera plugins
-- ros_topic_name: "camera/depth_image"
-  gz_topic_name: "camera/depth_image"
-  ros_type_name: "sensor_msgs/msg/Image"
-  gz_type_name: "gz.msgs.Image"
+# gz topic published by the sensors plugin
+- ros_topic_name: "camera/depth/camera_info"
+  gz_topic_name: "camera/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
 - ros_topic_name: "camera/depth/color/points"
@@ -46,10 +46,10 @@
   gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
 
-- ros_topic_name: "camera/depth/camera_info"
-  gz_topic_name: "camera/camera_info"
-  ros_type_name: "sensor_msgs/msg/CameraInfo"
-  gz_type_name: "gz.msgs.CameraInfo"
+- ros_topic_name: "camera/depth_image"
+  gz_topic_name: "camera/depth_image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
 
 - ros_topic_name: "camera/image"
