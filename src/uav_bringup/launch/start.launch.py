@@ -10,7 +10,8 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
 
     # Package and file paths
-    pkg_share_bringup = get_package_share_directory('uav_bringup')
+    pkg_share_description = get_package_share_directory('uav_description')
+    pkg_share_gazebo_sim = get_package_share_directory('uav_gazebo_sim')
 
     # Launch argument to launch gazebo optionally
     with_gazebo_arg = DeclareLaunchArgument(
@@ -24,7 +25,7 @@ def generate_launch_description():
     display_uav = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([
-                pkg_share_bringup,
+                pkg_share_description,
                 'launch',
                 'display.launch.py'])))
     
@@ -32,17 +33,17 @@ def generate_launch_description():
     gazebo_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([
-                pkg_share_bringup,
+                pkg_share_gazebo_sim,
                 'launch',
                 'spawn_uav.launch.py'])),
         condition=IfCondition(with_gazebo)
     )
 
     # Launch joint state broadcaster
-    start_joint_state_broadcaster_cmd = ExecuteProcess(
-        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-            'joint_state_broadcaster'],
-            output='screen')
+    # start_joint_state_broadcaster_cmd = ExecuteProcess(
+    #     cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+    #         'joint_state_broadcaster'],
+    #         output='screen')
 
     # # Launch the joint state broadcaster after spawning the robot
     # load_joint_state_broadcaster_cmd = RegisterEventHandler(
