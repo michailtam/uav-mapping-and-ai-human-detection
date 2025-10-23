@@ -101,19 +101,19 @@
                     </horizontal>
                     
                     <!-- 2D Lidar settings -->
-                    <vertical>
+                    <!-- <vertical>
                         <samples>1</samples>
                         <resolution>1</resolution>
                         <min_angle>0.0</min_angle>
                         <max_angle>0.0</max_angle>
-                    </vertical>
+                    </vertical> -->
                     
                     <!-- 3D Lidar settings (PointCloud)-->
-                    <!-- <vertical>
+                    <vertical>
                         <samples>32</samples>
                         <min_angle>-0.5353</min_angle>
                         <max_angle>0.1862</max_angle>
-                    </vertical> -->
+                    </vertical>
                 </scan>
                 <range>
                     <min>0.15</min>                  
@@ -125,11 +125,11 @@
     </gazebo>
 
     <!-- Plugin for sensor handling -->
-    <!-- <gazebo>
+    <gazebo>
         <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
             <render_engine>ogre2</render_engine>
         </plugin>
-    </gazebo> -->
+    </gazebo>
 
     <!-- Enables the communication with ros2_control -->
     <!-- <gazebo>
