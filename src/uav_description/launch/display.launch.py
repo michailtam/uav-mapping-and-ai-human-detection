@@ -11,7 +11,7 @@ import xacro
 def generate_launch_description():
     # Package and file paths
     share_dir = get_package_share_directory('uav_description')
-    rviz_config_file = os.path.join(share_dir, 'rviz', 'display.rviz')
+    rviz_config_file = os.path.join(share_dir, 'rviz', 'display_sensors.rviz')
 
     # Create the robot_description from xacro file
     xacro_file = os.path.join(share_dir, 'urdf', 'uav.urdf.xacro') 
@@ -47,13 +47,15 @@ def generate_launch_description():
         condition=UnlessCondition(gui),
         package='joint_state_publisher',
         executable='joint_state_publisher',
-        name='joint_state_publisher'
+        name='joint_state_publisher',
+        parameters=[{'use_sim_time': use_sim_time}]
     )
     joint_state_publisher_gui_node = Node(
         condition=IfCondition(gui),
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
-        name='joint_state_publisher_gui'
+        name='joint_state_publisher_gui',
+        parameters=[{'use_sim_time': use_sim_time}]
     )
 
     # Create RViz node

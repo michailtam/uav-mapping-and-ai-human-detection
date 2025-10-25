@@ -12,6 +12,7 @@ def generate_launch_description():
     # Package and file paths
     pkg_share_description = get_package_share_directory('uav_description')
     pkg_share_gazebo_sim = get_package_share_directory('uav_gazebo_sim')
+    pkg_share_perception = get_package_share_directory('uav_perception')
 
     # Launch argument to launch gazebo optionally
     with_gazebo_arg = DeclareLaunchArgument(
@@ -39,6 +40,15 @@ def generate_launch_description():
         condition=IfCondition(with_gazebo)
     )
 
+    # Start mapping process using RTAB-Map 
+    rtabmap = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                pkg_share_perception,
+                'launch',
+                'rtabmap_mapping.launch.py'])),
+    )
+
     # Launch joint state broadcaster
     # start_joint_state_broadcaster_cmd = ExecuteProcess(
     #     cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
@@ -61,5 +71,6 @@ def generate_launch_description():
     ld.add_action(with_gazebo_arg)
     ld.add_action(display_uav)
     ld.add_action(gazebo_sim)
+    ld.add_action(rtabmap)
 
     return ld
