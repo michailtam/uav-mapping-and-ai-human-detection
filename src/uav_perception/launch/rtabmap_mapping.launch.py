@@ -35,7 +35,7 @@ def generate_launch_description():
     localization = LaunchConfiguration('localization')
 
     parameters={
-          'frame_id':'base_footprint',
+          'frame_id':'base_link',
           'subscribe_rgbd':True,
           'approx_sync':False, # odom is generated from images, so we can exactly sync all inputs
           'map_negative_poses_ignored':True,

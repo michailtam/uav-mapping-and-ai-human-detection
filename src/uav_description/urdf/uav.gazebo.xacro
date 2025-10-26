@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<robot name="uav_uav" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="uav" xmlns:xacro="http://ros.org/wiki/xacro">
 
     <!-- Base link -->
     <gazebo reference="base_link">
@@ -132,11 +132,11 @@
     </gazebo>
 
     <!-- Enables the communication with ros2_control -->
-    <!-- <gazebo>
-        <plugin name="gz_ros2_control::GazeboSimROS2ControlPlugin" filename="libgz_ros2_control-system.so">
-            <parameters>$(find uav_bringup)/config/uav_controllers.yaml</parameters>
-            <controller_manager_node_name>controller_manager</controller_manager_node_name>
+    <gazebo>
+        <plugin name="gz_ros2_control::GazeboSimROS2ControlPlugin" filename="gz_ros2_control-system">
+            <parameters>$(find uav_control)/config/uav_controllers.yaml</parameters>
+            <!-- <controller_manager_node_name>controller_manager</controller_manager_node_name> -->
         </plugin>
-    </gazebo> -->
+    </gazebo>
 
 </robot>
