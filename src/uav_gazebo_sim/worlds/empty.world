@@ -16,13 +16,8 @@
     <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
     <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
     
-    <!-- Plugin for handling sensors like the LIDAR -->
-    <!-- <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
-      <render_engine>ogre2</render_engine>
-    </plugin> -->
     <!-- Plugin for IMU -->
-    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
-    
+    <!-- <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/> -->
     
     <!-- <engine>
       <filename>gz-physics-bullet-featherstone-plugin.so</filename>

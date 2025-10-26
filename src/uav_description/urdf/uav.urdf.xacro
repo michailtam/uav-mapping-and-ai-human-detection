@@ -212,9 +212,8 @@
       link="front_prop_ccw_link" />
     <axis
       xyz="0 0 1" />
-    <limit
-      effort="100"
-      velocity="100" />
+    <limit effort="1000000" velocity="10000"/>
+    <dynamics damping="0.0" friction="0.0"/>
   </joint>
   <link
     name="back_prop_ccw_link">
@@ -268,9 +267,8 @@
       link="back_prop_ccw_link" />
     <axis
       xyz="0 0 1" />
-    <limit
-      effort="100"
-      velocity="100" />
+    <limit effort="1000000" velocity="10000"/>
+    <dynamics damping="0.0" friction="0.0"/>
   </joint>
   <link
     name="front_prop_cw_link">
@@ -324,9 +322,8 @@
       link="front_prop_cw_link" />
     <axis
       xyz="0 0 1" />
-    <limit
-      effort="100"
-      velocity="100" />
+    <limit effort="1000000" velocity="10000"/>
+    <dynamics damping="0.0" friction="0.0"/>
   </joint>
   <link
     name="back_prop_cw_link">
@@ -380,9 +377,8 @@
       link="back_prop_cw_link" />
     <axis
       xyz="0 0 1" />
-    <limit
-      effort="100"
-      velocity="100" />
+    <limit effort="1000000" velocity="10000"/>
+    <dynamics damping="0.0" friction="0.0"/>
   </joint>
   <link
     name="depth_camera_link">
