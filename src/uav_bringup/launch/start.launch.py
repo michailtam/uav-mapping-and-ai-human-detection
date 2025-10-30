@@ -11,7 +11,7 @@ def generate_launch_description():
     # Package and file paths
     pkg_share_description = get_package_share_directory('uav_description')
     pkg_share_gazebo_sim = get_package_share_directory('uav_gazebo_sim')
-    pkg_share_ros2_control = get_package_share_directory('uav_control')
+    pkg_share_ros2_control = get_package_share_directory('uav_ros2_control')
     pkg_share_perception = get_package_share_directory('uav_perception')
 
     # Declare launch arguments
@@ -49,19 +49,19 @@ def generate_launch_description():
         condition=IfCondition(with_gazebo)
     )
 
-    # Launch joint state broadcaster
-    launch_controllers = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([
-                pkg_share_ros2_control,
-                'launch',
-                'start_controllers.launch.py'])))
+    # # Launch joint state broadcaster
+    # launch_controllers = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         PathJoinSubstitution([
+    #             pkg_share_ros2_control,
+    #             'launch',
+    #             'start_controllers.launch.py'])))
     
-    # Launch controllers with a short delay after Gazebo to ensure the simulation is fully ready
-    delayed_launch_controllers = TimerAction(
-        period=controller_delay,
-        actions=[launch_controllers]
-    )
+    # # Launch controllers with a short delay after Gazebo to ensure the simulation is fully ready
+    # delayed_launch_controllers = TimerAction(
+    #     period=controller_delay,
+    #     actions=[launch_controllers]
+    # )
 
     # # Start mapping process using RTAB-Map 
     # rtabmap = IncludeLaunchDescription(
@@ -77,7 +77,7 @@ def generate_launch_description():
     ld.add_action(controller_delay_arg)
     ld.add_action(launch_display_uav)
     ld.add_action(launch_gazebo_sim)
-    ld.add_action(delayed_launch_controllers)
+    # ld.add_action(delayed_launch_controllers)
     # ld.add_action(rtabmap)
 
     return ld

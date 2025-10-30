@@ -6,9 +6,9 @@
 
   <xacro:include filename="$(find uav_description)/urdf/core.xacro"/>
   <xacro:include filename="$(find uav_description)/urdf/uav.gazebo.xacro"/>
-  <xacro:include filename="$(find uav_description)/urdf/uav.ros2_control.xacro"/>
+  <!-- <xacro:include filename="$(find uav_description)/urdf/uav.ros2_control.xacro"/> -->
   
-  <link name="base_footprint"/>
+  <!-- <link name="base_footprint"/> -->
 
   <link name="base_link">
     <inertial>
@@ -47,12 +47,12 @@
       </geometry>
     </collision>
   </link>
-  <joint name="base_footprint_joint"
+  <!-- <joint name="base_footprint_joint"
     type="fixed">
     <origin xyz="0 0 0" rpy="0 0 0" />
     <parent link="base_footprint" />
     <child link="base_link" />
-  </joint>
+  </joint> -->
   
   <link
     name="lidar_link">
@@ -107,6 +107,7 @@
     <axis
       xyz="0 0 0" />
   </joint>
+  
   <link
     name="gps_module_link">
     <inertial>
@@ -160,6 +161,7 @@
     <axis
       xyz="0 0 0" />
   </joint>
+
   <link
     name="front_prop_ccw_link">
     <inertial>
@@ -205,71 +207,17 @@
     type="continuous">
     <origin
       xyz="0.22481 -0.23326 0.086028"
-      rpy="-0.061392 0.0028205 -2.7734" />
+      rpy="0 0 0" />
     <parent
       link="base_link" />
     <child
       link="front_prop_ccw_link" />
     <axis
       xyz="0 0 1" />
-    <limit effort="1000000" velocity="10000"/>
+    <limit effort="1e12" velocity="1e12"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
-  <link
-    name="back_prop_ccw_link">
-    <inertial>
-      <origin
-        xyz="1.92448384979671E-05 -0.000547906471534965 0.00827249285044868"
-        rpy="0 0 0" />
-      <mass
-        value="0.0232876035112873" />
-      <inertia
-        ixx="7.81282403750946E-07"
-        ixy="-1.92967614763292E-06"
-        ixz="-5.83954145488408E-08"
-        iyy="2.83627824183673E-05"
-        iyz="-3.95754090522907E-08"
-        izz="2.90934055502375E-05" />
-    </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file://$(find uav_description)/meshes/back_prop_ccw_link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file://$(find uav_description)/meshes/back_prop_ccw_link.STL" />
-      </geometry>
-    </collision>
-  </link>
-  <joint
-    name="back_prop_ccw_joint"
-    type="continuous">
-    <origin
-      xyz="-0.2287 0.23276 0.086501"
-      rpy="-0.062752 0.0019097 -3.0845" />
-    <parent
-      link="base_link" />
-    <child
-      link="back_prop_ccw_link" />
-    <axis
-      xyz="0 0 1" />
-    <limit effort="1000000" velocity="10000"/>
-    <dynamics damping="0.0" friction="0.0"/>
-  </joint>
+
   <link
     name="front_prop_cw_link">
     <inertial>
@@ -315,16 +263,73 @@
     type="continuous">
     <origin
       xyz="0.23106 0.22649 0.090005"
-      rpy="-0.0032394 0.0041761 -2.9988" />
+      rpy="0 0 0" />
     <parent
       link="base_link" />
     <child
       link="front_prop_cw_link" />
     <axis
       xyz="0 0 1" />
-    <limit effort="1000000" velocity="10000"/>
+    <limit effort="1e12" velocity="1e12"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
+
+  <link
+    name="back_prop_ccw_link">
+    <inertial>
+      <origin
+        xyz="1.92448384979671E-05 -0.000547906471534965 0.00827249285044868"
+        rpy="0 0 0" />
+      <mass
+        value="0.0232876035112873" />
+      <inertia
+        ixx="7.81282403750946E-07"
+        ixy="-1.92967614763292E-06"
+        ixz="-5.83954145488408E-08"
+        iyy="2.83627824183673E-05"
+        iyz="-3.95754090522907E-08"
+        izz="2.90934055502375E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(find uav_description)/meshes/back_prop_ccw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(find uav_description)/meshes/back_prop_ccw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="back_prop_ccw_joint"
+    type="continuous">
+    <origin
+      xyz="-0.2287 0.23276 0.086501"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="back_prop_ccw_link" />
+    <axis
+      xyz="0 0 1" />
+    <limit effort="1e12" velocity="1e12"/>
+    <dynamics damping="0.0" friction="0.0"/>
+  </joint>
+
   <link
     name="back_prop_cw_link">
     <inertial>
@@ -370,16 +375,17 @@
     type="continuous">
     <origin
       xyz="-0.23496 -0.22701 0.086701"
-      rpy="-0.003654 0.0038186 -3.1024" />
+      rpy="0 0 0" />
     <parent
       link="base_link" />
     <child
       link="back_prop_cw_link" />
     <axis
       xyz="0 0 1" />
-    <limit effort="1000000" velocity="10000"/>
+    <limit effort="1e12" velocity="1e12"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
+
   <link
     name="depth_camera_link">
     <inertial>

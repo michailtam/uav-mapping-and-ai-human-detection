@@ -9,3 +9,7 @@ Logs/
 
 # Exclude Gazebo folders
 #**/models
+
+# Exclude PX4 and related packages
+**/PX4-Autopilot
+**/Micro-XRCE-DDS-Agent
