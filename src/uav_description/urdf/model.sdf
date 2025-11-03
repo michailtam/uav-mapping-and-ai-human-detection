@@ -6,7 +6,7 @@
 
     <link name="base_link">
       <inertial>
-        <pose>2.6617478616886889e-05 -0.0067590597625977302 0.0079619913088006446 0 0 0</pose>
+        <pose>0 0 0 0 0 0</pose>
         <mass>3.0871299224127111</mass>
         <inertia>
           <ixx>0.0057000452252874154</ixx>
@@ -17,10 +17,8 @@
           <izz>0.0085467646528533062</izz>
         </inertia>
       </inertial>
-
-      <!-- Compact body collision ONLY (no arm/sensor meshes) -->
       <collision name="base_link_collision">
-        <pose>0 0 0 0 0 0</pose>
+        <pose>0 0 -0.26 0 0 0</pose>  <!-- NOTE: Adjust the pose according to the word surface-->
         <geometry>
           <cylinder>
             <!-- tune to your frame size; small footprint so the craft can lift cleanly -->
@@ -29,17 +27,29 @@
           </cylinder>
         </geometry>
         <surface>
-          <contact><ode/></contact>
-          <friction><ode><mu>0.7</mu><mu2>0.7</mu2></ode></friction>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode><mu>0.7</mu>
+              <mu2>0.7</mu2>
+            </ode>
+          </friction>
         </surface>
       </collision>
-
-      <!-- Visuals (unchanged) -->
       <visual name="base_link_visual">
         <pose>0 0 0 0 0 0</pose>
-        <geometry><mesh><scale>1 1 1</scale><uri>model://x650/meshes/base_link.stl</uri></mesh></geometry>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/base_link.stl</uri>
+          </mesh>
+        </geometry>
         <material>
-          <script><name>Gazebo/Grey</name><uri>file://media/materials/scripts/gazebo.material</uri></script>
+          <script>
+            <name>Gazebo/Grey</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
           <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
           <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
         </material>
@@ -47,9 +57,17 @@
 
       <visual name="base_link_fixed_joint_lump__depth_camera_link_visual_1">
         <pose>0.13758 -0.00058142 -0.0090308 -3.1377 -0.0036204 -0.013619</pose>
-        <geometry><mesh><scale>1 1 1</scale><uri>model://x650/meshes/depth_camera_link.stl</uri></mesh></geometry>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/depth_camera_link.stl</uri>
+          </mesh>
+        </geometry>
         <material>
-          <script><name>Gazebo/White</name><uri>file://media/materials/scripts/gazebo.material</uri></script>
+          <script>
+            <name>Gazebo/White</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
           <diffuse>1 1 1 0.349999994</diffuse>
           <ambient>1 1 1 0.349999994</ambient>
         </material>
@@ -57,9 +75,17 @@
 
       <visual name="base_link_fixed_joint_lump__gps_module_link_visual_2">
         <pose>-0.13598 0.0015189 0.10049 0.0025723 0.004617 -1.8307</pose>
-        <geometry><mesh><scale>1 1 1</scale><uri>model://x650/meshes/gps_module_link.stl</uri></mesh></geometry>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/gps_module_link.stl</uri>
+          </mesh>
+        </geometry>
         <material>
-          <script><name>Gazebo/Black</name><uri>file://media/materials/scripts/gazebo.material</uri></script>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
           <diffuse>1 1 1 0.349999994</diffuse>
           <ambient>1 1 1 0.349999994</ambient>
         </material>
@@ -67,9 +93,17 @@
 
       <visual name="base_link_fixed_joint_lump__lidar_link_visual_3">
         <pose>-0.00044268 -0.00016922 0.12747 0.0038504 -0.0036204 -0.013619</pose>
-        <geometry><mesh><scale>1 1 1</scale><uri>model://x650/meshes/lidar_link.stl</uri></mesh></geometry>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/lidar_link.stl</uri>
+          </mesh>
+        </geometry>
         <material>
-          <script><name>Gazebo/DarkGrey</name><uri>file://media/materials/scripts/gazebo.material</uri></script>
+          <script>
+            <name>Gazebo/DarkGrey</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
           <diffuse>1 1 1 0.349999994</diffuse>
           <ambient>1 1 1 0.349999994</ambient>
         </material>
@@ -77,14 +111,17 @@
 
       <gravity>true</gravity>
 
-      <!-- Sensors (unchanged – publish on defaults PX4 expects) -->
+      <!-- Sensors -->
       <sensor name="air_pressure_sensor" type="air_pressure">
         <pose relative_to="base_link">0 0 0 0 0 0</pose>
         <always_on>1</always_on>
         <update_rate>75</update_rate>
         <air_pressure>
           <pressure>
-            <noise type="gaussian"><mean>0</mean><stddev>3</stddev></noise>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>3</stddev>
+            </noise>
           </pressure>
         </air_pressure>
       </sensor>
@@ -94,9 +131,21 @@
         <always_on>1</always_on>
         <update_rate>50</update_rate>
         <magnetometer>
-          <x><noise type="gaussian"><stddev>0.0001</stddev></noise></x>
-          <y><noise type="gaussian"><stddev>0.0001</stddev></noise></y>
-          <z><noise type="gaussian"><stddev>0.0001</stddev></noise></z>
+          <x>
+            <noise type="gaussian">
+              <stddev>0.0001</stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian">
+              <stddev>0.0001</stddev>
+            </noise>
+          </y>
+          <z>
+            <noise type="gaussian">
+              <stddev>0.0001</stddev>
+            </noise>
+          </z>
         </magnetometer>
       </sensor>
 
@@ -106,14 +155,44 @@
         <update_rate>400</update_rate>
         <imu>
           <angular_velocity>
-            <x><noise type="gaussian"><mean>0.0</mean><stddev>0.0008726646</stddev></noise></x>
-            <y><noise type="gaussian"><mean>0.0</mean><stddev>0.0008726646</stddev></noise></y>
-            <z><noise type="gaussian"><mean>0.0</mean><stddev>0.0008726646</stddev></noise></z>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0008726646</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0008726646</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0008726646</stddev>
+              </noise>
+            </z>
           </angular_velocity>
           <linear_acceleration>
-            <x><noise type="gaussian"><mean>0.0</mean><stddev>0.00637</stddev></noise></x>
-            <y><noise type="gaussian"><mean>0.0</mean><stddev>0.00637</stddev></noise></y>
-            <z><noise type="gaussian"><mean>0.0</mean><stddev>0.00686</stddev></noise></z>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.00637</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.00637</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.00686</stddev>
+              </noise>
+            </z>
           </linear_acceleration>
         </imu>
       </sensor>
@@ -125,13 +204,20 @@
         <navsat/>
       </sensor>
 
-      <!-- RGB-D camera (visual-only; no collision) -->
+      <!-- RGB-D camera -->
       <sensor name="rgbd_cam" type="rgbd_camera">
         <pose>0.13758 -0.00058142 -0.0090308 -3.1377 -0.0036204 -0.013619</pose>
         <camera>
           <horizontal_fov>1.5184</horizontal_fov>
-          <image><width>600</width><height>480</height><format>RGB_INT8</format></image>
-          <clip><near>0.6</near><far>6</far></clip>
+          <image>
+            <width>600</width>
+            <height>480</height>
+            <format>RGB_INT8</format>
+          </image>
+          <clip>
+            <near>0.6</near>
+            <far>6</far>
+          </clip>
         </camera>
         <always_on>true</always_on>
         <topic>camera</topic>
@@ -139,7 +225,7 @@
         <visualize>true</visualize>
       </sensor>
 
-      <!-- 2D LiDAR (no collision) -->
+      <!-- 2D LiDAR -->
       <sensor name="laser_sensor" type="gpu_lidar">
         <pose>-0.00044268 -0.00016922 0.12747 0.0038504 -0.0036204 -0.013619</pose>
         <topic>scan</topic>
@@ -154,9 +240,18 @@
               <min_angle>-3.14159</min_angle>
               <max_angle>3.14159</max_angle>
             </horizontal>
-            <vertical><samples>1</samples><resolution>1</resolution><min_angle>0</min_angle><max_angle>0</max_angle></vertical>
+            <vertical>
+              <samples>1</samples>
+              <resolution>1</resolution>
+              <min_angle>0</min_angle>
+              <max_angle>0</max_angle>
+            </vertical>
           </scan>
-          <range><min>0.15</min><max>6</max><resolution>0.001</resolution></range>
+          <range>
+            <min>0.15</min>
+            <max>6</max>
+            <resolution>0.001</resolution>
+          </range>
         </lidar>
       </sensor>
     </link>
@@ -164,12 +259,22 @@
     <!-- Motors -->
     <joint name="front_prop_cw_joint" type="revolute">
       <pose relative_to="base_link">0.23106 0.22649 0.090005 0 0 0</pose>
-      <parent>base_link</parent><child>front_prop_cw_link</child>
-      <axis><xyz>0 0 1</xyz><limit><effort>1000000000000</effort><velocity>1000000000000</velocity><lower>-inf</lower><upper>inf</upper></limit>
-        <dynamics><damping>0</damping><friction>0</friction></dynamics>
+      <parent>base_link</parent>
+      <child>front_prop_cw_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <effort>1000000000000</effort>
+          <velocity>1000000000000</velocity>
+          <lower>-inf</lower>
+          <upper>inf</upper>
+        </limit>
+        <dynamics>
+          <damping>0</damping>
+          <friction>0</friction>
+        </dynamics>
       </axis>
     </joint>
-
     <link name="front_prop_cw_link">
       <pose relative_to="front_prop_cw_joint">0 0 0 0 0 0</pose>
       <inertial>
@@ -192,13 +297,28 @@
             <length>0.005</length>
           </cylinder>
         </geometry>
-        <surface><contact><ode/></contact><friction><ode/></friction></surface>
+        <surface>
+          <contact>
+          <ode/>
+        </contact>
+        <friction>
+          <ode/>
+        </friction>
+      </surface>
       </collision>
       <visual name="front_prop_cw_link_visual">
         <pose>0 0 0 0 0 0</pose>
-        <geometry><mesh><scale>1 1 1</scale><uri>model://x650/meshes/front_prop_cw_link.stl</uri></mesh></geometry>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/front_prop_cw_link.stl</uri>
+          </mesh>
+        </geometry>
         <material>
-          <script><name>Gazebo/Black</name><uri>file://media/materials/scripts/gazebo.material</uri></script>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
           <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
           <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
         </material>
@@ -208,12 +328,22 @@
 
     <joint name="back_prop_cw_joint" type="revolute">
       <pose relative_to="base_link">-0.23496 -0.22701 0.086701 0 0 0</pose>
-      <parent>base_link</parent><child>back_prop_cw_link</child>
-      <axis><xyz>0 0 1</xyz><limit><effort>1000000000000</effort><velocity>1000000000000</velocity><lower>-inf</lower><upper>inf</upper></limit>
-        <dynamics><damping>0</damping><friction>0</friction></dynamics>
+      <parent>base_link</parent>
+      <child>back_prop_cw_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <effort>1000000000000</effort>
+          <velocity>1000000000000</velocity>
+          <lower>-inf</lower>
+          <upper>inf</upper>
+        </limit>
+        <dynamics>
+          <damping>0</damping>
+          <friction>0</friction>
+        </dynamics>
       </axis>
     </joint>
-
     <link name="back_prop_cw_link">
       <pose relative_to="back_prop_cw_joint">0 0 0 0 0 0</pose>
       <inertial>
@@ -236,28 +366,55 @@
             <length>0.005</length>
           </cylinder>
         </geometry>
-        <surface><contact><ode/></contact><friction><ode/></friction></surface>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode/>
+          </friction>
+        </surface>
       </collision>
       <visual name="back_prop_cw_link_visual">
         <pose>0 0 0 0 0 0</pose>
-        <geometry><mesh><scale>1 1 1</scale><uri>model://x650/meshes/back_prop_cw_link.stl</uri></mesh></geometry>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/back_prop_cw_link.stl</uri>
+          </mesh>
+        </geometry>
         <material>
-          <script><name>Gazebo/Black</name><uri>file://media/materials/scripts/gazebo.material</uri></script>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
           <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
           <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
         </material>
       </visual>
-      <gravity>false</gravity><self_collide>false</self_collide><enable_wind>false</enable_wind>
+      <gravity>false</gravity>
+      <self_collide>false</self_collide>
+      <enable_wind>false</enable_wind>
     </link>
 
     <joint name="front_prop_ccw_joint" type="revolute">
       <pose relative_to="base_link">0.22481 -0.23326 0.086028 0 0 0</pose>
-      <parent>base_link</parent><child>front_prop_ccw_link</child>
-      <axis><xyz>0 0 1</xyz><limit><effort>1000000000000</effort><velocity>1000000000000</velocity><lower>-inf</lower><upper>inf</upper></limit>
-        <dynamics><damping>0</damping><friction>0</friction></dynamics>
+      <parent>base_link</parent>
+      <child>front_prop_ccw_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <effort>1000000000000</effort>
+          <velocity>1000000000000</velocity>
+          <lower>-inf</lower>
+          <upper>inf</upper>
+        </limit>
+        <dynamics>
+          <damping>0</damping>
+          <friction>0</friction>
+        </dynamics>
       </axis>
     </joint>
-
     <link name="front_prop_ccw_link">
       <pose relative_to="front_prop_ccw_joint">0 0 0 0 0 0</pose>
       <inertial>
@@ -280,28 +437,54 @@
             <length>0.005</length>
           </cylinder>
         </geometry>
-        <surface><contact><ode/></contact><friction><ode/></friction></surface>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode/>
+          </friction>
+        </surface>
       </collision>
       <visual name="front_prop_ccw_link_visual">
         <pose>0 0 0 0 0 0</pose>
-        <geometry><mesh><scale>1 1 1</scale><uri>model://x650/meshes/front_prop_ccw_link.stl</uri></mesh></geometry>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/front_prop_ccw_link.stl</uri>
+          </mesh>
+        </geometry>
         <material>
-          <script><name>Gazebo/Black</name><uri>file://media/materials/scripts/gazebo.material</uri></script>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
           <diffuse>0.941174984 0.941174984 0.941174984 1</diffuse>
           <ambient>0.941174984 0.941174984 0.941174984 1</ambient>
         </material>
       </visual>
-      <gravity>false</gravity><self_collide>false</self_collide><enable_wind>false</enable_wind>
+      <gravity>false</gravity>
+      <self_collide>false</self_collide>
+      <enable_wind>false</enable_wind>
     </link>
 
     <joint name="back_prop_ccw_joint" type="revolute">
       <pose relative_to="base_link">-0.2287 0.23276 0.086501 0 0 0</pose>
       <parent>base_link</parent><child>back_prop_ccw_link</child>
-      <axis><xyz>0 0 1</xyz><limit><effort>1000000000000</effort><velocity>1000000000000</velocity><lower>-inf</lower><upper>inf</upper></limit>
-        <dynamics><damping>0</damping><friction>0</friction></dynamics>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <effort>1000000000000</effort>
+          <velocity>1000000000000</velocity>
+          <lower>-inf</lower>
+          <upper>inf</upper>
+        </limit>
+        <dynamics>
+          <damping>0</damping>
+          <friction>0</friction>
+        </dynamics>
       </axis>
     </joint>
-
     <link name="back_prop_ccw_link">
       <pose relative_to="back_prop_ccw_joint">0 0 0 0 0 0</pose>
       <inertial>
@@ -325,56 +508,109 @@
             <length>0.005</length>
           </cylinder>
         </geometry>
-        <surface><contact><ode/></contact><friction><ode/></friction></surface>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode/>
+          </friction>
+        </surface>
       </collision>
       <visual name="back_prop_ccw_link_visual">
         <pose>0 0 0 0 0 0</pose>
-        <geometry><mesh><scale>1 1 1</scale><uri>model://x650/meshes/back_prop_ccw_link.stl</uri></mesh></geometry>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/back_prop_ccw_link.stl</uri>
+          </mesh>
+        </geometry>
         <material>
-          <script><name>Gazebo/Black</name><uri>file://media/materials/scripts/gazebo.material</uri></script>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
           <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
           <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
         </material>
       </visual>
-      <gravity>false</gravity><self_collide>false</self_collide><enable_wind>false</enable_wind>
+      <gravity>false</gravity>
+      <self_collide>false</self_collide>
+      <enable_wind>false</enable_wind>
     </link>
 
     <!-- Multicopter motor plugins -->
+    
+    <!-- PX4 motor 1: FRONT RIGHT, CCW -->
     <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
-      <jointName>front_prop_cw_joint</jointName><linkName>front_prop_cw_link</linkName>
-      <turningDirection>cw</turningDirection>
-      <timeConstantUp>0.0125</timeConstantUp><timeConstantDown>0.025</timeConstantDown>
-      <maxRotVelocity>1200</maxRotVelocity><motorConstant>3.0e-05</motorConstant><momentConstant>0.016</momentConstant>
-      <commandSubTopic>command/motor_speed</commandSubTopic><motorNumber>2</motorNumber>
-      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient><rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim><motorType>velocity</motorType>
-    </plugin>
-    <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
-      <jointName>back_prop_cw_joint</jointName><linkName>back_prop_cw_link</linkName>
-      <turningDirection>cw</turningDirection>
-      <timeConstantUp>0.0125</timeConstantUp><timeConstantDown>0.025</timeConstantDown>
-      <maxRotVelocity>1200</maxRotVelocity><motorConstant>3.0e-05</motorConstant><momentConstant>0.016</momentConstant>
-      <commandSubTopic>command/motor_speed</commandSubTopic><motorNumber>3</motorNumber>
-      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient><rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim><motorType>velocity</motorType>
-    </plugin>
-    <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
-      <jointName>back_prop_ccw_joint</jointName><linkName>back_prop_ccw_link</linkName>
+      <jointName>front_prop_ccw_joint</jointName>      <!-- your front-right -->
+      <linkName>front_prop_ccw_link</linkName>
       <turningDirection>ccw</turningDirection>
-      <timeConstantUp>0.0125</timeConstantUp><timeConstantDown>0.025</timeConstantDown>
-      <maxRotVelocity>1200</maxRotVelocity><motorConstant>3.0e-05</motorConstant><momentConstant>0.016</momentConstant>
-      <commandSubTopic>command/motor_speed</commandSubTopic><motorNumber>1</motorNumber>
-      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient><rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim><motorType>velocity</motorType>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>1200</maxRotVelocity>
+      <motorConstant>3.0e-05</motorConstant>
+      <momentConstant>0.016</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>0</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
+      <motorType>velocity</motorType>
     </plugin>
+
+    <!-- PX4 motor 2: BACK LEFT, CCW -->
     <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
-      <jointName>front_prop_ccw_joint</jointName><linkName>front_prop_ccw_link</linkName>
+      <jointName>back_prop_ccw_joint</jointName>      <!-- your back-left -->
+      <linkName>back_prop_ccw_link</linkName>
       <turningDirection>ccw</turningDirection>
-      <timeConstantUp>0.0125</timeConstantUp><timeConstantDown>0.025</timeConstantDown>
-      <maxRotVelocity>1200</maxRotVelocity><motorConstant>3.0e-05</motorConstant><momentConstant>0.016</momentConstant>
-      <commandSubTopic>command/motor_speed</commandSubTopic><motorNumber>0</motorNumber>
-      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient><rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim><motorType>velocity</motorType>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>1200</maxRotVelocity>
+      <motorConstant>3.0e-05</motorConstant>
+      <momentConstant>0.016</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>1</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <!-- PX4 motor 3: FRONT LEFT, CW -->
+    <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
+      <jointName>front_prop_cw_joint</jointName>     <!-- your front-left -->
+      <linkName>front_prop_cw_link</linkName>
+      <turningDirection>cw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>1200</maxRotVelocity>
+      <motorConstant>3.0e-05</motorConstant>
+      <momentConstant>0.016</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>2</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <!-- PX4 motor 4: BACK RIGHT, CW -->
+    <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
+      <jointName>back_prop_cw_joint</jointName>       <!-- your back-right -->
+      <linkName>back_prop_cw_link</linkName>
+      <turningDirection>cw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>1200</maxRotVelocity>
+      <motorConstant>3.0e-05</motorConstant>
+      <momentConstant>0.016</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>3</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
+      <motorType>velocity</motorType>
     </plugin>
 
     <!-- Frames -->

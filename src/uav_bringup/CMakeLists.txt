@@ -15,8 +15,14 @@ find_package(xacro REQUIRED)
 
 # install the packages
 install(
-  DIRECTORY config launch
+  DIRECTORY config launch sh
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  PROGRAMS
+    sh/run_x650_gz.sh
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
