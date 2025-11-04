@@ -15,9 +15,15 @@ find_package(px4_msgs REQUIRED)
 add_executable(px4_ctrl src/px4_ctrl.cpp)
 ament_target_dependencies(px4_ctrl px4_msgs rclcpp)
 
+# Install the packages and executables
 install(TARGETS
   px4_ctrl
   DESTINATION lib/${PROJECT_NAME})
+
+install(
+  DIRECTORY launch 
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -13,6 +13,7 @@ FCUControl::FCUControl() : Node("fcu_ctrl") {
     while (!cmdClient_->wait_for_service(1s)) {
         if (!rclcpp::ok()) {
             RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service. Exiting.");
+            arm();
             return;
         }
         RCLCPP_INFO(this->get_logger(), "Service not available, waiting again...");
@@ -59,7 +60,7 @@ void FCUControl::publishOffBoardCtrlMode() {
 }
 
 void FCUControl::arm() {
-  RCLCPP_INFO(this->get_logger(), "UAV arming...");	
+  RCLCPP_INFO(this->get_logger(), "Arming...");	
   sendCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, VehicleCommand::ARMING_ACTION_ARM, 0.0);
 }
 
@@ -92,7 +93,7 @@ void FCUControl::sendCommand(uint16_t command, float param1, float param2) {
 // Programm execution
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<FCUControl>();    
+  auto node = std::make_shared<FCUControl>();
   rclcpp::shutdown();
   return 0;
 }

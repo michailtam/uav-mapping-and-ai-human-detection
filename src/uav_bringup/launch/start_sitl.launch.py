@@ -1,16 +1,10 @@
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess
-from ament_index_python.packages import get_package_prefix
-import os
+from launch.actions import ExecuteProcess, LogInfo
+from launch.substitutions import PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
+
 
 def generate_launch_description():
-    prefix = get_package_prefix('uav_bringup')
-    script_path = os.path.join(prefix, 'lib', 'uav_bringup', 'run_x650_gz.sh')
-
-    return LaunchDescription([
-        ExecuteProcess(
-            cmd=[script_path],
-            output='screen',
-            shell=False
-        )
-    ])
+    
+    ld = LaunchDescription()
+    return ld
