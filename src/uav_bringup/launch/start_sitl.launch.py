@@ -1,11 +1,6 @@
-import os
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration
-from launch.actions import ExecuteProcess, RegisterEventHandler, IncludeLaunchDescription
-from launch_ros.actions import Node
-from launch.event_handlers import OnShutdown, OnProcessExit
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import PathJoinSubstitution
+from launch.actions import ExecuteProcess, RegisterEventHandler
+from launch.event_handlers import OnShutdown
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -22,7 +17,7 @@ def generate_launch_description():
     )
 
     # Stop the XRCE-DDS agent before shutdown
-    kill_agent_on_shutdown = RegisterEventHandler(
+    kill_agent_on_shutdown_proc = RegisterEventHandler(
         event_handler=OnShutdown(
             on_shutdown=[ExecuteProcess(
                 cmd=['pkill', '-f', 'MicroXRCEAgent'], 
@@ -38,18 +33,17 @@ def generate_launch_description():
         shell=True
     )
 
-    # Load ros2_control controllers
-    gazebo_pkg_include_sim = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([
-                pkg_share_uav_gazebo_sim, 
-                'launch', 
-                'spawn_uav.launch.py']),
-            ))
+    # gazebo_pkg_include_sim = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         PathJoinSubstitution([
+    #             pkg_share_uav_gazebo_sim, 
+    #             'launch', 
+    #             'start_ros_gz_bridge.launch.py']),
+    #         ))
     
     ld = LaunchDescription()
     ld.add_action(px4_agent_proc)
-    ld.add_action(kill_agent_on_shutdown)
+    ld.add_action(kill_agent_on_shutdown_proc)
     ld.add_action(px4_autopilot_proc)
-    ld.add_action(gazebo_pkg_include_sim)
+    # ld.add_action(gazebo_pkg_include_sim)
     return ld

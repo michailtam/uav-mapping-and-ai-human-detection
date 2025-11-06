@@ -15,7 +15,7 @@ find_package(xacro REQUIRED)
 
 # install the packages
 install(
-  DIRECTORY config launch
+  DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
 

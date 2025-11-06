@@ -40,13 +40,13 @@ def generate_launch_description():
         output='screen'
     )
 
-    # The bridge for cameras    
+    # The bridge for cameras
     gazebo_ros_image_bridge_cmd = Node(
         package='ros_gz_image',
         executable='image_bridge',
         arguments=[
           '/camera/depth_image',
-          '/camera/image',
+          '/camera/image'
         ],
         remappings=[
           ('/camera/depth_image', '/camera/depth/image_rect_raw'),

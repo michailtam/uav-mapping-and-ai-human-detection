@@ -51,17 +51,17 @@ void FCUControl::publishOffBoardCtrlMode() {
     controlling the desired position. 
     NOTE: To avoid interruptions, start this as a thread at 1 Hz.
     */
-    rclcpp::Rate loop_rate(1);
+    rclcpp::Rate loop_rate(50);
     
     while( rclcpp::ok() ) {
-        OffboardControlMode msg{};
-        msg.position = true;
-        msg.velocity = false;
-        msg.acceleration = false;
-        msg.attitude = false;
-        msg.body_rate = false;
-        msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-    	offboardCtrlModePub_->publish(msg);
+        OffboardControlMode mode{};
+        mode.position = true;
+        mode.velocity = false;
+        mode.acceleration = false;
+        mode.attitude = false;
+        mode.body_rate = false;
+        mode.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+    	offboardCtrlModePub_->publish(mode);
         loop_rate.sleep();
     }
 }
@@ -127,7 +127,7 @@ void FCUControl::flyTo(float x, float y, float z) {
     double time_step = 1.0/10.0; 
     std::vector<Point3D> trajectory = planTrajectory(start, end, v_max, time_step);
     px4_msgs::msg::TrajectorySetpoint msg{};
-    rclcpp::Rate loop_rate(10);
+    rclcpp::Rate loop_rate(50);     // 50 Hz
 
     for (const auto& point : trajectory) {
         msg.position = {point.x, point.y, point.z};
@@ -199,7 +199,9 @@ void FCUControl::run() {
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<FCUControl>();
+//   node->arm();
+  node->takeOff();
   node->run();
-  rclcpp::shutdown();
+//   rclcpp::shutdown();
   return 0;
 }
