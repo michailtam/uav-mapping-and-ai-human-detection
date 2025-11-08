@@ -21,29 +21,42 @@ struct Point3D {
     double x, y, z;
 };
 
-class FCUControl : public rclcpp::Node
+class OffboardControl : public rclcpp::Node
 {
 public:
-    FCUControl();
-    void sendCommand(uint16_t command, float param1, float param2);
-    void srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future);
+    OffboardControl();
+    void switchToOffboardMode();
+    void arm();
+    void disarm();
+    // void takeOff();
+    // void flyTo(float x, float y, float z);
+    void run();
     void poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
     std::vector<Point3D> planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step);
     double calculateDistance(const Point3D& start, const Point3D& end);
-    void publishOffBoardCtrlMode();
-    void arm();
-    void disarm();
-    void takeOff();
-    void flyTo(float x, float y, float z);
-    void run();
 
 private:
-    rclcpp::Publisher<OffboardControlMode>::SharedPtr offboardCtrlModePub_;
-    // rclcpp::Publisher<TrajectorySetpoint>::SharedPtr setpointPublisher_;
-    rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr cmdClient_;
-    rclcpp::Publisher<TrajectorySetpoint>::SharedPtr traj_cmd_pub_;
-    std::atomic<bool> action_done_{false};
-    rclcpp::Subscription<px4_msgs::msg::VehicleLocalPosition>::SharedPtr uavPoseSub_;
+    void publishOffboardControlMode();
+    void publishTrajectorySetpoint();
+    void sendVehicleCommand(uint16_t command, float param1, float param2);
+    void srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future);
+    void timerCallback(void);
+
+    enum class State{
+		init,
+		offboard_requested,
+		wait_for_stable_offboard_mode,
+		arm_requested,
+		armed
+	} state_;
+
+	uint8_t service_result_;
+	bool service_done_;
+	rclcpp::TimerBase::SharedPtr timer_;
+
+    rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_ctrl_mode_pub_;
+    rclcpp::Publisher<TrajectorySetpoint>::SharedPtr traj_setpoint_pub_;
+    rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
     
     float curr_x_;
     float curr_y_;

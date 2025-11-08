@@ -1,21 +1,26 @@
 #include "px4_ctrl.h"
 
 
-FCUControl::FCUControl() : Node("fcu_ctrl") {
+OffboardControl::OffboardControl() : Node("fcu_ctrl"), state_{State::init}, service_result_{0}, service_done_{false} {
+
+    // Create the offboard control mode and trajectory publisher
+    offboard_ctrl_mode_pub_ = this->create_publisher<px4_msgs::msg::OffboardControlMode>("/fmu/in/offboard_control_mode", 10);
+    traj_setpoint_pub_ = this->create_publisher<px4_msgs::msg::TrajectorySetpoint>("/fmu/in/trajectory_setpoint", 10);
+    
     // Create the service for changing the control mode
-    cmdClient_ = create_client<px4_msgs::srv::VehicleCommand>("/fmu/vehicle_command");
-    // Publish a trigger to enable offboard control mode
-    // trajectoryPub_ = create_publisher<px4_msgs::msg::TrajectorySetpoint>("/fmu/in/trajectory_setpoint", 10);
-    offboardCtrlModePub_ = create_publisher<px4_msgs::msg::OffboardControlMode>("fmu/in/offboard_control_mode", 10);
+    RCLCPP_INFO(this->get_logger(), "Starting Offboard Control with PX4 services");
+    vehicle_cmd_client_ = this->create_client<px4_msgs::srv::VehicleCommand>("/fmu/vehicle_command");
 
     // Before proceeding wait until the service is available
-    while (!cmdClient_->wait_for_service(1s)) {
+    while (!vehicle_cmd_client_->wait_for_service(1s)) {
         if (!rclcpp::ok()) {
             RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service. Exiting.");
             return;
         }
         RCLCPP_INFO(this->get_logger(), "Service not available, waiting again...");
     }
+
+    timer_ = this->create_wall_timer(100ms, std::bind(&OffboardControl::timerCallback, this));
     
     // To receive the estimated position in a local frame in Cartesian space, 
     // to correctly receive the topic, set the quality of service first
@@ -25,27 +30,65 @@ FCUControl::FCUControl() : Node("fcu_ctrl") {
     qos_profile.reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
     qos_profile.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
     qos_profile.liveliness(RMW_QOS_POLICY_LIVELINESS_AUTOMATIC);
-    qos_profile.history(RMW_QOS_POLICY_HISTORY_KEEP_LAST);  // Depth could be set here
+    qos_profile.history(RMW_QOS_POLICY_HISTORY_KEEP_LAST);
     qos_profile.keep_last(10);  
 }
 
-void FCUControl::srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future) {
-    /*
-    Callback function which waits for the service to return with a value. When
-    it returns, this means that the requested command was executed.
-    */
+void OffboardControl::switchToOffboardMode() {
+    /**
+     * @brief Send a command to switch to offboard mode 
+     */
+    RCLCPP_INFO(this->get_logger(), "Requesting switch to Offboard mode");
+	sendVehicleCommand(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
+}
+
+void OffboardControl::srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future) {
+    /**
+     * @brief Callback function which waits for the service to return with a value. When it returns, 
+     * this means that the requested command was executed.
+     */
     auto status = future.wait_for(1s);
-    if (status == std::future_status::ready) {
+    if (status == std::future_status::ready) 
+    {
         auto reply = future.get()->reply;
         uint8_t service_result_ = reply.result;
-        RCLCPP_INFO(this->get_logger(), "Service replied successfully with %d", service_result_);  
+        RCLCPP_INFO(this->get_logger(), "Service replied successfully with %d", service_result_);
+
+        switch (service_result_)
+		{
+		case reply.VEHICLE_CMD_RESULT_ACCEPTED:
+			RCLCPP_INFO(this->get_logger(), "command accepted");
+			break;
+		case reply.VEHICLE_CMD_RESULT_TEMPORARILY_REJECTED:
+			RCLCPP_WARN(this->get_logger(), "command temporarily rejected");
+			break;
+		case reply.VEHICLE_CMD_RESULT_DENIED:
+			RCLCPP_WARN(this->get_logger(), "command denied");
+			break;
+		case reply.VEHICLE_CMD_RESULT_UNSUPPORTED:
+			RCLCPP_WARN(this->get_logger(), "command unsupported");
+			break;
+		case reply.VEHICLE_CMD_RESULT_FAILED:
+			RCLCPP_WARN(this->get_logger(), "command failed");
+			break;
+		case reply.VEHICLE_CMD_RESULT_IN_PROGRESS:
+			RCLCPP_WARN(this->get_logger(), "command in progress");
+			break;
+		case reply.VEHICLE_CMD_RESULT_CANCELLED:
+			RCLCPP_WARN(this->get_logger(), "command cancelled");
+			break;
+		default:
+			RCLCPP_WARN(this->get_logger(), "command reply unknown");
+			break;
+		}
+        service_done_ = true;
     } 
     else {
-        RCLCPP_INFO(this->get_logger(), "Service still in-progress...");  
+        RCLCPP_INFO(this->get_logger(), "Service In-Progress...");  
     }
 }
 
-void FCUControl::publishOffBoardCtrlMode() {
+void OffboardControl::publishOffboardControlMode() {
     /*
     Specify the kinds of input data. For example, in this case enable the offboard control mode, 
     controlling the desired position. 
@@ -61,12 +104,24 @@ void FCUControl::publishOffBoardCtrlMode() {
         mode.attitude = false;
         mode.body_rate = false;
         mode.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-    	offboardCtrlModePub_->publish(mode);
+    	offboard_ctrl_mode_pub_->publish(mode);
         loop_rate.sleep();
     }
 }
 
-void FCUControl::sendCommand(uint16_t command, float param1, float param2) {
+void OffboardControl::publishTrajectorySetpoint() {
+    /**
+     * @brief Publish a trajectory setpoint to make the vehicle hover at 5 meters with 
+     * a yaw angle of 180 degrees.
+     */
+    TrajectorySetpoint msg{};
+	msg.position = {0.0, 0.0, -5.0};
+	msg.yaw = -3.14; // [-PI:PI]
+	msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+	traj_setpoint_pub_->publish(msg);
+}
+
+void OffboardControl::sendVehicleCommand(uint16_t command, float param1, float param2) {
     /**
      * @brief Publish vehicle commands
      * @param command   Command code (matches VehicleCommand and MAVLink MAV_CMD codes)
@@ -89,63 +144,113 @@ void FCUControl::sendCommand(uint16_t command, float param1, float param2) {
 	request->request = cmd;
 
     // Callback function, which is triggered when the service response is ready
-	auto result = cmdClient_->async_send_request(request, std::bind(&FCUControl::srvCallback, 
+	service_done_ = false;
+    auto result = vehicle_cmd_client_->async_send_request(request, std::bind(&OffboardControl::srvCallback, 
         this, std::placeholders::_1));
+    RCLCPP_INFO(this->get_logger(), "Command send");
 }
 
-void FCUControl::arm() {
+void OffboardControl::timerCallback(void) {
+    static uint8_t num_of_steps = 0;
+
+	// offboard_control_mode needs to be paired with trajectory_setpoint
+	publishOffboardControlMode();
+	publishTrajectorySetpoint();
+
+	switch (state_)
+	{
+	case State::init :
+		switchToOffboardMode();
+		state_ = State::offboard_requested;
+		break;
+	case State::offboard_requested :
+		if(service_done_){
+			if (service_result_==0){
+				RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
+				state_ = State::wait_for_stable_offboard_mode;				
+			}
+			else{
+				RCLCPP_ERROR(this->get_logger(), "Failed to enter offboard mode, exiting");
+				rclcpp::shutdown();
+			}
+		}
+		break;
+	case State::wait_for_stable_offboard_mode :
+		if (++num_of_steps>10){
+			arm();
+			state_ = State::arm_requested;
+		}
+		break;
+	case State::arm_requested :
+		if(service_done_){
+			if (service_result_==0){
+				RCLCPP_INFO(this->get_logger(), "vehicle is armed");
+				state_ = State::armed;
+			}
+			else{
+				RCLCPP_ERROR(this->get_logger(), "Failed to arm, exiting");
+				rclcpp::shutdown();
+			}
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void OffboardControl::arm() {
   RCLCPP_INFO(this->get_logger(), "Arming...");	
-  sendCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, VehicleCommand::ARMING_ACTION_ARM, 0.0);
+  sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, VehicleCommand::ARMING_ACTION_ARM, 0.0);
 }
 
-void FCUControl::disarm() {
+void OffboardControl::disarm() {
   RCLCPP_INFO(this->get_logger(), "Disarming...");
-  sendCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, VehicleCommand::ARMING_ACTION_DISARM, 0.0);
+  sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, VehicleCommand::ARMING_ACTION_DISARM, 0.0);
 }
 
-void FCUControl::takeOff() {
-    /** 
-    * @brief Switch on the offboard control mode (param2 = 6)
-    */
-    RCLCPP_INFO(this->get_logger(), "Take Off");
-    sendCommand(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
-    sleep(1);
-    px4_msgs::msg::TrajectorySetpoint msg{};
-    msg.position = {curr_x_, curr_y_, curr_z_-5.0}; // Take off to the given coords
-    msg.yaw = 0.0; 
-    msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-    traj_cmd_pub_->publish(msg);
-}
+// void OffboardControl::takeOff() {
+//     /** 
+//     * @brief Switch on the offboard control mode (param2 = 6)
+//     */
+//     RCLCPP_INFO(this->get_logger(), "Take Off");
+//     sendVehicleCommand(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
+//     sleep(1);
+//     px4_msgs::msg::TrajectorySetpoint msg{};
+//     msg.position = {curr_x_, curr_y_, curr_z_-5.0}; // Take off to the given coords
+//     msg.yaw = 0.0; 
+//     msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+//     traj_cmd_pub_->publish(msg);
+// }
 
-void FCUControl::flyTo(float x, float y, float z) {
-    /**
-     * @brief Move the UAV to the desired position.
-     */
-    Point3D start = {curr_x_, curr_y_, curr_z_};  
-    Point3D end = {x, y, z}; 
-    double v_max = 0.5; // 2 meters per second
-    double time_step = 1.0/10.0; 
-    std::vector<Point3D> trajectory = planTrajectory(start, end, v_max, time_step);
-    px4_msgs::msg::TrajectorySetpoint msg{};
-    rclcpp::Rate loop_rate(50);     // 50 Hz
+// void OffboardControl::flyTo(float x, float y, float z) {
+//     /**
+//      * @brief Move the UAV to the desired position.
+//      */
+//     Point3D start = {curr_x_, curr_y_, curr_z_};  
+//     Point3D end = {x, y, z}; 
+//     double v_max = 0.5; // 2 meters per second
+//     double time_step = 1.0/10.0; 
+//     std::vector<Point3D> trajectory = planTrajectory(start, end, v_max, time_step);
+//     px4_msgs::msg::TrajectorySetpoint msg{};
+//     rclcpp::Rate loop_rate(50);     // 50 Hz
 
-    for (const auto& point : trajectory) {
-        msg.position = {point.x, point.y, point.z};
-        msg.yaw = 0.0; 
-        msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-        traj_cmd_pub_->publish(msg);
-        loop_rate.sleep();
-    }
-}
+//     for (const auto& point : trajectory) {
+//         msg.position = {point.x, point.y, point.z};
+//         msg.yaw = 0.0; 
+//         msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+//         traj_cmd_pub_->publish(msg);
+//         loop_rate.sleep();
+//     }
+// }
 
-double FCUControl::calculateDistance(const Point3D& start, const Point3D& end) {
+double OffboardControl::calculateDistance(const Point3D& start, const Point3D& end) {
     /**
     * @brief Calculate the Euclidean distance between two 3D points.
     */
     return std::hypot(end.x - start.x, end.y - start.y, end.z - start.z);
 }
 
-std::vector<Point3D> FCUControl::planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step) {
+std::vector<Point3D> OffboardControl::planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step) {
     /**
      * @brief Plan the trajectory between two points
      */
@@ -181,7 +286,7 @@ std::vector<Point3D> FCUControl::planTrajectory(const Point3D& start, const Poin
     return waypoints;
 }
 
-void FCUControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg) {
+void OffboardControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg) {
     /**
     * @brief Save the current coordinates of the UAV.
     */
@@ -190,7 +295,10 @@ void FCUControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedP
     curr_z_ = msg->z;
 }
 
-void FCUControl::run() {
+void OffboardControl::run() {
+    arm();
+    // takeOff();
+  
     rclcpp::spin(shared_from_this());
 }
 
@@ -198,10 +306,9 @@ void FCUControl::run() {
 // Program execution
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<FCUControl>();
-//   node->arm();
-  node->takeOff();
+  auto node = std::make_shared<OffboardControl>();
   node->run();
-//   rclcpp::shutdown();
+
+  rclcpp::shutdown();
   return 0;
 }

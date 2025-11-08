@@ -1,13 +1,22 @@
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess, RegisterEventHandler
+from launch.actions import ExecuteProcess, RegisterEventHandler, IncludeLaunchDescription, SetEnvironmentVariable
 from launch.event_handlers import OnShutdown
+from launch.substitutions import PathJoinSubstitution
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
 
     # Package directories
-    pkg_share_uav_gazebo_sim = get_package_share_directory("uav_gazebo_sim")
+    pkg_share_uav_description = get_package_share_directory("uav_description")
+
+    # Publish robot_description and /joint_states BEFORE gazebo and px4 starts
+    robotdescription_incl = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([pkg_share_uav_description, 'launch', 'display.launch.py'])
+            )
+        )
 
     # Start the XRCE-DDS agent to establish communication between px4 and ros2
     px4_agent_proc = ExecuteProcess(
@@ -21,7 +30,7 @@ def generate_launch_description():
         event_handler=OnShutdown(
             on_shutdown=[ExecuteProcess(
                 cmd=['pkill', '-f', 'MicroXRCEAgent'], 
-                output='screen', 
+                output='screen',
                 shell=False)]
         )
     )
@@ -32,18 +41,10 @@ def generate_launch_description():
         output='screen',
         shell=True
     )
-
-    # gazebo_pkg_include_sim = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         PathJoinSubstitution([
-    #             pkg_share_uav_gazebo_sim, 
-    #             'launch', 
-    #             'start_ros_gz_bridge.launch.py']),
-    #         ))
     
     ld = LaunchDescription()
     ld.add_action(px4_agent_proc)
     ld.add_action(kill_agent_on_shutdown_proc)
     ld.add_action(px4_autopilot_proc)
-    # ld.add_action(gazebo_pkg_include_sim)
+    ld.add_action(robotdescription_incl)
     return ld
