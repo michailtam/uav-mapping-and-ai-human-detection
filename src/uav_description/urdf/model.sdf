@@ -17,6 +17,8 @@
           <izz>0.0085467646528533062</izz>
         </inertia>
       </inertial>
+      <gravity>true</gravity>
+      <velocity_decay />
       <collision name="base_link_collision">
         <pose>0 0 -0.26 0 0 0</pose>  <!-- NOTE: Adjust the pose according to the word surface-->
         <geometry>
@@ -28,12 +30,13 @@
         </geometry>
         <surface>
           <contact>
-            <ode/>
+            <ode>
+              <min_depth>0.001</min_depth>
+              <max_vel>0</max_vel>
+            </ode>
           </contact>
           <friction>
-            <ode><mu>0.7</mu>
-              <mu2>0.7</mu2>
-            </ode>
+            <ode />
           </friction>
         </surface>
       </collision>
@@ -151,26 +154,26 @@
 
       <sensor name="imu_sensor" type="imu">
         <pose relative_to="base_link">0 0 0 0 0 0</pose>
-        <always_on>1</always_on>
-        <update_rate>400</update_rate>
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
         <imu>
           <angular_velocity>
             <x>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.0008726646</stddev>
+                <stddev>2e-4</stddev>
               </noise>
             </x>
             <y>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.0008726646</stddev>
+                <stddev>2e-4</stddev>
               </noise>
             </y>
             <z>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.0008726646</stddev>
+                <stddev>2e-4</stddev>
               </noise>
             </z>
           </angular_velocity>
@@ -178,19 +181,19 @@
             <x>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.00637</stddev>
+                <stddev>1.7e-2</stddev>
               </noise>
             </x>
             <y>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.00637</stddev>
+                <stddev>1.7e-2</stddev>
               </noise>
             </y>
             <z>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.00686</stddev>
+                <stddev>1.7e-2</stddev>
               </noise>
             </z>
           </linear_acceleration>
@@ -208,7 +211,7 @@
       <sensor name="rgbd_cam" type="rgbd_camera">
         <pose>0.13758 -0.00058142 -0.0090308 -3.1377 -0.0036204 -0.013619</pose>
         <camera>
-          <horizontal_fov>1.5184</horizontal_fov>
+          <horizontal_fov>1.2</horizontal_fov>
           <image>
             <width>600</width>
             <height>480</height>
@@ -218,6 +221,7 @@
             <near>0.6</near>
             <far>6</far>
           </clip>
+          <point_cloud>true</point_cloud>
         </camera>
         <always_on>true</always_on>
         <topic>camera</topic>
@@ -252,6 +256,11 @@
             <max>6</max>
             <resolution>0.001</resolution>
           </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+        </noise>
         </lidar>
       </sensor>
     </link>
@@ -264,18 +273,19 @@
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
-          <effort>1000000000000</effort>
-          <velocity>1000000000000</velocity>
-          <lower>-inf</lower>
-          <upper>inf</upper>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
         </limit>
         <dynamics>
-          <damping>0</damping>
-          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
         </dynamics>
       </axis>
     </joint>
     <link name="front_prop_cw_link">
+      <gravity>true</gravity>
+      <self_collide>false</self_collide>
+      <velocity_decay />
       <pose relative_to="front_prop_cw_joint">0 0 0 0 0 0</pose>
       <inertial>
         <pose>1.89889458346304e-06 -0.000131188965704798 0.00588670324654172 0 0 0</pose>
@@ -299,12 +309,15 @@
         </geometry>
         <surface>
           <contact>
-          <ode/>
-        </contact>
-        <friction>
-          <ode/>
-        </friction>
-      </surface>
+            <ode>
+              <min_depth>0.001</min_depth>
+              <max_vel>0</max_vel>
+            </ode>
+          </contact>
+          <friction>
+            <ode />
+          </friction>
+        </surface>
       </collision>
       <visual name="front_prop_cw_link_visual">
         <pose>0 0 0 0 0 0</pose>
@@ -323,7 +336,6 @@
           <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
         </material>
       </visual>
-      <gravity>false</gravity><self_collide>false</self_collide><enable_wind>false</enable_wind>
     </link>
 
     <joint name="back_prop_cw_joint" type="revolute">
@@ -333,18 +345,19 @@
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
-          <effort>1000000000000</effort>
-          <velocity>1000000000000</velocity>
-          <lower>-inf</lower>
-          <upper>inf</upper>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
         </limit>
         <dynamics>
-          <damping>0</damping>
-          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
         </dynamics>
       </axis>
     </joint>
     <link name="back_prop_cw_link">
+      <gravity>true</gravity>
+      <self_collide>false</self_collide>
+      <velocity_decay />
       <pose relative_to="back_prop_cw_joint">0 0 0 0 0 0</pose>
       <inertial>
         <pose>2.5989393493130999e-06 -0.00013126973913305 0.00575531220060893 0 0 0</pose>
@@ -368,10 +381,13 @@
         </geometry>
         <surface>
           <contact>
-            <ode/>
+            <ode>
+              <min_depth>0.001</min_depth>
+              <max_vel>0</max_vel>
+            </ode>
           </contact>
           <friction>
-            <ode/>
+            <ode />
           </friction>
         </surface>
       </collision>
@@ -392,9 +408,6 @@
           <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
         </material>
       </visual>
-      <gravity>false</gravity>
-      <self_collide>false</self_collide>
-      <enable_wind>false</enable_wind>
     </link>
 
     <joint name="front_prop_ccw_joint" type="revolute">
@@ -404,18 +417,19 @@
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
-          <effort>1000000000000</effort>
-          <velocity>1000000000000</velocity>
-          <lower>-inf</lower>
-          <upper>inf</upper>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
         </limit>
         <dynamics>
-          <damping>0</damping>
-          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
         </dynamics>
       </axis>
     </joint>
     <link name="front_prop_ccw_link">
+      <gravity>true</gravity>
+      <self_collide>false</self_collide>
+      <velocity_decay />
       <pose relative_to="front_prop_ccw_joint">0 0 0 0 0 0</pose>
       <inertial>
         <pose>1.9285e-05 -0.0005696 0.0086392 0 0 0</pose>
@@ -439,10 +453,13 @@
         </geometry>
         <surface>
           <contact>
-            <ode/>
+            <ode>
+              <min_depth>0.001</min_depth>
+              <max_vel>0</max_vel>
+            </ode>
           </contact>
           <friction>
-            <ode/>
+            <ode />
           </friction>
         </surface>
       </collision>
@@ -463,9 +480,6 @@
           <ambient>0.941174984 0.941174984 0.941174984 1</ambient>
         </material>
       </visual>
-      <gravity>false</gravity>
-      <self_collide>false</self_collide>
-      <enable_wind>false</enable_wind>
     </link>
 
     <joint name="back_prop_ccw_joint" type="revolute">
@@ -474,18 +488,19 @@
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
-          <effort>1000000000000</effort>
-          <velocity>1000000000000</velocity>
-          <lower>-inf</lower>
-          <upper>inf</upper>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
         </limit>
         <dynamics>
-          <damping>0</damping>
-          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
         </dynamics>
       </axis>
     </joint>
     <link name="back_prop_ccw_link">
+      <gravity>true</gravity>
+      <self_collide>false</self_collide>
+      <velocity_decay />
       <pose relative_to="back_prop_ccw_joint">0 0 0 0 0 0</pose>
       <inertial>
         <pose>1.9244838497967098e-05 -0.00054790647153496496 0.0082724928504486796 0 0 0</pose>
@@ -499,7 +514,6 @@
           <izz>2.90934055502375e-05</izz>
         </inertia>
       </inertial>
-      <!-- Thin hub collision (disc) instead of blade mesh -->
       <collision name="back_prop_ccw_link_collision">
         <pose>0 0 0 0 0 0</pose>
         <geometry>
@@ -510,10 +524,13 @@
         </geometry>
         <surface>
           <contact>
-            <ode/>
+            <ode>
+              <min_depth>0.001</min_depth>
+              <max_vel>0</max_vel>
+            </ode>
           </contact>
           <friction>
-            <ode/>
+            <ode />
           </friction>
         </surface>
       </collision>
@@ -534,97 +551,86 @@
           <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
         </material>
       </visual>
-      <gravity>false</gravity>
-      <self_collide>false</self_collide>
-      <enable_wind>false</enable_wind>
     </link>
 
     <!-- Multicopter motor plugins -->
     
     <!-- PX4 motor 1: FRONT RIGHT, CCW -->
     <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
-      <jointName>front_prop_ccw_joint</jointName>      <!-- your front-right -->
+      <jointName>front_prop_ccw_joint</jointName>     
       <linkName>front_prop_ccw_link</linkName>
       <turningDirection>ccw</turningDirection>
-      <timeConstantUp>0.0125</timeConstantUp>
-      <timeConstantDown>0.025</timeConstantDown>
+      <timeConstantUp>0.04</timeConstantUp>
+      <timeConstantDown>0.06</timeConstantDown>
       <maxRotVelocity>1200</maxRotVelocity>
-      <motorConstant>3.0e-05</motorConstant>
-      <momentConstant>0.016</momentConstant>
+      <motorConstant>1.1e-05</motorConstant>
+      <momentConstant>1.3e-06</momentConstant>
       <commandSubTopic>command/motor_speed</commandSubTopic>
       <motorNumber>0</motorNumber>
       <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
+      <!-- <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim> -->
       <motorType>velocity</motorType>
     </plugin>
 
     <!-- PX4 motor 2: BACK LEFT, CCW -->
     <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
-      <jointName>back_prop_ccw_joint</jointName>      <!-- your back-left -->
+      <jointName>back_prop_ccw_joint</jointName>     
       <linkName>back_prop_ccw_link</linkName>
       <turningDirection>ccw</turningDirection>
-      <timeConstantUp>0.0125</timeConstantUp>
-      <timeConstantDown>0.025</timeConstantDown>
+      <timeConstantUp>0.04</timeConstantUp>
+      <timeConstantDown>0.06</timeConstantDown>
       <maxRotVelocity>1200</maxRotVelocity>
-      <motorConstant>3.0e-05</motorConstant>
-      <momentConstant>0.016</momentConstant>
+      <motorConstant>1.1e-05</motorConstant>
+      <momentConstant>1.3e-06</momentConstant>
       <commandSubTopic>command/motor_speed</commandSubTopic>
       <motorNumber>1</motorNumber>
       <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
+      <!-- <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim> -->
       <motorType>velocity</motorType>
     </plugin>
 
     <!-- PX4 motor 3: FRONT LEFT, CW -->
     <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
-      <jointName>front_prop_cw_joint</jointName>     <!-- your front-left -->
+      <jointName>front_prop_cw_joint</jointName>    
       <linkName>front_prop_cw_link</linkName>
       <turningDirection>cw</turningDirection>
-      <timeConstantUp>0.0125</timeConstantUp>
-      <timeConstantDown>0.025</timeConstantDown>
+      <timeConstantUp>0.04</timeConstantUp>
+      <timeConstantDown>0.06</timeConstantDown>
       <maxRotVelocity>1200</maxRotVelocity>
-      <motorConstant>3.0e-05</motorConstant>
-      <momentConstant>0.016</momentConstant>
+      <motorConstant>1.1e-05</motorConstant>
+      <momentConstant>1.3e-06</momentConstant>
       <commandSubTopic>command/motor_speed</commandSubTopic>
       <motorNumber>2</motorNumber>
       <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
+      <!-- <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim> -->
       <motorType>velocity</motorType>
     </plugin>
 
     <!-- PX4 motor 4: BACK RIGHT, CW -->
     <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
-      <jointName>back_prop_cw_joint</jointName>       <!-- your back-right -->
+      <jointName>back_prop_cw_joint</jointName>     
       <linkName>back_prop_cw_link</linkName>
       <turningDirection>cw</turningDirection>
-      <timeConstantUp>0.0125</timeConstantUp>
-      <timeConstantDown>0.025</timeConstantDown>
+      <timeConstantUp>0.04</timeConstantUp>
+      <timeConstantDown>0.06</timeConstantDown>
       <maxRotVelocity>1200</maxRotVelocity>
-      <motorConstant>3.0e-05</motorConstant>
-      <momentConstant>0.016</momentConstant>
+      <motorConstant>1.1e-05</motorConstant>
+      <momentConstant>1.3e-06</momentConstant>
       <commandSubTopic>command/motor_speed</commandSubTopic>
       <motorNumber>3</motorNumber>
       <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-      <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
+      <!-- <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim> -->
       <motorType>velocity</motorType>
     </plugin>
 
-    <!-- Frames -->
-    <frame name="depth_camera_joint" attached_to="base_link">
-      <pose>0.13758 -0.00058142 -0.0090308 -3.1377 -0.0036204 -0.013619</pose>
-    </frame>
-    <frame name="depth_camera_link" attached_to="depth_camera_joint"><pose>0 0 0 0 0 0</pose></frame>
-    <frame name="gps_module_joint" attached_to="base_link">
-      <pose>-0.13598 0.0015189 0.10049 0.0025723 0.004617 -1.8307</pose>
-    </frame>
-    <frame name="gps_module_link" attached_to="gps_module_joint"><pose>0 0 0 0 0 0</pose></frame>
-    <frame name="lidar_joint" attached_to="base_link">
-      <pose>-0.00044268 -0.00016922 0.12747 0.0038504 -0.0036204 -0.013619</pose>
-    </frame>
-    <frame name="lidar_link" attached_to="lidar_joint"><pose>0 0 0 0 0 0</pose></frame>
+    <plugin filename="MotorFailurePlugin" name="gz::sim::systems::MotorFailureSystem"/>
+    <plugin filename="gz-sim-odometry-publisher-system" name="gz::sim::systems::OdometryPublisher">
+      <dimensions>3</dimensions>
+    </plugin>
+    
   </model>
 </sdf>
