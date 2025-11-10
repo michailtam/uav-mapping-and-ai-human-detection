@@ -1,7 +1,7 @@
 #include "px4_ctrl.h"
 
 
-OffboardControl::OffboardControl() : Node("fcu_ctrl"), state_{State::init}, service_result_{0}, service_done_{false} {
+OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::init}, service_result_{0}, service_done_{false} {
 
     // Create the offboard control mode and trajectory publisher
     offboard_ctrl_mode_pub_ = this->create_publisher<px4_msgs::msg::OffboardControlMode>("/fmu/in/offboard_control_mode", 10);
@@ -57,28 +57,28 @@ void OffboardControl::srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>:
         switch (service_result_)
 		{
 		case reply.VEHICLE_CMD_RESULT_ACCEPTED:
-			RCLCPP_INFO(this->get_logger(), "command accepted");
+			RCLCPP_INFO(this->get_logger(), "Command accepted");
 			break;
 		case reply.VEHICLE_CMD_RESULT_TEMPORARILY_REJECTED:
-			RCLCPP_WARN(this->get_logger(), "command temporarily rejected");
+			RCLCPP_WARN(this->get_logger(), "Command temporarily rejected");
 			break;
 		case reply.VEHICLE_CMD_RESULT_DENIED:
-			RCLCPP_WARN(this->get_logger(), "command denied");
+			RCLCPP_WARN(this->get_logger(), "Command denied");
 			break;
 		case reply.VEHICLE_CMD_RESULT_UNSUPPORTED:
-			RCLCPP_WARN(this->get_logger(), "command unsupported");
+			RCLCPP_WARN(this->get_logger(), "Command unsupported");
 			break;
 		case reply.VEHICLE_CMD_RESULT_FAILED:
-			RCLCPP_WARN(this->get_logger(), "command failed");
+			RCLCPP_WARN(this->get_logger(), "Command failed");
 			break;
 		case reply.VEHICLE_CMD_RESULT_IN_PROGRESS:
-			RCLCPP_WARN(this->get_logger(), "command in progress");
+			RCLCPP_WARN(this->get_logger(), "Command in progress");
 			break;
 		case reply.VEHICLE_CMD_RESULT_CANCELLED:
-			RCLCPP_WARN(this->get_logger(), "command cancelled");
+			RCLCPP_WARN(this->get_logger(), "Command cancelled");
 			break;
 		default:
-			RCLCPP_WARN(this->get_logger(), "command reply unknown");
+			RCLCPP_WARN(this->get_logger(), "Command reply unknown");
 			break;
 		}
         service_done_ = true;
@@ -89,24 +89,17 @@ void OffboardControl::srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>:
 }
 
 void OffboardControl::publishOffboardControlMode() {
-    /*
-    Specify the kinds of input data. For example, in this case enable the offboard control mode, 
-    controlling the desired position. 
-    NOTE: To avoid interruptions, start this as a thread at 1 Hz.
-    */
-    rclcpp::Rate loop_rate(50);
-    
-    while( rclcpp::ok() ) {
-        OffboardControlMode mode{};
-        mode.position = true;
-        mode.velocity = false;
-        mode.acceleration = false;
-        mode.attitude = false;
-        mode.body_rate = false;
-        mode.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-    	offboard_ctrl_mode_pub_->publish(mode);
-        loop_rate.sleep();
-    }
+    /**
+     * @brief Is called to change to offboard mode. Here, position and altitude controls are active
+     */
+    OffboardControlMode mode{};
+    mode.position = true;
+    mode.velocity = false;
+    mode.acceleration = false;
+    mode.attitude = false;
+    mode.body_rate = false;
+    mode.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+    offboard_ctrl_mode_pub_->publish(mode);
 }
 
 void OffboardControl::publishTrajectorySetpoint() {
@@ -128,7 +121,7 @@ void OffboardControl::sendVehicleCommand(uint16_t command, float param1, float p
      * @param param1    Command parameter 1
      * @param param2    Command parameter 2
      */
-    auto request = std::make_shared<px4_msgs::srv::VehicleCommand::Request>();
+    auto req = std::make_shared<px4_msgs::srv::VehicleCommand::Request>();
 
     // Populate the command parameters to send
 	VehicleCommand cmd{};
@@ -141,7 +134,7 @@ void OffboardControl::sendVehicleCommand(uint16_t command, float param1, float p
 	cmd.source_component = 1;
 	cmd.from_external = true;
 	cmd.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-	request->request = cmd;
+	req->request = cmd;
 
     // Callback function, which is triggered when the service response is ready
 	service_done_ = false;
@@ -208,19 +201,19 @@ void OffboardControl::disarm() {
   sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, VehicleCommand::ARMING_ACTION_DISARM, 0.0);
 }
 
-// void OffboardControl::takeOff() {
-//     /** 
-//     * @brief Switch on the offboard control mode (param2 = 6)
-//     */
-//     RCLCPP_INFO(this->get_logger(), "Take Off");
-//     sendVehicleCommand(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
-//     sleep(1);
-//     px4_msgs::msg::TrajectorySetpoint msg{};
-//     msg.position = {curr_x_, curr_y_, curr_z_-5.0}; // Take off to the given coords
-//     msg.yaw = 0.0; 
-//     msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-//     traj_cmd_pub_->publish(msg);
-// }
+void OffboardControl::takeOff() {
+    /** 
+    * @brief Switch on the offboard control mode (param2 = 6)
+    */
+    RCLCPP_INFO(this->get_logger(), "Take Off");
+    sendVehicleCommand(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
+    sleep(1);
+    px4_msgs::msg::TrajectorySetpoint msg{};
+    msg.position = {curr_x_, curr_y_, curr_z_-5.0}; // Take off to the given coords
+    msg.yaw = 0.0; 
+    msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+    traj_setpoint_pub_->publish(msg);
+}
 
 // void OffboardControl::flyTo(float x, float y, float z) {
 //     /**
@@ -238,7 +231,7 @@ void OffboardControl::disarm() {
 //         msg.position = {point.x, point.y, point.z};
 //         msg.yaw = 0.0; 
 //         msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-//         traj_cmd_pub_->publish(msg);
+//         traj_setpoint_pub_->publish(msg);
 //         loop_rate.sleep();
 //     }
 // }

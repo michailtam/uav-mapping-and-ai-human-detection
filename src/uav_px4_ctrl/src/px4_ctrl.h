@@ -28,7 +28,7 @@ public:
     void switchToOffboardMode();
     void arm();
     void disarm();
-    // void takeOff();
+    void takeOff();
     // void flyTo(float x, float y, float z);
     void run();
     void poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
