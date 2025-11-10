@@ -20,8 +20,8 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::init},
         RCLCPP_INFO(this->get_logger(), "Service not available, waiting again...");
     }
 
-    timer_ = this->create_wall_timer(100ms, std::bind(&OffboardControl::timerCallback, this));
-    
+    timer_ = this->create_wall_timer(100ms, std::bind(&OffboardControl::timerUpdateStateMachine, this));
+
     // To receive the estimated position in a local frame in Cartesian space, 
     // to correctly receive the topic, set the quality of service first
     rclcpp::QoS qos_profile(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_default));
@@ -31,7 +31,11 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::init},
     qos_profile.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
     qos_profile.liveliness(RMW_QOS_POLICY_LIVELINESS_AUTOMATIC);
     qos_profile.history(RMW_QOS_POLICY_HISTORY_KEEP_LAST);
-    qos_profile.keep_last(10);  
+    qos_profile.keep_last(10);
+
+    // Callback to store the current position of the UAV
+    uav_pose_sub_ = this->create_subscription<px4_msgs::msg::VehicleLocalPosition>("/fmu/out/vehicle_local_position_v1", qos_profile,  // QoS of 10
+            std::bind(&OffboardControl::poseCallback, this, std::placeholders::_1));
 }
 
 void OffboardControl::switchToOffboardMode() {
@@ -108,8 +112,8 @@ void OffboardControl::publishTrajectorySetpoint() {
      * a yaw angle of 180 degrees.
      */
     TrajectorySetpoint msg{};
-	msg.position = {0.0, 0.0, -5.0};
-	msg.yaw = -3.14; // [-PI:PI]
+	msg.position = {0.0, 0.0, 0.0};
+	msg.yaw = 0.0; // [-PI:PI]
 	msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
 	traj_setpoint_pub_->publish(msg);
 }
@@ -138,12 +142,15 @@ void OffboardControl::sendVehicleCommand(uint16_t command, float param1, float p
 
     // Callback function, which is triggered when the service response is ready
 	service_done_ = false;
-    auto result = vehicle_cmd_client_->async_send_request(request, std::bind(&OffboardControl::srvCallback, 
+    auto result = vehicle_cmd_client_->async_send_request(req, std::bind(&OffboardControl::srvCallback, 
         this, std::placeholders::_1));
     RCLCPP_INFO(this->get_logger(), "Command send");
 }
 
-void OffboardControl::timerCallback(void) {
+void OffboardControl::timerUpdateStateMachine(void) {
+    /**
+     * @brief Finite-State-Machine (FSM) to switch from one state to the other in specific intervals.
+     */
     static uint8_t num_of_steps = 0;
 
 	// offboard_control_mode needs to be paired with trajectory_setpoint
@@ -162,7 +169,7 @@ void OffboardControl::timerCallback(void) {
 				RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
 				state_ = State::wait_for_stable_offboard_mode;				
 			}
-			else{
+			else {
 				RCLCPP_ERROR(this->get_logger(), "Failed to enter offboard mode, exiting");
 				rclcpp::shutdown();
 			}
@@ -177,7 +184,7 @@ void OffboardControl::timerCallback(void) {
 	case State::arm_requested :
 		if(service_done_){
 			if (service_result_==0){
-				RCLCPP_INFO(this->get_logger(), "vehicle is armed");
+				RCLCPP_INFO(this->get_logger(), "Vehicle is armed");
 				state_ = State::armed;
 			}
 			else{
@@ -186,18 +193,26 @@ void OffboardControl::timerCallback(void) {
 			}
 		}
 		break;
+    case State::armed:
+        takeOff();
+        break;
+    case State::position_reached:
+        if(service_done_){
+            RCLCPP_ERROR(this->get_logger(), "Position reached");
+        }
+        break;
 	default:
 		break;
 	}
 }
 
 void OffboardControl::arm() {
-  RCLCPP_INFO(this->get_logger(), "Arming...");	
+  RCLCPP_INFO(this->get_logger(), "Arm");	
   sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, VehicleCommand::ARMING_ACTION_ARM, 0.0);
 }
 
 void OffboardControl::disarm() {
-  RCLCPP_INFO(this->get_logger(), "Disarming...");
+  RCLCPP_INFO(this->get_logger(), "Disarm");
   sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, VehicleCommand::ARMING_ACTION_DISARM, 0.0);
 }
 
@@ -209,7 +224,7 @@ void OffboardControl::takeOff() {
     sendVehicleCommand(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
     sleep(1);
     px4_msgs::msg::TrajectorySetpoint msg{};
-    msg.position = {curr_x_, curr_y_, curr_z_-5.0}; // Take off to the given coords
+    msg.position = {curr_x_, curr_y_, curr_z_-3.0}; // Take off to 3 m
     msg.yaw = 0.0; 
     msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
     traj_setpoint_pub_->publish(msg);
@@ -235,6 +250,16 @@ void OffboardControl::takeOff() {
 //         loop_rate.sleep();
 //     }
 // }
+
+void OffboardControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg) {
+    /**
+    * @brief Save the current coordinates of the UAV.
+    */
+    curr_x_ = msg->x;
+    curr_y_ = msg->y;
+    curr_z_ = msg->z;
+    // RCLCPP_INFO(this->get_logger(), "Pose: x:%f y:%f z:%f", curr_x_, curr_y_, curr_z_);
+}
 
 double OffboardControl::calculateDistance(const Point3D& start, const Point3D& end) {
     /**
@@ -279,19 +304,10 @@ std::vector<Point3D> OffboardControl::planTrajectory(const Point3D& start, const
     return waypoints;
 }
 
-void OffboardControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg) {
-    /**
-    * @brief Save the current coordinates of the UAV.
-    */
-    curr_x_ = msg->x;
-    curr_y_ = msg->y;
-    curr_z_ = msg->z;
-}
-
 void OffboardControl::run() {
-    arm();
-    // takeOff();
-  
+    /**
+     * @brief Start the program execution loop
+     */
     rclcpp::spin(shared_from_this());
 }
 

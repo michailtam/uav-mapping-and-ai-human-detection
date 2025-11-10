@@ -40,14 +40,16 @@ private:
     void publishTrajectorySetpoint();
     void sendVehicleCommand(uint16_t command, float param1, float param2);
     void srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future);
-    void timerCallback(void);
+    void timerUpdateStateMachine(void);
 
     enum class State{
 		init,
 		offboard_requested,
 		wait_for_stable_offboard_mode,
 		arm_requested,
-		armed
+		armed,
+        takeoff,
+        position_reached
 	} state_;
 
 	uint8_t service_result_;
@@ -57,6 +59,7 @@ private:
     rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_ctrl_mode_pub_;
     rclcpp::Publisher<TrajectorySetpoint>::SharedPtr traj_setpoint_pub_;
     rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
+    rclcpp::Subscription<px4_msgs::msg::VehicleLocalPosition>::SharedPtr uav_pose_sub_;
     
     float curr_x_;
     float curr_y_;
