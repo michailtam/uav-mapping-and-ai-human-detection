@@ -106,14 +106,13 @@ void OffboardControl::publishOffboardControlMode() {
     offboard_ctrl_mode_pub_->publish(mode);
 }
 
-void OffboardControl::publishTrajectorySetpoint() {
+void OffboardControl::publishTrajectorySetpoint(float pos_x, float pos_y, float pos_z) {
     /**
-     * @brief Publish a trajectory setpoint to make the vehicle hover at 5 meters with 
-     * a yaw angle of 180 degrees.
+     * @brief Publish a trajectory setpoint (i.e. the position to fly)
      */
     TrajectorySetpoint msg{};
-	msg.position = {0.0, 0.0, 0.0};
-	msg.yaw = 0.0; // [-PI:PI]
+	msg.position = {pos_x, pos_y, pos_z};
+	msg.yaw = 0.0;
 	msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
 	traj_setpoint_pub_->publish(msg);
 }
@@ -153,9 +152,9 @@ void OffboardControl::timerUpdateStateMachine(void) {
      */
     static uint8_t num_of_steps = 0;
 
-	// offboard_control_mode needs to be paired with trajectory_setpoint
+	// Offboard_control_mode needs to be paired with trajectory_setpoint
 	publishOffboardControlMode();
-	publishTrajectorySetpoint();
+	// publishTrajectorySetpoint();
 
 	switch (state_)
 	{
@@ -168,8 +167,7 @@ void OffboardControl::timerUpdateStateMachine(void) {
 			if (service_result_==0){
 				RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
 				state_ = State::wait_for_stable_offboard_mode;				
-			}
-			else {
+			} else {
 				RCLCPP_ERROR(this->get_logger(), "Failed to enter offboard mode, exiting");
 				rclcpp::shutdown();
 			}
@@ -186,20 +184,20 @@ void OffboardControl::timerUpdateStateMachine(void) {
 			if (service_result_==0){
 				RCLCPP_INFO(this->get_logger(), "Vehicle is armed");
 				state_ = State::armed;
-			}
-			else{
+			} else {
 				RCLCPP_ERROR(this->get_logger(), "Failed to arm, exiting");
 				rclcpp::shutdown();
 			}
 		}
 		break;
     case State::armed:
+        RCLCPP_INFO(this->get_logger(), "Take Off");
+        state_ = State::takeoff;
+        break;
+    case State::takeoff:
         takeOff();
         break;
     case State::position_reached:
-        if(service_done_){
-            RCLCPP_ERROR(this->get_logger(), "Position reached");
-        }
         break;
 	default:
 		break;
@@ -217,17 +215,7 @@ void OffboardControl::disarm() {
 }
 
 void OffboardControl::takeOff() {
-    /** 
-    * @brief Switch on the offboard control mode (param2 = 6)
-    */
-    RCLCPP_INFO(this->get_logger(), "Take Off");
-    sendVehicleCommand(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
-    sleep(1);
-    px4_msgs::msg::TrajectorySetpoint msg{};
-    msg.position = {curr_x_, curr_y_, curr_z_-3.0}; // Take off to 3 m
-    msg.yaw = 0.0; 
-    msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-    traj_setpoint_pub_->publish(msg);
+    publishTrajectorySetpoint(0.0, 0.0, -5.0);  // Takeoff until 5 m has reached.
 }
 
 // void OffboardControl::flyTo(float x, float y, float z) {

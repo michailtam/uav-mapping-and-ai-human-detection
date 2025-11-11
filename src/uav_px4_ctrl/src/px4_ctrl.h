@@ -37,7 +37,7 @@ public:
 
 private:
     void publishOffboardControlMode();
-    void publishTrajectorySetpoint();
+    void publishTrajectorySetpoint(float pos_x, float pos_y, float pos_z);
     void sendVehicleCommand(uint16_t command, float param1, float param2);
     void srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future);
     void timerUpdateStateMachine(void);
@@ -47,7 +47,7 @@ private:
 		offboard_requested,
 		wait_for_stable_offboard_mode,
 		arm_requested,
-		armed,
+        armed,
         takeoff,
         position_reached
 	} state_;
