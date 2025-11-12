@@ -29,7 +29,7 @@ public:
     void arm();
     void disarm();
     void takeOff();
-    // void flyTo(float x, float y, float z);
+    void flyTo(float x, float y, float z);
     void run();
     void poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
     std::vector<Point3D> planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step);
@@ -49,11 +49,12 @@ private:
 		arm_requested,
         armed,
         takeoff,
-        position_reached
+        hold
 	} state_;
 
 	uint8_t service_result_;
 	bool service_done_;
+    float take_off_height_;
 	rclcpp::TimerBase::SharedPtr timer_;
 
     rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_ctrl_mode_pub_;

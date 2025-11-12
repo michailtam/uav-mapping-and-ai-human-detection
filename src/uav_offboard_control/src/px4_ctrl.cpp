@@ -1,12 +1,8 @@
 #include "px4_ctrl.h"
 
 
-OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::init}, service_result_{0}, service_done_{false} {
-
-    // Create the offboard control mode and trajectory publisher
-    offboard_ctrl_mode_pub_ = this->create_publisher<px4_msgs::msg::OffboardControlMode>("/fmu/in/offboard_control_mode", 10);
-    traj_setpoint_pub_ = this->create_publisher<px4_msgs::msg::TrajectorySetpoint>("/fmu/in/trajectory_setpoint", 10);
-    
+OffboardControl::OffboardControl() : Node("offboard_ctrl"), 
+    state_{State::init}, service_result_{0}, service_done_{false}, take_off_height_{-5.0} {
     // Create the service for changing the control mode
     RCLCPP_INFO(this->get_logger(), "Starting Offboard Control with PX4 services");
     vehicle_cmd_client_ = this->create_client<px4_msgs::srv::VehicleCommand>("/fmu/vehicle_command");
@@ -33,6 +29,12 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::init},
     qos_profile.history(RMW_QOS_POLICY_HISTORY_KEEP_LAST);
     qos_profile.keep_last(10);
 
+    // ** Publishers ** 
+    // Create the offboard control mode and trajectory publisher
+    offboard_ctrl_mode_pub_ = this->create_publisher<px4_msgs::msg::OffboardControlMode>("/fmu/in/offboard_control_mode", 10);
+    traj_setpoint_pub_ = this->create_publisher<px4_msgs::msg::TrajectorySetpoint>("/fmu/in/trajectory_setpoint", 10);
+
+    // ** Subscribers **
     // Callback to store the current position of the UAV
     uav_pose_sub_ = this->create_subscription<px4_msgs::msg::VehicleLocalPosition>("/fmu/out/vehicle_local_position_v1", qos_profile,  // QoS of 10
             std::bind(&OffboardControl::poseCallback, this, std::placeholders::_1));
@@ -98,7 +100,7 @@ void OffboardControl::publishOffboardControlMode() {
      */
     OffboardControlMode mode{};
     mode.position = true;
-    mode.velocity = false;
+    mode.velocity = true; // false;
     mode.acceleration = false;
     mode.attitude = false;
     mode.body_rate = false;
@@ -197,7 +199,8 @@ void OffboardControl::timerUpdateStateMachine(void) {
     case State::takeoff:
         takeOff();
         break;
-    case State::position_reached:
+    case State::hold:
+        flyTo(curr_x_+10, curr_y_+10, curr_z_-10);
         break;
 	default:
 		break;
@@ -215,29 +218,12 @@ void OffboardControl::disarm() {
 }
 
 void OffboardControl::takeOff() {
-    publishTrajectorySetpoint(0.0, 0.0, -5.0);  // Takeoff until 5 m has reached.
+    if (curr_z_ > (take_off_height_+0.2)) {
+        publishTrajectorySetpoint(0.0, 0.0, take_off_height_);  // Takeoff until 5 m has reached
+    } else {
+        state_ = State::hold;
+    }
 }
-
-// void OffboardControl::flyTo(float x, float y, float z) {
-//     /**
-//      * @brief Move the UAV to the desired position.
-//      */
-//     Point3D start = {curr_x_, curr_y_, curr_z_};  
-//     Point3D end = {x, y, z}; 
-//     double v_max = 0.5; // 2 meters per second
-//     double time_step = 1.0/10.0; 
-//     std::vector<Point3D> trajectory = planTrajectory(start, end, v_max, time_step);
-//     px4_msgs::msg::TrajectorySetpoint msg{};
-//     rclcpp::Rate loop_rate(50);     // 50 Hz
-
-//     for (const auto& point : trajectory) {
-//         msg.position = {point.x, point.y, point.z};
-//         msg.yaw = 0.0; 
-//         msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-//         traj_setpoint_pub_->publish(msg);
-//         loop_rate.sleep();
-//     }
-// }
 
 void OffboardControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg) {
     /**
@@ -247,6 +233,30 @@ void OffboardControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::Sh
     curr_y_ = msg->y;
     curr_z_ = msg->z;
     // RCLCPP_INFO(this->get_logger(), "Pose: x:%f y:%f z:%f", curr_x_, curr_y_, curr_z_);
+}
+
+void OffboardControl::flyTo(float x, float y, float z) {
+    /**
+     * @brief Move the UAV to the desired position.
+     */
+    Point3D start = {curr_x_, curr_y_, curr_z_};  
+    Point3D end = {x, y, z};
+    RCLCPP_INFO(this->get_logger(), "curr_x_: %f, curr_y: %f, curr_z_: %f", curr_x_, curr_y_, curr_z_);
+    RCLCPP_INFO(this->get_logger(), "x: %f, y: %f, z: %f", x, y, z);
+
+    double v_max = 0.5; // 2 meters per second
+    double time_step = 1.0/10.0; 
+    std::vector<Point3D> trajectory = planTrajectory(start, end, v_max, time_step);
+    px4_msgs::msg::TrajectorySetpoint msg{};
+    rclcpp::Rate loop_rate(50);     // 50 Hz
+
+    for (const auto& point : trajectory) {
+        msg.position = {point.x, point.y, point.z};
+        msg.yaw = 0.0; 
+        msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+        traj_setpoint_pub_->publish(msg);
+        loop_rate.sleep();
+    }
 }
 
 double OffboardControl::calculateDistance(const Point3D& start, const Point3D& end) {
