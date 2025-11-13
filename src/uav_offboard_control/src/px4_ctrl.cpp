@@ -1,8 +1,8 @@
 #include "px4_ctrl.h"
 
 
-OffboardControl::OffboardControl() : Node("offboard_ctrl"), 
-    state_{State::init}, service_result_{0}, service_done_{false}, take_off_height_{-5.0} {
+OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::init}, service_result_{0}, service_done_{false}, 
+    take_off_height_{-5.0} {
     // Create the service for changing the control mode
     RCLCPP_INFO(this->get_logger(), "Starting Offboard Control with PX4 services");
     vehicle_cmd_client_ = this->create_client<px4_msgs::srv::VehicleCommand>("/fmu/vehicle_command");
@@ -154,9 +154,8 @@ void OffboardControl::timerUpdateStateMachine(void) {
      */
     static uint8_t num_of_steps = 0;
 
-	// Offboard_control_mode needs to be paired with trajectory_setpoint
+	// Always publish OffboardControlMode
 	publishOffboardControlMode();
-	// publishTrajectorySetpoint();
 
 	switch (state_)
 	{
@@ -176,7 +175,7 @@ void OffboardControl::timerUpdateStateMachine(void) {
 		}
 		break;
 	case State::wait_for_stable_offboard_mode :
-		if (++num_of_steps>10){
+		if (++num_of_steps > 10) {
 			arm();
 			state_ = State::arm_requested;
 		}
@@ -199,8 +198,11 @@ void OffboardControl::timerUpdateStateMachine(void) {
     case State::takeoff:
         takeOff();
         break;
+    case State::navigate:
+        navigate();
+        break;
     case State::hold:
-        flyTo(curr_x_+10, curr_y_+10, curr_z_-10);
+        // Do nothing, just hover at last setpoint
         break;
 	default:
 		break;
@@ -221,41 +223,63 @@ void OffboardControl::takeOff() {
     if (curr_z_ > (take_off_height_+0.2)) {
         publishTrajectorySetpoint(0.0, 0.0, take_off_height_);  // Takeoff until 5 m has reached
     } else {
-        state_ = State::hold;
+        RCLCPP_INFO(this->get_logger(), "Takeoff altitude reached");
+        state_ = State::navigate;
+    }
+}
+
+void OffboardControl::navigate() {
+    if (navigating_) 
+    {
+        if (trajectory_index_ < trajectory_.size()) {
+            const auto &p = trajectory_[trajectory_index_];
+
+            px4_msgs::msg::TrajectorySetpoint msg{};
+            msg.position = {p.x, p.y, p.z};
+            msg.yaw = 0.0;
+            msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+
+            traj_setpoint_pub_->publish(msg);
+            trajectory_index_++;
+        }
+        else {
+            navigating_ = false;
+            RCLCPP_INFO(this->get_logger(), "Destination reached!");
+
+            // switch FSM state
+            state_ = State::hold;
+        }
     }
 }
 
 void OffboardControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg) {
     /**
-    * @brief Save the current coordinates of the UAV.
+    * @brief Save the current coordinates (PX4’s NED frame) of the UAV.
     */
     curr_x_ = msg->x;
     curr_y_ = msg->y;
     curr_z_ = msg->z;
-    // RCLCPP_INFO(this->get_logger(), "Pose: x:%f y:%f z:%f", curr_x_, curr_y_, curr_z_);
+    RCLCPP_INFO(this->get_logger(), "Pose: x:%f y:%f z:%f", curr_x_, curr_y_, curr_z_);
 }
 
-void OffboardControl::flyTo(float x, float y, float z) {
+void OffboardControl::prepareTrajectory(float x, float y, float z) {
     /**
-     * @brief Move the UAV to the desired position.
+     * @brief Calculates the trajectory to fly.
      */
     Point3D start = {curr_x_, curr_y_, curr_z_};  
     Point3D end = {x, y, z};
-    RCLCPP_INFO(this->get_logger(), "curr_x_: %f, curr_y: %f, curr_z_: %f", curr_x_, curr_y_, curr_z_);
-    RCLCPP_INFO(this->get_logger(), "x: %f, y: %f, z: %f", x, y, z);
 
-    double v_max = 0.5; // 2 meters per second
-    double time_step = 1.0/10.0; 
-    std::vector<Point3D> trajectory = planTrajectory(start, end, v_max, time_step);
-    px4_msgs::msg::TrajectorySetpoint msg{};
-    rclcpp::Rate loop_rate(50);     // 50 Hz
+    double v_max = 0.5; // m/sec
+    double time_step = 0.1; 
 
-    for (const auto& point : trajectory) {
-        msg.position = {point.x, point.y, point.z};
-        msg.yaw = 0.0; 
-        msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-        traj_setpoint_pub_->publish(msg);
-        loop_rate.sleep();
+    trajectory_ = planTrajectory(start, end, v_max, time_step);
+    trajectory_index_ = 0;
+    navigating_ = true;
+
+    if (trajectory_.size() > 0) {
+        RCLCPP_INFO(this->get_logger(), "Trajectory has %zu points", trajectory_.size());
+    } else {
+        RCLCPP_WARN(this->get_logger(), "Empty trajectory!");
     }
 }
 

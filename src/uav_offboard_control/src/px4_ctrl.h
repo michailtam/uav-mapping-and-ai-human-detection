@@ -29,7 +29,8 @@ public:
     void arm();
     void disarm();
     void takeOff();
-    void flyTo(float x, float y, float z);
+    void prepareTrajectory(float x, float y, float z);
+    void navigate();
     void run();
     void poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
     std::vector<Point3D> planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step);
@@ -49,13 +50,18 @@ private:
 		arm_requested,
         armed,
         takeoff,
-        hold
+        hold,
+        navigate
 	} state_;
 
 	uint8_t service_result_;
 	bool service_done_;
     float take_off_height_;
 	rclcpp::TimerBase::SharedPtr timer_;
+    Point3D target_position_; // Current position setpoint in NED
+    std::vector<Point3D> trajectory_;
+    size_t trajectory_index_ = 0;
+    bool navigating_ = false;
 
     rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_ctrl_mode_pub_;
     rclcpp::Publisher<TrajectorySetpoint>::SharedPtr traj_setpoint_pub_;
