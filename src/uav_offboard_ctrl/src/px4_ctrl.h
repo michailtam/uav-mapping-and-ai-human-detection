@@ -29,13 +29,14 @@ public:
     void arm();
     void disarm();
     void takeOff();
-    void prepareTrajectory(float x, float y, float z);
     void navigate();
     void run();
     void poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
-    std::vector<Point3D> planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step);
-    double calculateDistance(const Point3D& start, const Point3D& end);
+    std::vector<Point3D> planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step);  // TODO: move to another pkg
+    double calculateDistance(const Point3D& start, const Point3D& end); // TODO: move to another pkg
 
+    void prepareTrajectory(float x, float y, float z); // TODO: move to another pkg
+    
 private:
     void publishOffboardControlMode();
     void publishTrajectorySetpoint(float pos_x, float pos_y, float pos_z);

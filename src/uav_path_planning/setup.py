@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'uav_perception'
+package_name = 'uav_path_planning'
 
 setup(
     name=package_name,
@@ -24,7 +24,6 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'sensors = uav_perception.sensors:main'
         ],
     },
 )

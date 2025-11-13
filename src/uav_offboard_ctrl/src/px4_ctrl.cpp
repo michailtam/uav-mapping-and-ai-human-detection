@@ -231,6 +231,7 @@ void OffboardControl::takeOff() {
 void OffboardControl::navigate() {
     if (navigating_) 
     {
+        // TODO: The trajectory gets calculated by <another> node.
         if (trajectory_index_ < trajectory_.size()) {
             const auto &p = trajectory_[trajectory_index_];
 
@@ -297,7 +298,7 @@ std::vector<Point3D> OffboardControl::planTrajectory(const Point3D& start, const
     std::vector<Point3D> waypoints;
     
     // Calculate the total distance between the start and end points
-    double total_distance = calculateDistance(start, end);
+    double total_distance = calculateDistance(start, end); 
 
     // Calculate the total time required to reach the end point
     double total_time = total_distance / v_max;

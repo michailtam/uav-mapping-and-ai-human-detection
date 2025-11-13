@@ -1,8 +1,7 @@
 import os
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, SetEnvironmentVariable
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, TextSubstitution, EnvironmentVariable
+from launch.actions import SetEnvironmentVariable
+from launch.substitutions import PathJoinSubstitution, TextSubstitution, EnvironmentVariable
 from launch_ros.actions import Node
 from os.path import join
 from ament_index_python.packages import get_package_share_directory
@@ -10,14 +9,14 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    # IMPORTANT: Adding the environment variable must be done at first
-    pkg_share_gz = os.path.join(os.getcwd(), "Tools", "simulation", "gz", "models")
-    set_gazebo_model_path = SetEnvironmentVariable(
-       name='GZ_SIM_RESOURCE_PATH',
-       value=[
-           EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),
-           TextSubstitution(text=':' + pkg_share_gz)
-       ])
+    # # IMPORTANT: Adding the environment variable must be done at first
+    # pkg_share_gz = os.path.join(os.getcwd(), "Tools", "simulation", "gz", "models")
+    # set_gazebo_model_path = SetEnvironmentVariable(
+    #    name='GZ_SIM_RESOURCE_PATH',
+    #    value=[
+    #        EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),
+    #        TextSubstitution(text=':' + pkg_share_gz)
+    #    ])
 
     # Package and file paths
     pkg_share_uav_gazebo_sim = get_package_share_directory('uav_gazebo_sim')
