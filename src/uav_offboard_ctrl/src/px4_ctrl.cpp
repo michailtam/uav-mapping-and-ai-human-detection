@@ -16,7 +16,7 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::init},
         RCLCPP_INFO(this->get_logger(), "Service not available, waiting again...");
     }
 
-    timer_ = this->create_wall_timer(100ms, std::bind(&OffboardControl::timerUpdateStateMachine, this));
+    timer_ = this->create_wall_timer(100ms, std::bind(&OffboardControl::timerUpdateStateMachine, this)); // 10 Hz
 
     // To receive the estimated position in a local frame in Cartesian space, 
     // to correctly receive the topic, set the quality of service first
