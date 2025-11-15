@@ -19,6 +19,13 @@
   gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS
 
+# Bridge for odometry
+- ros_topic_name: "/odom"
+  gz_topic_name: "/model/x650_0/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
 # Bridge for depth camera info and camera image
 - ros_topic_name: "camera/depth/camera_info"
   gz_topic_name: "camera/camera_info"
@@ -53,9 +60,8 @@
   gz_type_name: "gz.msgs.LaserScan"
   direction: GZ_TO_ROS
 
-# gz topic published by the IMU plugin
-- ros_topic_name: "imu"
-  gz_topic_name: "imu"
-  ros_type_name: "sensor_msgs/msg/Imu"
-  gz_type_name: "gz.msgs.IMU"
-  direction: GZ_TO_ROS
+# # gz topic published by the IMU plugin
+#   gz_topic_name: "imu"
+#   ros_type_name: "sensor_msgs/msg/Imu"
+#   gz_type_name: "gz.msgs.IMU"
+#   direction: GZ_TO_ROS

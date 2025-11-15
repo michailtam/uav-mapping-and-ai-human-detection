@@ -11,7 +11,7 @@ import xacro
 def generate_launch_description():
     # Package and file paths
     share_dir = get_package_share_directory('uav_description')
-    rviz_config_file = os.path.join(share_dir, 'rviz', 'display_sensors.rviz')
+    rviz_config_file = os.path.join(share_dir, 'rviz', 'rviz_conf.rviz')
 
     # Create the robot_description from xacro file
     xacro_file = os.path.join(share_dir, 'urdf', 'uav.urdf.xacro') 
@@ -42,21 +42,21 @@ def generate_launch_description():
                 'robot_description': robot_urdf}]
     )
 
-    # # Create the joint-state-publisher node (with/without UI)
-    # joint_state_publisher_node = Node(
-    #     condition=UnlessCondition(gui),
-    #     package='joint_state_publisher',
-    #     executable='joint_state_publisher',
-    #     name='joint_state_publisher',
-    #     parameters=[{'use_sim_time': use_sim_time}]
-    # )
-    # joint_state_publisher_gui_node = Node(
-    #     condition=IfCondition(gui),
-    #     package='joint_state_publisher_gui',
-    #     executable='joint_state_publisher_gui',
-    #     name='joint_state_publisher_gui',
-    #     parameters=[{'use_sim_time': use_sim_time}]
-    # )
+    # Create the joint-state-publisher node (with/without UI)
+    joint_state_publisher_node = Node(
+        condition=UnlessCondition(gui),
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        name='joint_state_publisher',
+        parameters=[{'use_sim_time': use_sim_time}]
+    )
+    joint_state_publisher_gui_node = Node(
+        condition=IfCondition(gui),
+        package='joint_state_publisher_gui',
+        executable='joint_state_publisher_gui',
+        name='joint_state_publisher_gui',
+        parameters=[{'use_sim_time': use_sim_time}]
+    )
 
     # Create RViz node
     rviz_node = Node(
@@ -71,8 +71,8 @@ def generate_launch_description():
     ld.add_action(gui_arg)
     ld.add_action(use_sim_time_arg)
     ld.add_action(robot_state_publisher_node)
-    # ld.add_action(joint_state_publisher_node)
-    # ld.add_action(joint_state_publisher_gui_node)
+    ld.add_action(joint_state_publisher_node)
+    ld.add_action(joint_state_publisher_gui_node)
     ld.add_action(rviz_node)
 
     return ld
