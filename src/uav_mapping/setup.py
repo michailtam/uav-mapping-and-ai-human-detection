@@ -11,7 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch',
-        ['launch/map_creation.launch.py']),
+        ['launch/rtabmap.launch.py']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

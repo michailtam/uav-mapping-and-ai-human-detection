@@ -18,8 +18,8 @@ include_directories(include)
 add_executable(px4_ctrl src/px4_ctrl.cpp)
 ament_target_dependencies(px4_ctrl px4_msgs rclcpp)
 
-add_executable(px4_propeller_jointstate_pub src/px4_propeller_jointstate_pub.cpp)
-ament_target_dependencies(px4_propeller_jointstate_pub px4_msgs rclcpp sensor_msgs)
+add_executable(px4_prop_joint_states_pub src/px4_prop_joint_states_pub.cpp)
+ament_target_dependencies(px4_prop_joint_states_pub px4_msgs rclcpp sensor_msgs)
 
 # Install the header files
 install(
@@ -29,7 +29,7 @@ install(
 
 # Install the packages and executables
 install(TARGETS
-  px4_propeller_jointstate_pub
+  px4_prop_joint_states_pub
   px4_ctrl
   DESTINATION lib/${PROJECT_NAME})
 

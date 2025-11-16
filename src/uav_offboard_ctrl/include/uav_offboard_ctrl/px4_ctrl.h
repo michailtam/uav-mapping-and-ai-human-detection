@@ -32,10 +32,9 @@ public:
     void navigate();
     void run();
     void poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
-    std::vector<Point3D> planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step);  // TODO: move to another pkg
-    double calculateDistance(const Point3D& start, const Point3D& end); // TODO: move to another pkg
-
-    void prepareTrajectory(float x, float y, float z); // TODO: move to another pkg
+    // std::vector<Point3D> planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step);  // TODO: move to another pkg
+    // double calculateDistance(const Point3D& start, const Point3D& end); // TODO: move to another pkg
+    // void prepareTrajectory(float x, float y, float z); // TODO: move to another pkg
     
 private:
     void publishOffboardControlMode();
@@ -45,14 +44,16 @@ private:
     void timerUpdateStateMachine(void);
 
     enum class State{
-		init,
-		offboard_requested,
-		wait_for_stable_offboard_mode,
-		arm_requested,
-        armed,
-        takeoff,
-        hold,
-        navigate
+		INIT_MODE,              // initialization Mode
+		OFFBOARD_REQUESTED,     
+		OFFBOARD_MODE,          // Flight Mode
+		ARM_REQUESTED,          
+        ARM_MODE,               // Flight Mode
+        TAKEOFF_MODE,           // Flight Mode
+        HOLD_MODE,              // Flight Mode
+        MISSION_MODE,           // Flight Mode
+        LAND_MODE,              // Flight Mode
+        RETURN_MODE             // Flight Mode
 	} state_;
 
 	uint8_t service_result_;

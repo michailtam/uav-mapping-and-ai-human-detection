@@ -1,7 +1,7 @@
 #include "uav_offboard_ctrl/px4_ctrl.h"
 
 
-OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::init}, service_result_{0}, service_done_{false}, 
+OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::INIT_MODE}, service_result_{0}, service_done_{false}, 
     take_off_height_{-5.0} {
     // Create the service for changing the control mode
     RCLCPP_INFO(this->get_logger(), "Starting Offboard Control with PX4 services");
@@ -159,49 +159,49 @@ void OffboardControl::timerUpdateStateMachine(void) {
 
 	switch (state_)
 	{
-	case State::init :
+	case State::INIT_MODE:
 		switchToOffboardMode();
-		state_ = State::offboard_requested;
+		state_ = State::OFFBOARD_REQUESTED;
 		break;
-	case State::offboard_requested :
+	case State::OFFBOARD_REQUESTED:
 		if(service_done_){
 			if (service_result_==0){
 				RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
-				state_ = State::wait_for_stable_offboard_mode;				
+				state_ = State::OFFBOARD_MODE;				
 			} else {
 				RCLCPP_ERROR(this->get_logger(), "Failed to enter offboard mode, exiting");
 				rclcpp::shutdown();
 			}
 		}
 		break;
-	case State::wait_for_stable_offboard_mode :
+	case State::OFFBOARD_MODE:
 		if (++num_of_steps > 10) {
 			arm();
-			state_ = State::arm_requested;
+			state_ = State::ARM_REQUESTED;
 		}
 		break;
-	case State::arm_requested :
+	case State::ARM_REQUESTED:
 		if(service_done_){
 			if (service_result_==0){
 				RCLCPP_INFO(this->get_logger(), "Vehicle is armed");
-				state_ = State::armed;
+				state_ = State::ARM_MODE;
 			} else {
 				RCLCPP_ERROR(this->get_logger(), "Failed to arm, exiting");
 				rclcpp::shutdown();
 			}
 		}
 		break;
-    case State::armed:
+    case State::ARM_MODE:
         RCLCPP_INFO(this->get_logger(), "Take Off");
-        state_ = State::takeoff;
+        state_ = State::TAKEOFF_MODE;
         break;
-    case State::takeoff:
+    case State::TAKEOFF_MODE:
         takeOff();
         break;
-    case State::navigate:
-        navigate();
+    case State::MISSION_MODE:
+        // navigate();
         break;
-    case State::hold:
+    case State::HOLD_MODE:
         // Do nothing, just hover at last setpoint
         break;
 	default:
@@ -221,10 +221,11 @@ void OffboardControl::disarm() {
 
 void OffboardControl::takeOff() {
     if (curr_z_ > (take_off_height_+0.2)) {
-        publishTrajectorySetpoint(0.0, 0.0, take_off_height_);  // Takeoff until 5 m has reached
+        RCLCPP_INFO(this->get_logger(), "z:%f, takeoff_h:%f", curr_z_, take_off_height_);
+        publishTrajectorySetpoint(0.0, 0.0, take_off_height_);  // Takeoff until approx. 5 m altitude has been reached
     } else {
         RCLCPP_INFO(this->get_logger(), "Takeoff altitude reached");
-        state_ = State::navigate;
+        state_ = State::MISSION_MODE;
     }
 }
 
@@ -248,7 +249,7 @@ void OffboardControl::navigate() {
             RCLCPP_INFO(this->get_logger(), "Destination reached!");
 
             // switch FSM state
-            state_ = State::hold;
+            state_ = State::HOLD_MODE;
         }
     }
 }
@@ -260,72 +261,72 @@ void OffboardControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::Sh
     curr_x_ = msg->x;
     curr_y_ = msg->y;
     curr_z_ = msg->z;
-    RCLCPP_INFO(this->get_logger(), "Pose: x:%f y:%f z:%f", curr_x_, curr_y_, curr_z_);
+    // RCLCPP_INFO(this->get_logger(), "Pose: x:%f y:%f z:%f", curr_x_, curr_y_, curr_z_);
 }
 
-void OffboardControl::prepareTrajectory(float x, float y, float z) {
-    /**
-     * @brief Calculates the trajectory to fly.
-     */
-    Point3D start = {curr_x_, curr_y_, curr_z_};  
-    Point3D end = {x, y, z};
+// void OffboardControl::prepareTrajectory(float x, float y, float z) {
+//     /**
+//      * @brief Calculates the trajectory to fly.
+//      */
+//     Point3D start = {curr_x_, curr_y_, curr_z_};  
+//     Point3D end = {x, y, z};
 
-    double v_max = 0.5; // m/sec
-    double time_step = 0.1; 
+//     double v_max = 0.5; // m/sec
+//     double time_step = 0.1; 
 
-    trajectory_ = planTrajectory(start, end, v_max, time_step);
-    trajectory_index_ = 0;
-    navigating_ = true;
+//     trajectory_ = planTrajectory(start, end, v_max, time_step);
+//     trajectory_index_ = 0;
+//     navigating_ = true;
 
-    if (trajectory_.size() > 0) {
-        RCLCPP_INFO(this->get_logger(), "Trajectory has %zu points", trajectory_.size());
-    } else {
-        RCLCPP_WARN(this->get_logger(), "Empty trajectory!");
-    }
-}
+//     if (trajectory_.size() > 0) {
+//         RCLCPP_INFO(this->get_logger(), "Trajectory has %zu points", trajectory_.size());
+//     } else {
+//         RCLCPP_WARN(this->get_logger(), "Empty trajectory!");
+//     }
+// }
 
-double OffboardControl::calculateDistance(const Point3D& start, const Point3D& end) {
-    /**
-    * @brief Calculate the Euclidean distance between two 3D points.
-    */
-    return std::hypot(end.x - start.x, end.y - start.y, end.z - start.z);
-}
+// double OffboardControl::calculateDistance(const Point3D& start, const Point3D& end) {
+//     /**
+//     * @brief Calculate the Euclidean distance between two 3D points.
+//     */
+//     return std::hypot(end.x - start.x, end.y - start.y, end.z - start.z);
+// }
 
-std::vector<Point3D> OffboardControl::planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step) {
-    /**
-     * @brief Plan the trajectory between two points
-     */
-    std::vector<Point3D> waypoints;
+// std::vector<Point3D> OffboardControl::planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step) {
+//     /**
+//      * @brief Plan the trajectory between two points
+//      */
+//     std::vector<Point3D> waypoints;
     
-    // Calculate the total distance between the start and end points
-    double total_distance = calculateDistance(start, end); 
+//     // Calculate the total distance between the start and end points
+//     double total_distance = calculateDistance(start, end); 
 
-    // Calculate the total time required to reach the end point
-    double total_time = total_distance / v_max;
+//     // Calculate the total time required to reach the end point
+//     double total_time = total_distance / v_max;
 
-    // Calculate the number of time steps needed
-    int num_steps = std::ceil(total_time / time_step);
+//     // Calculate the number of time steps needed
+//     int num_steps = std::ceil(total_time / time_step);
 
-    // Calculate the velocity components for each axis
-    double v_x = (end.x - start.x) / (num_steps * time_step);
-    double v_y = (end.y - start.y) / (num_steps * time_step);
-    double v_z = (end.z - start.z) / (num_steps * time_step);
+//     // Calculate the velocity components for each axis
+//     double v_x = (end.x - start.x) / (num_steps * time_step);
+//     double v_y = (end.y - start.y) / (num_steps * time_step);
+//     double v_z = (end.z - start.z) / (num_steps * time_step);
 
-    // Generate waypoints for each time step
-    for (int i = 0; i <= num_steps; ++i) {
-        double t = i * time_step;  // Current time
+//     // Generate waypoints for each time step
+//     for (int i = 0; i <= num_steps; ++i) {
+//         double t = i * time_step;  // Current time
 
-        // Calculate the position at time t
-        Point3D waypoint;
-        waypoint.x = start.x + v_x * t;
-        waypoint.y = start.y + v_y * t;
-        waypoint.z = start.z + v_z * t;
+//         // Calculate the position at time t
+//         Point3D waypoint;
+//         waypoint.x = start.x + v_x * t;
+//         waypoint.y = start.y + v_y * t;
+//         waypoint.z = start.z + v_z * t;
 
-        waypoints.push_back(waypoint);
-    }
+//         waypoints.push_back(waypoint);
+//     }
 
-    return waypoints;
-}
+//     return waypoints;
+// }
 
 void OffboardControl::run() {
     /**

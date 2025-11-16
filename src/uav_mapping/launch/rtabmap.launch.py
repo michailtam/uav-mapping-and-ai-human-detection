@@ -93,7 +93,7 @@ def generate_launch_description():
 
     # Build LaunchDescription with actions only (no LaunchConfiguration directly)
     ld = LaunchDescription()
-    ld.add_action(rtabmap_viz_arg)
+    # ld.add_action(rtabmap_viz_arg)
     ld.add_action(rviz_arg)
     ld.add_action(localization_arg)
     ld.add_action(rviz_cfg_arg)
