@@ -19,11 +19,11 @@ def generate_launch_description():
     #    ])
 
     # Package and file paths
-    pkg_share_uav_gazebo_sim = get_package_share_directory('uav_gazebo_sim')
+    pkg_share_uav_simulation = get_package_share_directory('uav_simulation')
     
     # Set default launch arguments
     ros_gz_bridge_config = PathJoinSubstitution([
-        pkg_share_uav_gazebo_sim, 
+        pkg_share_uav_simulation, 
         'config',
         'ros_gz_bridge.yaml'])
 

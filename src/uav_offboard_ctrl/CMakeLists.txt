@@ -9,14 +9,27 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(px4_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+
+# Add include folder so .h files are found
+include_directories(include)
 
 add_executable(px4_ctrl src/px4_ctrl.cpp)
 ament_target_dependencies(px4_ctrl px4_msgs rclcpp)
 
+add_executable(px4_propeller_jointstate_pub src/px4_propeller_jointstate_pub.cpp)
+ament_target_dependencies(px4_propeller_jointstate_pub px4_msgs rclcpp sensor_msgs)
+
+# Install the header files
+install(
+  DIRECTORY include/
+  DESTINATION include/
+)
+
 # Install the packages and executables
 install(TARGETS
+  px4_propeller_jointstate_pub
   px4_ctrl
   DESTINATION lib/${PROJECT_NAME})
 

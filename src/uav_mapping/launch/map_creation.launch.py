@@ -12,12 +12,12 @@ def generate_launch_description():
         get_package_share_directory('rtabmap_demos'), 'config', 'demo_robot_mapping.rviz'
     )
 
-    # Declare launch arguments (and keep the actions)
-    rtabmap_viz_arg = DeclareLaunchArgument(
-        'rtabmap_viz',
-        default_value='false',
-        description='Launch RTAB-Map UI (optional).'
-    )
+    # # Declare launch arguments (and keep the actions)
+    # rtabmap_viz_arg = DeclareLaunchArgument(
+    #     'rtabmap_viz',
+    #     default_value='false',
+    #     description='Launch RTAB-Map UI (optional).'
+    # )
 
     rviz_arg = DeclareLaunchArgument(
         'rviz',

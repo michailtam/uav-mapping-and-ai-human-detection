@@ -5,12 +5,15 @@
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS
 
-# Bridge for the JointState plugin
-- ros_topic_name: "joint_states"
-  gz_topic_name: "joint_states"
-  ros_type_name: "sensor_msgs/msg/JointState"
-  gz_type_name: "gz.msgs.Model"
-  direction: GZ_TO_ROS
+# # NOTE: This part has to be commented out, because the joint states have to be published
+# # from px4 and not from gazebo. This is necessary, because otherwise the propellers will
+# # not work in RViz. 
+# # Bridge for the JointState plugin
+# - ros_topic_name: "joint_states"
+#   gz_topic_name: "joint_states"
+#   ros_type_name: "sensor_msgs/msg/JointState"
+#   gz_type_name: "gz.msgs.Model"
+#   direction: GZ_TO_ROS
 
 # Bridge for the TF plugin
 - ros_topic_name: "tf"
