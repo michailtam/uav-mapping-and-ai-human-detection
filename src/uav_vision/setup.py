@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'uav_detection'
+package_name = 'uav_vision'
 
 setup(
     name=package_name,
@@ -15,7 +15,7 @@ setup(
     zip_safe=True,
     maintainer='mikelap',
     maintainer_email='mi.tamvak@gmail.com',
-    description='TODO: Package description',
+    description='UAV vision tools',
     license='TODO: License declaration',
     extras_require={
         'test': [
@@ -24,7 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'sensors = uav_detection.sensors:main'
+            'image_tools = uav_vision.image_tools:main',
         ],
     },
 )

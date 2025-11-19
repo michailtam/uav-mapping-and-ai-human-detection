@@ -20,38 +20,40 @@ def generate_launch_description():
 
     # Package and file paths
     pkg_share_uav_simulation = get_package_share_directory('uav_simulation')
+    # pkg_share_uav_vision = get_package_share_directory('uav_vision')
     
     # Set default launch arguments
     ros_gz_bridge_config = PathJoinSubstitution([
-        pkg_share_uav_simulation, 
-        'config',
-        'ros_gz_bridge.yaml'])
+      pkg_share_uav_simulation, 
+      'config',
+      'ros_gz_bridge.yaml'])
 
     # Bridge ROS topics and Gazebo messages for establishing communication
     gazebo_ros_bridge_cmd = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        name='gazebo_bridge',
-        parameters=[{
-          'config_file': ros_gz_bridge_config,
-          'use_sim_time': True
-        }],
-        output='screen'
+      package='ros_gz_bridge',
+      executable='parameter_bridge',
+      name='gazebo_bridge',
+      parameters=[{
+        'config_file': ros_gz_bridge_config,
+        'use_sim_time': True
+      }],
+      output='screen'
     )
 
     # The bridge for cameras
     gazebo_ros_image_bridge_cmd = Node(
-        package='ros_gz_image',
-        executable='image_bridge',
-        arguments=[
-          '/camera/depth_image',
-          '/camera/image'
-        ],
-        remappings=[
-          ('/camera/depth_image', '/camera/depth/image_rect_raw'),
-          ('/camera/image', '/camera/color/image_raw'),
-        ],
-      )
+      package='ros_gz_image',
+      executable='image_bridge',
+      arguments=[
+        '/camera/depth_image',
+        '/camera/image'
+      ],
+      remappings=[
+        ('/camera/depth_image', '/camera/depth/image_rect_raw'),
+        ('/camera/image', '/camera/color/image_raw'),
+      ],
+      output='screen'
+    )
     
     # This node is necessary to create a static transform between the base_link and x650_0/base_link/laser_sensor link.
     # Otherwise, the lidar sensor data don't get published and therefore shown to RViz.
@@ -60,28 +62,37 @@ def generate_launch_description():
       executable="static_transform_publisher",
       name="laser_static_tf",
       arguments=["0", "0", "0", "0", "0", "0",
-                "base_link", "x650_0/base_link/laser_sensor"],
-    )
+                "base_link", "x650_0/base_link/laser_sensor"])
 
-    # This node rotates an incoming image by a fixed angle.
-    # It's used, to correct the upside-down RGB-D camera image without modifying the SDF model. 
-    # The rotated image will be republished under /camera/image_upright.
-    image_rotate_node = Node(
-        package="image_rotate",
-        executable="image_rotate",
-        name="camera_image_rotate",
+    # Rotate RGB image: /camera/color/image_raw -> /camera/color/image_upright
+    rgb_rotate_node = Node(
+        package="uav_vision",
+        executable="image_tools",
+        name="camera_rgb_rotate",
         output="screen",
         remappings=[
-            ("image", "/camera/image_raw"),   # INPUT topics from camera
-            ("camera_info", "/camera/camera_info"), 
-            ("image_rotated", "/camera/image_upright")  # OUTPUT rotated image topic
-        ],
-        parameters=[{"target_rotation": 3.14159}])  # 180 degrees rotation
+            ("image", "/camera/color/image_raw"),
+            ("image_rotated", "/camera/color/image_upright"),
+        ]
+    )
+
+    # Rotate depth image: /camera/depth/image_rect_raw -> /camera/depth/image_rect_upright
+    depth_rotate_node = Node(
+        package="uav_vision",
+        executable="image_tools",
+        name="camera_depth_rotate",
+        output="screen",
+        remappings=[
+            ("image", "/camera/depth/image_rect_raw"),
+            ("image_rotated", "/camera/depth/image_rect_upright"),
+        ]
+    )
 
     ld = LaunchDescription()
     ld.add_action(gazebo_ros_bridge_cmd)
     ld.add_action(gazebo_ros_image_bridge_cmd)
     ld.add_action(static_laser_tf)
-    ld.add_action(image_rotate_node)
+    ld.add_action(rgb_rotate_node)
+    ld.add_action(depth_rotate_node)
 
     return ld
