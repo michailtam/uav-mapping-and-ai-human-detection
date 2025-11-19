@@ -52,6 +52,7 @@ private:
         TAKEOFF_MODE,           // Flight Mode
         HOLD_MODE,              // Flight Mode
         MISSION_MODE,           // Flight Mode
+        POSITION_MODE,          // Flight Mode    
         LAND_MODE,              // Flight Mode
         RETURN_MODE             // Flight Mode
 	} state_;

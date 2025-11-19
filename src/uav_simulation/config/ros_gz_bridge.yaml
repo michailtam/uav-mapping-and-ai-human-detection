@@ -61,6 +61,7 @@
   gz_topic_name: "scan"
   ros_type_name: "sensor_msgs/msg/LaserScan"
   gz_type_name: "gz.msgs.LaserScan"
+  qos_profile: "SENSOR_DATA"
   direction: GZ_TO_ROS
 
 # # gz topic published by the IMU plugin

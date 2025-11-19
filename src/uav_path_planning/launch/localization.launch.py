@@ -30,7 +30,7 @@ def generate_launch_description():
 
     # Path to the map saved on hard disk
     map_path = PathJoinSubstitution([
-        get_package_share_directory("uav_path_planning"),
+        get_package_share_directory("uav_mapping"),
         "maps",
         "map.yaml"
     ])

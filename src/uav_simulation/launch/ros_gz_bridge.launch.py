@@ -52,9 +52,36 @@ def generate_launch_description():
           ('/camera/image', '/camera/color/image_raw'),
         ],
       )
+    
+    # This node is necessary to create a static transform between the base_link and x650_0/base_link/laser_sensor link.
+    # Otherwise, the lidar sensor data don't get published and therefore shown to RViz.
+    static_laser_tf = Node(
+      package="tf2_ros",
+      executable="static_transform_publisher",
+      name="laser_static_tf",
+      arguments=["0", "0", "0", "0", "0", "0",
+                "base_link", "x650_0/base_link/laser_sensor"],
+    )
+
+    # This node rotates an incoming image by a fixed angle.
+    # It's used, to correct the upside-down RGB-D camera image without modifying the SDF model. 
+    # The rotated image will be republished under /camera/image_upright.
+    image_rotate_node = Node(
+        package="image_rotate",
+        executable="image_rotate",
+        name="camera_image_rotate",
+        output="screen",
+        remappings=[
+            ("image", "/camera/image_raw"),   # INPUT topics from camera
+            ("camera_info", "/camera/camera_info"), 
+            ("image_rotated", "/camera/image_upright")  # OUTPUT rotated image topic
+        ],
+        parameters=[{"target_rotation": 3.14159}])  # 180 degrees rotation
 
     ld = LaunchDescription()
     ld.add_action(gazebo_ros_bridge_cmd)
     ld.add_action(gazebo_ros_image_bridge_cmd)
-    
+    ld.add_action(static_laser_tf)
+    ld.add_action(image_rotate_node)
+
     return ld
