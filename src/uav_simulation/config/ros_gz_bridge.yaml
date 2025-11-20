@@ -64,8 +64,10 @@
   qos_profile: "SENSOR_DATA"
   direction: GZ_TO_ROS
 
-# # gz topic published by the IMU plugin
-#   gz_topic_name: "imu"
-#   ros_type_name: "sensor_msgs/msg/Imu"
-#   gz_type_name: "gz.msgs.IMU"
-#   direction: GZ_TO_ROS
+# IMU plugin
+- ros_topic_name: "/imu/data_raw"
+  gz_topic_name: "/world/apt/model/x500_depth_0/link/base_link/sensor/imu_sensor/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  qos_profile: "SENSOR_DATA"
+  direction: GZ_TO_ROS 

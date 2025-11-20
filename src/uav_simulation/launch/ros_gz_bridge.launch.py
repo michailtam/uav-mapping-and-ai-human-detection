@@ -12,7 +12,7 @@ def generate_launch_description():
     
     # Set default launch arguments
     ros_gz_bridge_config = PathJoinSubstitution([
-      pkg_share_uav_simulation, 
+      pkg_share_uav_simulation,
       'config',
       'ros_gz_bridge.yaml'])
 
@@ -34,6 +34,7 @@ def generate_launch_description():
       package="tf2_ros",
       executable="static_transform_publisher",
       name="laser_static_tf",
+      parameters=[{'use_sim_time': True}],
       arguments=["0", "0", "0", "0", "0", "0",
                 "base_link", "x650_0/base_link/laser_sensor"])
     
