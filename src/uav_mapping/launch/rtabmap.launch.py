@@ -37,8 +37,11 @@ def generate_launch_description():
         description='Configuration path of rviz2.'
     )
 
+    use_sim_time = LaunchConfiguration("use_sim_time")
+
     parameters = {
-        'frame_id': 'base_footprint',
+        'frame_id': 'base_link', #
+        'use_sim_time': use_sim_time, #
         'subscribe_rgbd': True,
         'subscribe_scan': True,
         'approx_sync': True,
@@ -58,7 +61,7 @@ def generate_launch_description():
         executable='rtabmap',
         output='screen',
         parameters=[parameters],
-        arguments=['-d']
+        arguments=['-d'] # Delete the previous database (~/.ros/rtabmap.db)
     )
 
     # RTAB-Map Localization mode
@@ -82,24 +85,13 @@ def generate_launch_description():
         parameters=[parameters],
     )
 
-    # rviz_node = Node(
-    #     package='rviz2',
-    #     executable='rviz2',
-    #     name='rviz2',
-    #     output='screen',
-    #     condition=IfCondition(LaunchConfiguration('rviz')),
-    #     arguments=['-d', LaunchConfiguration('rviz_cfg')]
-    # )
-
     # Build LaunchDescription with actions only (no LaunchConfiguration directly)
     ld = LaunchDescription()
-    # ld.add_action(rtabmap_viz_arg)
     ld.add_action(rviz_arg)
     ld.add_action(localization_arg)
     ld.add_action(rviz_cfg_arg)
     ld.add_action(rtabmap_node)
     ld.add_action(rtabmap_loc_node)
     ld.add_action(rtabmap_viz_node)
-    # ld.add_action(rviz_node)
-
+    
     return ld

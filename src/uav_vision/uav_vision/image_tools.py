@@ -5,32 +5,67 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
 
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+
 
 class ImageTools(Node):
+
     def __init__(self):
         # Node name will be overridden from launch so it's safe to reuse
         super().__init__("image_tools_node")
-
-        # Create the subscriber to read the raw image data from the camera and the publisher to send
-        # the edited image for further processing.
-        self.bridge = CvBridge()
-        self.sub_ = self.create_subscription(Image, "image", self.image_callback, 10)
-        self.pub_ = self.create_publisher(Image, "image_rotated", 10)
         
-    def image_callback(self, msg: Image):
+        self.bridge = CvBridge()
+
+        # Sensor QoS (matches camera / ros_gz_image publishers)
+        sensor_qos = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10)
+
+        # Subscribers
+        # RGB image from Gazebo bridge
+        self.rgb_sub_ = self.create_subscription(Image, "/camera/color/image_raw", 
+                                                 self.rgb_image_callback, sensor_qos)
+
+        # Depth image from Gazebo bridge
+        self.depth_sub_ = self.create_subscription(Image, "/camera/depth/image_rect_raw", 
+                                                   self.depth_image_callback, sensor_qos)
+
+        # Publishers
+        self.rgb_pub_ = self.create_publisher(Image, "image_rgb", sensor_qos)
+        self.depth_pub_ = self.create_publisher(Image, "image_depth", sensor_qos)
+        
+        self.get_logger().info("ImageTools node started (RGB + depth)")
+
+    def rgb_image_callback(self, msg: Image):
+        self.get_logger().debug(f"Incoming image encoding: {msg.encoding}, frame_id: {msg.header.frame_id}")
+
         try:
-            # Convert image to opencv format
-            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+            # Assume RGB-like image
+            cv_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+            # Rotate / flip rgb
+            rotated = cv2.rotate(cv_img, cv2.ROTATE_180)  # Vertical flip
+            out_msg = self.bridge.cv2_to_imgmsg(rotated, encoding="bgr8")
+            out_msg.header = msg.header
+            self.rgb_pub_.publish(out_msg)
+
         except Exception as e:
-            self.get_logger().error(f"Failed to convert image: {e}")
-            return
+            self.get_logger().error(f"Failed to process image: {e}")
+        
+    def depth_image_callback(self, msg: Image):
+        self.get_logger().debug(f"Incoming image encoding: {msg.encoding}, frame_id: {msg.header.frame_id}")
 
-        # Apply image processing: Rotate the image 180 degrees
-        rotated = cv2.rotate(cv_image, cv2.ROTATE_180)
-        out_msg = self.bridge.cv2_to_imgmsg(rotated, encoding="bgr8")
-        out_msg.header = msg.header  # Keep the same timestamp / frame
-        self.pub_.publish(out_msg)
+        try:
+            # Depth: keep original encoding
+            cv_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
+            # Rotate / flip depth
+            rotated = cv2.flip(cv_img, 0)  # Vertical flip
+            out_msg = self.bridge.cv2_to_imgmsg(rotated, encoding=msg.encoding)
+            out_msg.header = msg.header
+            self.depth_pub_.publish(out_msg)
 
+        except Exception as e:
+            self.get_logger().error(f"Failed to process image: {e}")
 
 def main(args=None):
     rclpy.init(args=args)
