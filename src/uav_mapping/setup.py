@@ -11,7 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch',
-        ['launch/rtabmap.launch.py']),
+        ['launch/vslam.launch.py']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

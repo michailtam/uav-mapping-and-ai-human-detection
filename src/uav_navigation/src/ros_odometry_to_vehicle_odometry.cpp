@@ -17,7 +17,7 @@ public:
 	RosOdometry2VehicleOdometry() : 
 		Node("ros_odometry_to_vehicle_odometry"),
 		map_frame_id_("map"),
-		repeat_odom_(false)
+		repeat_odom_(false) 
 	{
 		map_frame_id_ = this->declare_parameter("map_frame_id", map_frame_id_);
 		repeat_odom_ = this->declare_parameter("repeat_odom", repeat_odom_);

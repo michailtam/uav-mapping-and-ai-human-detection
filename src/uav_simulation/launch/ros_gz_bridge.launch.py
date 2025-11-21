@@ -2,6 +2,8 @@ import os
 from launch import LaunchDescription
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -9,6 +11,7 @@ def generate_launch_description():
 
     # Package and file paths
     pkg_share_uav_simulation = get_package_share_directory('uav_simulation')
+    pkg_share_uav_mapping = get_package_share_directory('uav_mapping')
     
     # Set default launch arguments
     ros_gz_bridge_config = PathJoinSubstitution([
@@ -61,11 +64,20 @@ def generate_launch_description():
         output='screen',
         parameters=[{"use_sim_time": True}],
     )
+
+
+    # Include the launch of Visual Slam for 3D mapping
+    vslam_incl = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([pkg_share_uav_mapping, 'launch', 'vslam.launch.py'])
+        )
+    )
     
     ld = LaunchDescription()
     ld.add_action(gazebo_ros_bridge_cmd)
     ld.add_action(gazebo_ros_image_bridge_cmd)
     ld.add_action(static_laser_tf)
     ld.add_action(image_tools_rgb_node)
+    ld.add_action(vslam_incl)
 
     return ld
