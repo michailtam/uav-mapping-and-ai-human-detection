@@ -14,17 +14,14 @@ using namespace std::chrono_literals;
 class RosOdometry2VehicleOdometry : public rclcpp::Node
 {
 public:
-	RosOdometry2VehicleOdometry() : 
-		Node("ros_odometry_to_vehicle_odometry"),
-		map_frame_id_("map"),
-		repeat_odom_(false) 
+	RosOdometry2VehicleOdometry() : Node("ros_odometry_to_vehicle_odometry"), map_frame_id_("map"), repeat_odom_(false) 
 	{
 		map_frame_id_ = this->declare_parameter("map_frame_id", map_frame_id_);
 		repeat_odom_ = this->declare_parameter("repeat_odom", repeat_odom_);
 
         vehicle_odometry_publisher_ = this->create_publisher<px4_msgs::msg::VehicleOdometry>("/fmu/in/vehicle_visual_odometry", 10);
-
-		subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/odom", 10, std::bind(&RosOdometry2VehicleOdometry::odom_callback, this, std::placeholders::_1));
+		subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/odom", 10, 
+			std::bind(&RosOdometry2VehicleOdometry::odom_callback, this, std::placeholders::_1));
 
         tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
 	    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);

@@ -59,7 +59,7 @@ class ImageTools(Node):
             # Depth: keep original encoding
             cv_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
             # Rotate / flip depth
-            rotated = cv2.flip(cv_img, 0)  # Vertical flip
+            rotated = cv2.rotate(cv_img, cv2.ROTATE_180)
             out_msg = self.bridge.cv2_to_imgmsg(rotated, encoding=msg.encoding)
             out_msg.header = msg.header
             self.depth_pub_.publish(out_msg)
