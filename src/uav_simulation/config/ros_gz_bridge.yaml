@@ -30,14 +30,14 @@
   direction: GZ_TO_ROS
 
 # Bridge for depth camera info and camera image
-- ros_topic_name: "camera/depth/camera_info"
+- ros_topic_name: "/camera/depth/camera_info"
   gz_topic_name: "/camera/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
   qos_profile: SENSOR_DATA
 
-- ros_topic_name: "camera/image"
+- ros_topic_name: "/camera/image"
   gz_topic_name: "camera/image"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
@@ -45,7 +45,7 @@
   qos_profile: SENSOR_DATA
 
 # Bridge for the depth image
-- ros_topic_name: "camera/depth_image"
+- ros_topic_name: "/camera/depth_image"
   gz_topic_name: "camera/depth_image"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
@@ -70,8 +70,8 @@
 
 # IMU plugin
 - ros_topic_name: "/imu/data_raw"
-  gz_topic_name: "/world/apt/model/x650_0/link/base_link/sensor/imu_sensor/imu"
+  gz_topic_name: "/world/baylands/model/x650_0/link/base_link/sensor/imu_sensor/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   qos_profile: "SENSOR_DATA"
-  direction: GZ_TO_ROS 
+  direction: GZ_TO_ROS

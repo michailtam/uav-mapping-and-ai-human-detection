@@ -41,25 +41,47 @@ def generate_launch_description():
       arguments=["0", "0", "0", "0", "0", "0",
                 "x650_0/base_footprint", "x650_0/base_link/laser_sensor"])
     
-    # Static transform for camera: base_link -> x650_0/base_link/rgbd_cam
-    # Connects the main base_link (from odom/Gazebo) to the camera frame where data is published
+    # Static transform for camera: base_footprint -> x650_0/base_link/rgbd_cam
+    # Connects the main base_footprint (from odom/Gazebo) to the camera frame where data is published
     # Camera pose from SDF: xyz="0.13758 -0.00058142 -0.0090308" rpy="-3.1377 -0.0036204 -0.013619"
     static_camera_tf = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        name="camera_static_tf",
-        parameters=[{'use_sim_time': True}],
-        arguments=["0.13758", "-0.00058142", "-0.0090308", 
-                   "-3.1377", "-0.0036204", "-0.013619",
-                  "x650_0/base_footprint", "x650_0/base_link/rgbd_cam"])    # Image processor: rotates and republishes camera images
+      package="tf2_ros",
+      executable="static_transform_publisher",
+      name="camera_static_tf",
+      parameters=[{'use_sim_time': True}],
+      arguments=["0.13758", "-0.00058142", "-0.0090308",
+                  "-3.1377", "-0.0036204", "-0.013619",
+                "x650_0/base_footprint", "x650_0/base_link/rgbd_cam"])
+    
+    # Static transform for IMU: base_footprint -> x650_0/base_link/imu_sensor
+    # IMU is at the center of the drone (same as base_footprint)
+    static_imu_tf = Node(
+      package="tf2_ros",
+      executable="static_transform_publisher",
+      name="imu_static_tf",
+      parameters=[{'use_sim_time': True}],
+      arguments=["0", "0", "0", "0", "0", "0",
+                "x650_0/base_footprint", "x650_0/base_link/imu_sensor"])
+    
+    # Image processor: rotates and republishes camera images
     
     image_tools_rgb_node = Node(
-        package='uav_vision',
-        executable='image_tools',
-        name='camera_image_tools',
-        output='screen',
-        parameters=[{"use_sim_time": True}],
+      package='uav_vision',
+      executable='image_tools',
+      name='camera_image_tools',
+      output='screen',
+      parameters=[{"use_sim_time": True}],
     )
+    
+    # Convert odometry message to TF transform
+    # Publishes dynamic TF: x650_0/odom -> x650_0/base_footprint
+    odom_to_tf_node = Node(
+      package='odom_to_tf_ros2',
+      executable='odom_to_tf',
+      name='odom_to_tf',
+      output='screen',
+      parameters=[{'use_sim_time': True}],
+      remappings=[('odom/perfect', '/odom')])
 
 
     # Include the launch of Visual Slam for 3D mapping
@@ -73,6 +95,8 @@ def generate_launch_description():
     ld.add_action(gazebo_ros_bridge_cmd)
     ld.add_action(static_laser_tf)
     ld.add_action(static_camera_tf)
+    ld.add_action(static_imu_tf)
+    ld.add_action(odom_to_tf_node)
     ld.add_action(image_tools_rgb_node)
     ld.add_action(vslam_incl)
 

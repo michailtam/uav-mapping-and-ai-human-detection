@@ -69,7 +69,7 @@ def launch_setup(context, *args, **kwargs):
         remappings = [
                         ("rgb/image", "/camera/image"),
                         ("depth/image", "/camera/depth_image"),
-                        ("rgb/camera_info", "camera/depth/camera_info")])
+                        ("rgb/camera_info", "/camera/depth/camera_info")])
 
     # Compute visual odometry (VO) from RGBD data: Publishes /rtabmap/odom for SLAM + navigation.
     rtabmap_odom_node = Node(
