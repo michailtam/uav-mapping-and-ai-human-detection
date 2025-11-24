@@ -16,18 +16,19 @@ def launch_setup(context, *args, **kwargs):
     use_sim_time = LaunchConfiguration("use_sim_time")
 
     vslam_params = {
-        'frame_id':'base_link',                     # Robot body frame used for odometry and TF tree (child frame of odom)
-        'guess_frame_id':'base_link_stabilized',    # Frame providing motion prediction (IMU-based stabilization for better VO)
+        # Use prefixed frame name from Gazebo
+        'frame_id':'x650_0/base_footprint',                     # Robot body frame used for odometry and TF tree (child frame of odom)
+        'guess_frame_id':'x650_0/base_footprint_stabilized',    # Frame providing motion prediction (IMU-based stabilization for better VO)
         'approx_sync': True,                        # Require exact RGB/depth timestamp sync (better accuracy, strict timing)
         'use_sim_time': use_sim_time,               # Use Gazebo simulated clock instead of system time
+        'publish_tf': True,                         # Publish TF transforms (map->odom and odom->base_link)
         'subscribe_rgbd': True,                     # Enable RGB-D input (combined RGB + depth image subscription)
         'subscribe_odom_info': True,                # Subscribe to odom info (motion guesses and covariance for better matching)
         'wait_imu_to_init': True,                   # Wait until IMU provides stable gravity direction before starting SLAM
         'wait_for_transform': 0.5,                  # Max TF wait time (sec) for transforms between camera & base_link
         'use_action_for_goal': False,               # Do NOT use Nav2 NavigateToPose via RTAB-Map (Nav2 handles goals itself)
-        'odom_frame_id': 'odom',                    # odometry frame name
+        'odom_frame_id': 'x650_0/odom',                    # odometry frame name
         'map_frame_id': 'map',                      # global map frame
-        'guess_frame_id':'base_link_stabilized',
 
         # RTAB-Map's internal SLAM parameters (must be strings)
         'Optimizer/GravitySigma': '0.1',            # Strength of gravity prior (IMU) for graph optimization (low = strong trust)
@@ -41,16 +42,7 @@ def launch_setup(context, *args, **kwargs):
     }
     
     # Remap RTAB-Map topics to match UAV sensor inputs and Nav2 action interfaces.
-    vslam_remappings=[('imu', '/imu/data'),         # IMU data used for motion prediction and gravity alignment
-                    #   ('map', '/map'),                              # Nav2 requires the global map on /map
-                    #   ('navigate_to_pose', '/navigate_to_pose'),    # Nav2 NavigateToPose action server
-                      # For humble: https://github.com/ros2/ros2/issues/1312
-                    #   ('navigate_to_pose/_action/feedback', '/navigate_to_pose/_action/feedback'),
-                    #   ('navigate_to_pose/_action/status', '/navigate_to_pose/_action/status'),
-                    #   ('navigate_to_pose/_action/cancel_goal', '/navigate_to_pose/_action/cancel_goal'),
-                    #   ('navigate_to_pose/_action/get_result', '/navigate_to_pose/_action/get_result'),
-                    #   ('navigate_to_pose/_action/send_goal', '/navigate_to_pose/_action/send_goal')
-                      ]
+    vslam_remappings=[('imu', '/imu/data')]
     
     # Filter raw IMU data and compute orientation (roll/pitch/yaw) using the Madgwick filter.
     imu_orientation_node = Node(
@@ -61,13 +53,13 @@ def launch_setup(context, *args, **kwargs):
             'publish_tf':False,
             'use_sim_time': use_sim_time}])
     
-    # Publish a TF transform from base_link_stabilized (IMU) to base_link to support gravity-aligned SLAM.
+    # Publish a TF transform from base_footprint_stabilized (IMU) to base_footprint to support gravity-aligned SLAM.
     imu_to_tf_node = Node(
         package='rtabmap_util', executable='imu_to_tf', output='screen',
         parameters=[{
             'use_sim_time': use_sim_time,
-            'fixed_frame_id':'base_link_stabilized',
-            'base_frame_id':'base_link'}])
+            'fixed_frame_id':'x650_0/base_footprint_stabilized',
+            'base_frame_id':'x650_0/base_footprint'}])
         
     # Synchronize RGB + Depth images into unified RGBD messages for the RTAB-Map pipeline.
     vslam_node = Node(
@@ -75,25 +67,26 @@ def launch_setup(context, *args, **kwargs):
         namespace='rtabmap',
         parameters=[vslam_params],
         remappings = [
-                        ("image_rgb", "/rgb/image"),   # Subscribe from Gazebo/bridge
-                        ("camera/depth/camera_info", "rgb/camera_info"),            
-                        ("image_depth", "/depth/image")])       
+                        ("rgb/image", "/camera/image"),
+                        ("depth/image", "/camera/depth_image"),
+                        ("rgb/camera_info", "camera/depth/camera_info")])
 
     # Compute visual odometry (VO) from RGBD data: Publishes /rtabmap/odom for SLAM + navigation.
     rtabmap_odom_node = Node(
         package='rtabmap_odom', executable='rgbd_odometry', output='screen',
         namespace='rtabmap',
-        parameters=[vslam_params, {'odom_frame_id': 'odom'}],
+        parameters=[vslam_params, {'odom_frame_id': 'x650_0/odom'}],
         remappings=vslam_remappings,
         arguments=["--ros-args", "--log-level", 'warn'])
 
     # Full SLAM mode: Build the map, perform loop closures, update /map to /odom transform.
+    # Always run SLAM when this launch is started so mapping occurs every flight.
+    # Do not delete the previous database by default so maps are incremental across runs.
     rtabmap_slam_node = Node(
         package='rtabmap_slam', executable='rtabmap', output='screen',
         namespace='rtabmap',
         parameters=[vslam_params],
-        remappings=vslam_remappings,
-        arguments=['-d'])       # This will delete the previous database (~/.ros/rtabmap.db)
+        remappings=vslam_remappings)
             
     # Localization-only mode: Disable map growth, use existing map for pose estimation.
     rtabmap_loc_node = Node(
@@ -124,17 +117,14 @@ def launch_setup(context, *args, **kwargs):
     rtabmap_util_node = Node(
         package='rtabmap_util', executable='point_cloud_xyz', output='screen',
         parameters=[{'decimation': 2,
-                        'max_depth': 3.0,
-                        'voxel_size': 0.02,
+                        # increased for outdoor mapping; set to sensor max range
+                        'max_depth': 20.0,
+                        # coarser voxels reduce CPU and still give useful cloud
+                        'voxel_size': 0.05,
                         'use_sim_time': use_sim_time}],
         remappings=[('depth/image', '/camera/depth_image'),
                     ('depth/camera_info', 'camera/depth/camera_info'),
                     ('cloud', '/camera/cloud')])
-    
-    # rtabmap_costmap_node = Node(
-    #     package='rtabmap_costmap_plugins', executable='voxel_marker', output='screen',
-    #     namespace="local_costmap",
-    #     parameters=[{'use_sim_time': use_sim_time}])
 
     # IMPORTANT: OpaqueFunction expects a list of actions, not a LaunchDescription.
     return [
@@ -147,7 +137,6 @@ def launch_setup(context, *args, **kwargs):
         rtabmap_viz_node,
         ros_odom_to_vehcl,
         rtabmap_util_node,
-        # rtabmap_costmap_node,
     ]
     
 def generate_launch_description():

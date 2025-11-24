@@ -31,7 +31,7 @@ def generate_launch_description():
       output='screen'
     )
     
-    # This node is necessary to create a static transform between the base_link and x650_0/base_link/laser_sensor link.
+    # This node is necessary to create a static transform between the base_footprint and x650_0/base_link/laser_sensor link.
     # Otherwise, the lidar sensor data don't get published and therefore shown to RViz.
     static_laser_tf = Node(
       package="tf2_ros",
@@ -39,24 +39,20 @@ def generate_launch_description():
       name="laser_static_tf",
       parameters=[{'use_sim_time': True}],
       arguments=["0", "0", "0", "0", "0", "0",
-                "base_link", "x650_0/base_link/laser_sensor"])
+                "x650_0/base_footprint", "x650_0/base_link/laser_sensor"])
     
-    # The bridge for cameras
-    gazebo_ros_image_bridge_cmd = Node(
-      package='ros_gz_image',
-      executable='image_bridge',
-      arguments=[
-        'camera/depth_image',
-        'camera/image'
-      ],
-      remappings=[
-        ('camera/image', '/camera/color/image_raw'),
-        ('camera/depth_image', '/camera/depth/image_rect_raw')
-      ],
-      output='screen'
-    )
-
-    # RGB processor: /camera/color/image_raw -> /image_rgb
+    # Static transform for camera: base_link -> x650_0/base_link/rgbd_cam
+    # Connects the main base_link (from odom/Gazebo) to the camera frame where data is published
+    # Camera pose from SDF: xyz="0.13758 -0.00058142 -0.0090308" rpy="-3.1377 -0.0036204 -0.013619"
+    static_camera_tf = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        name="camera_static_tf",
+        parameters=[{'use_sim_time': True}],
+        arguments=["0.13758", "-0.00058142", "-0.0090308", 
+                   "-3.1377", "-0.0036204", "-0.013619",
+                  "x650_0/base_footprint", "x650_0/base_link/rgbd_cam"])    # Image processor: rotates and republishes camera images
+    
     image_tools_rgb_node = Node(
         package='uav_vision',
         executable='image_tools',
@@ -75,8 +71,8 @@ def generate_launch_description():
     
     ld = LaunchDescription()
     ld.add_action(gazebo_ros_bridge_cmd)
-    ld.add_action(gazebo_ros_image_bridge_cmd)
     ld.add_action(static_laser_tf)
+    ld.add_action(static_camera_tf)
     ld.add_action(image_tools_rgb_node)
     ld.add_action(vslam_incl)
 

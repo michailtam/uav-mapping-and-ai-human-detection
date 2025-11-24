@@ -2,7 +2,7 @@
 bt_navigator:
   ros__parameters:
     use_sim_time: true
-    global_frame: odom # Use map only for indoor navigation
+    global_frame: map
     robot_base_frame: base_link
     odom_topic: "/rtabmap/odom"
     bt_loop_duration: 10
@@ -72,9 +72,14 @@ bt_navigator_navigate_to_pose_rclcpp_node:
 planner_server:
   ros__parameters:
     use_sim_time: true
+    global_frame: map
+    robot_base_frame: base_link
 
 controller_server:
   ros__parameters:
+    odom_frame: odom
+    base_frame: base_link
+    global_frame: map
     use_sim_time: true
     controller_frequency: 20.0
     min_x_velocity_threshold: 0.001
@@ -106,24 +111,25 @@ controller_server:
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: true
+      # Tuned for outdoor 2.5D navigation (higher forward speed, non-holonomic)
       min_vel_x: 0.0
       min_vel_y: 0.0
-      max_vel_x: 0.5
-      max_vel_y: 0.5
-      max_vel_theta: 0.25
+      max_vel_x: 1.5
+      max_vel_y: 0.0
+      max_vel_theta: 0.5
       min_speed_xy: 0.0
-      max_speed_xy: 0.5
+      max_speed_xy: 1.5
       min_speed_theta: 0.0
-      acc_lim_x: 5.0
-      acc_lim_y: 5.0
-      acc_lim_theta: 2.2
-      decel_lim_x: -5.0
-      decel_lim_y: -5.0
-      decel_lim_theta: -2.2
-      vx_samples: 20
-      vy_samples: 5
+      acc_lim_x: 2.0
+      acc_lim_y: 0.0
+      acc_lim_theta: 2.0
+      decel_lim_x: -2.0
+      decel_lim_y: 0.0
+      decel_lim_theta: -2.0
+      vx_samples: 15
+      vy_samples: 1
       vtheta_samples: 20
-      sim_time: 1.7
+      sim_time: 2.5
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 0.2
@@ -146,16 +152,17 @@ controller_server:
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 5.0
-      publish_frequency: 2.0
-      global_frame: odom
+      # Tuned for outdoor 2.5D navigation: larger area with coarser resolution
+      update_frequency: 2.0
+      publish_frequency: 1.0
+      global_frame: map
       robot_base_frame: base_link
       use_sim_time: true
       rolling_window: true
-      width: 4
-      height: 4
-      resolution: 0.05
-      footprint: "[[0.31639208,0.31639208], [-0.31639208,0.31639208], [-0.31639208,-0.31639208], [0.31639208,-0.31639208]]"
+      width: 30
+      height: 30
+      resolution: 0.2
+      footprint: [[0.31639208,0.31639208], [-0.31639208,0.31639208], [-0.31639208,-0.31639208], [0.31639208,-0.31639208]]
       robot_radius: 0.45
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
@@ -166,143 +173,21 @@ local_costmap:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: true
         publish_voxel_map: true
-        origin_z: 0.0
-        z_resolution: 0.05
-        z_voxels: 12
-        robot_base_frame: "base_link"
-        min_obstacle_height: -1000.0
-        max_obstacle_height: 1000.0
+        # origin_z negative to include obstacles below sensor, used only for projection to 2D
+        origin_z: -5.0
+        z_resolution: 0.1
+        z_voxels: 80
+        robot_base_frame: base_link
+        min_obstacle_height: -5.0
+        max_obstacle_height: 5.0
         observation_sources: cloud
         cloud:
           topic: /camera/cloud
           clearing: true
           marking: true
           data_type: "PointCloud2"
-          raytrace_max_range: 3.0
-          obstacle_max_range: 2.5
-          min_obstacle_height: -1000.0
-          max_obstacle_height: 1000.0
-      always_send_full_costmap: true
-
-# NOTE: The code bellow which is comment out, is only for Indoor-Navigation suitable
-# global_costmap:
-#   global_costmap:
-#     ros__parameters:
-#       update_frequency: 1.0
-#       publish_frequency: 1.0
-#       global_frame: map
-#       robot_base_frame: base_link
-#       use_sim_time: true
-#       footprint: "[[0.31639208,0.31639208], [-0.31639208,0.31639208], [-0.31639208,-0.31639208], [0.31639208,-0.31639208]]"
-#       robot_radius: 0.45
-#       resolution: 0.05
-#       track_unknown_space: true
-#       plugins: ["static_layer", "inflation_layer"]
-#       static_layer:
-#         plugin: "nav2_costmap_2d::StaticLayer"
-#         map_subscribe_transient_local: true
-#       inflation_layer:
-#         plugin: "nav2_costmap_2d::InflationLayer"
-#         cost_scaling_factor: 1.5
-#         inflation_radius: 1.5
-#       always_send_full_costmap: true
-
-# map_server:
-#   ros__parameters:
-#     use_sim_time: true
-#     # Overridden in launch by the "map" launch configuration or provided default value.
-#     # To use in yaml, remove the default "map" value in the tb3_simulation_launch.py file & provide full path to map below.
-#     yaml_filename: ""
-
-smoother_server:
-  ros__parameters:
-    use_sim_time: true
-    smoother_plugins: ["simple_smoother"]
-    simple_smoother:
-      plugin: "nav2_smoother::SimpleSmoother"
-      tolerance: 1.0e-10
-      max_its: 1000
-      do_refinement: true
-
-behavior_server:
-  ros__parameters:
-    costmap_topic: local_costmap/costmap_raw
-    footprint_topic: local_costmap/published_footprint
-    cycle_frequency: 10.0
-    behavior_plugins: ["spin", "backup", "drive_on_heading", "assisted_teleop", "wait"]
-    spin:
-      plugin: "nav2_behaviors::Spin"
-    backup:
-      plugin: "nav2_behaviors::BackUp"
-    drive_on_heading:
-      plugin: "nav2_behaviors::DriveOnHeading"
-    wait:
-      plugin: "nav2_behaviors::Wait"
-    assisted_teleop:
-      plugin: "nav2_behaviors::AssistedTeleop"
-    global_frame: odom
-    robot_base_frame: base_link
-    transform_tolerance: 0.1
-    use_sim_time: true
-    simulate_ahead_time: 2.0
-    max_rotational_vel: 1.0
-    min_rotational_vel: 0.4
-    rotational_acc_lim: 3.2
-
-robot_state_publisher:
-  ros__parameters:
-    use_sim_time: true
-
-waypoint_follower:
-  ros__parameters:
-    use_sim_time: true
-    loop_rate: 20
-    stop_on_failure: false
-    waypoint_task_executor_plugin: "wait_at_waypoint"
-    wait_at_waypoint:
-      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
-      enabled: true
-      waypoint_pause_duration: 200
-
-velocity_smoother:
-  ros__parameters:
-    use_sim_time: true
-    smoothing_frequency: 20.0
-    scale_velocities: False
-    feedback: "OPEN_LOOP"
-    max_velocity: [0.5, 0.0, 1.0]
-    min_velocity: [-0.5, 0.0, -1.0]
-    # max_velocity: [0.26, 0.0, 1.0]
-    # min_velocity: [-0.26, 0.0, -1.0]
-    max_accel: [2.5, 0.0, 3.2]
-    max_decel: [-2.5, 0.0, -3.2]
-    odom_topic: "/rtabmap/odom"
-    odom_duration: 0.1
-    deadband_velocity: [0.0, 0.0, 0.0]
-    velocity_timeout: 1.0
-
-# collision_monitor:
-#   ros__parameters:
-#     use_sim_time: true
-#     base_frame_id: base_link          # same as elsewhere
-#     global_frame_id: odom             # matches your local_costmap.global_frame
-#     odom_topic: "/rtabmap/odom"
-
-#     # Velocity topics Nav2 already uses
-#     cmd_vel_in_topic: "cmd_vel"       # what controller_server outputs
-#     cmd_vel_out_topic: "cmd_vel"      # or "cmd_vel_smoothed" if you prefer
-
-#     observation_sources: ["cloud"]
-
-#     cloud:
-#       type: "pointcloud"
-#       topic: "/camera/cloud"          # exactly same as your voxel_layer source
-#       min_height: -1000.0
-#       max_height: 1000.0
-#       frame_id: "base_link"
-#       # simple safety distances (tune later)
-#       stop_distance: 0.5              # stop if obstacle < 0.5 m
-#       slow_down_distance: 1.0         # start slowing down before that
-#       max_allowed_velocity: 0.5       # m/s
-#       min_allowed_velocity: 0.0
-
+          raytrace_max_range: 20.0
+          obstacle_max_range: 20.0
+          min_obstacle_height: -5.0
+          max_obstacle_height: 5.0
+      always_send_full_costmap: false

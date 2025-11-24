@@ -24,12 +24,10 @@ class ImageTools(Node):
 
         # Subscribers
         # RGB image from Gazebo bridge
-        self.rgb_sub_ = self.create_subscription(Image, "/camera/color/image_raw", 
-                                                 self.rgb_image_callback, sensor_qos)
+        self.rgb_sub_ = self.create_subscription(Image, "/camera/image", self.rgb_image_callback, sensor_qos)
 
         # Depth image from Gazebo bridge
-        self.depth_sub_ = self.create_subscription(Image, "/camera/depth/image_rect_raw", 
-                                                   self.depth_image_callback, sensor_qos)
+        self.depth_sub_ = self.create_subscription(Image, "/camera/depth_image", self.depth_image_callback, sensor_qos)
 
         # Publishers
         self.rgb_pub_ = self.create_publisher(Image, "image_rgb", sensor_qos)
