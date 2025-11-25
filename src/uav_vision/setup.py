@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'image_tools = uav_vision.image_tools:main',
+            'camera_frame_republisher = uav_vision.camera_frame_republisher:main',
         ],
     },
 )

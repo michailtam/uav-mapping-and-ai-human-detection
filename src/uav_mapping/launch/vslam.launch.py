@@ -67,9 +67,9 @@ def launch_setup(context, *args, **kwargs):
         namespace='rtabmap',
         parameters=[vslam_params],
         remappings = [
-                        ("rgb/image", "/camera/image"),
-                        ("depth/image", "/camera/depth_image"),
-                        ("rgb/camera_info", "/camera/depth/camera_info")])
+                        ("rgb/image", "/camera/image_optical"),
+                        ("depth/image", "/camera/depth_image_optical"),
+                        ("rgb/camera_info", "/camera/depth/camera_info_optical")])
 
     # Compute visual odometry (VO) from RGBD data: Publishes /rtabmap/odom for SLAM + navigation.
     rtabmap_odom_node = Node(
@@ -122,8 +122,8 @@ def launch_setup(context, *args, **kwargs):
                         # coarser voxels reduce CPU and still give useful cloud
                         'voxel_size': 0.05,
                         'use_sim_time': use_sim_time}],
-        remappings=[('depth/image', '/camera/depth_image'),
-                    ('depth/camera_info', 'camera/depth/camera_info'),
+        remappings=[('depth/image', '/camera/depth_image_optical'),
+                    ('depth/camera_info', '/camera/depth/camera_info_optical'),
                     ('cloud', '/camera/cloud')])
 
     # IMPORTANT: OpaqueFunction expects a list of actions, not a LaunchDescription.
