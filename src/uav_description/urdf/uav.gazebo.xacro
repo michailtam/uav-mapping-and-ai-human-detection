@@ -3,7 +3,7 @@
 <robot name="uav" xmlns:xacro="http://ros.org/wiki/xacro">
 
     <!-- Base link -->
-    <gazebo reference="base_link">
+    <gazebo reference="x650_0/base_link">
         <material>${gazebo_grey}</material>
         <mu1>0.1</mu1>
         <mu2>0.1</mu2>
@@ -11,7 +11,7 @@
     </gazebo>
 
     <!-- Front CCW --> 
-    <gazebo reference="front_prop_ccw_link">
+    <gazebo reference="x650_0/front_prop_ccw_link">
         <material>${gazebo_black}</material>
         <gravity>false</gravity>
         <self_collide>false</self_collide>
@@ -19,7 +19,7 @@
     </gazebo>
 
     <!-- Front CW --> 
-    <gazebo reference="front_prop_cw_link">
+    <gazebo reference="x650_0/front_prop_cw_link">
         <material>${gazebo_black}</material>
         <gravity>false</gravity>
         <self_collide>false</self_collide>
@@ -27,7 +27,7 @@
     </gazebo>
 
     <!-- Back CCW --> 
-    <gazebo reference="back_prop_ccw_link">
+    <gazebo reference="x650_0/back_prop_ccw_link">
         <material>${gazebo_black}</material>
         <gravity>false</gravity>
         <self_collide>false</self_collide>
@@ -35,7 +35,7 @@
     </gazebo>
 
     <!-- Back CW --> 
-    <gazebo reference="back_prop_cw_link">
+    <gazebo reference="x650_0/back_prop_cw_link">
         <material>${gazebo_black}</material>
         <gravity>false</gravity>
         <self_collide>false</self_collide>
@@ -43,7 +43,7 @@
     </gazebo>
 
     <!-- GPS module -->
-    <gazebo reference="gps_module_link">
+    <gazebo reference="x650_0/gps_module_link">
         <material>${gazebo_black}</material>
         <mu1>0.1</mu1>
         <mu2>0.1</mu2>
@@ -51,7 +51,7 @@
     </gazebo>
     
     <!-- Depth camera -->
-    <gazebo reference="depth_camera_link">
+    <gazebo reference="x650_0/depth_camera_link">
         <material>${gazebo_white}</material>
         <mu1>0.1</mu1>
         <mu2>0.1</mu2>
@@ -78,7 +78,7 @@
     </gazebo>
 
     <!-- Lidar sensor -->
-    <gazebo reference="lidar_link">
+    <gazebo reference="x650_0/lidar_link">
         <material>${gazebo_dark_grey}</material>
         <mu1>0.1</mu1>
         <mu2>0.1</mu2>
@@ -142,8 +142,8 @@
     <gazebo>
       <plugin filename="gz-sim-multicopter-motor-model-system" 
       name="gz::sim::systems::MulticopterMotorModel">
-        <jointName>front_prop_ccw_joint</jointName>
-        <linkName>front_prop_ccw_link</linkName>
+        <jointName>x650_0/front_prop_ccw_joint</jointName>
+        <linkName>x650_0/front_prop_ccw_link</linkName>
         <turningDirection>ccw</turningDirection>
         <timeConstantUp>0.0125</timeConstantUp>
         <timeConstantDown>0.025</timeConstantDown> <!-- 8.54858e-06 -->
@@ -165,8 +165,8 @@
     <gazebo>
       <plugin filename="gz-sim-multicopter-motor-model-system" 
       name="gz::sim::systems::MulticopterMotorModel">
-        <jointName>back_prop_ccw_joint</jointName>
-        <linkName>back_prop_ccw_link</linkName>
+        <jointName>x650_0/back_prop_ccw_joint</jointName>
+        <linkName>x650_0/back_prop_ccw_link</linkName>
         <turningDirection>ccw</turningDirection>
         <timeConstantUp>0.0125</timeConstantUp>
         <timeConstantDown>0.025</timeConstantDown>
@@ -188,8 +188,8 @@
     <gazebo>
       <plugin filename="gz-sim-multicopter-motor-model-system" 
       name="gz::sim::systems::MulticopterMotorModel">
-        <jointName>front_prop_cw_joint</jointName>
-        <linkName>front_prop_cw_link</linkName>
+        <jointName>x650_0/front_prop_cw_joint</jointName>
+        <linkName>x650_0/front_prop_cw_link</linkName>
         <turningDirection>cw</turningDirection>
         <timeConstantUp>0.0125</timeConstantUp>
         <timeConstantDown>0.025</timeConstantDown>
@@ -211,8 +211,8 @@
     <gazebo>
       <plugin filename="gz-sim-multicopter-motor-model-system" 
       name="gz::sim::systems::MulticopterMotorModel">
-        <jointName>back_prop_cw_joint</jointName>
-        <linkName>back_prop_cw_link</linkName>
+        <jointName>x650_0/back_prop_cw_joint</jointName>
+        <linkName>x650_0/back_prop_cw_link</linkName>
         <turningDirection>cw</turningDirection>
         <timeConstantUp>0.0125</timeConstantUp>
         <timeConstantDown>0.025</timeConstantDown>

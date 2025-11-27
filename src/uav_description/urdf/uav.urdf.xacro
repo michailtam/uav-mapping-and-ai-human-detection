@@ -8,14 +8,14 @@
   <xacro:include filename="$(find uav_description)/urdf/uav.gazebo.xacro"/>
   <!-- <xacro:include filename="$(find uav_description)/urdf/uav.ros2_control.xacro"/> -->
   
-  <link name="base_footprint"/>
-  <joint name="base_footprint_joint" type="fixed">
+  <link name="x650_0/base_footprint"/>
+  <joint name="x650_0/base_footprint_joint" type="fixed">
     <origin xyz="0 0 0" rpy="0 0 0" />
-    <parent link="base_footprint" />
-    <child link="base_link" />
+    <parent link="x650_0/base_footprint" />
+    <child link="x650_0/base_link" />
   </joint>
 
-  <link name="base_link">
+  <link name="x650_0/base_link">
     <inertial>
       <origin
         xyz="-0.00372276524577257 -0.00744305903269664 8.57191257253331E-05"
@@ -54,7 +54,7 @@
   </link>
   
   <link
-    name="lidar_link">
+    name="x650_0/lidar_link">
     <inertial>
       <origin
         xyz="4.8942772647276E-06 -4.43974432931928E-06 -1.38118108244933E-06"
@@ -94,21 +94,21 @@
     </collision>
   </link>
   <joint
-    name="lidar_joint"
+    name="x650_0/lidar_joint"
     type="fixed">
     <origin
       xyz="-0.00044268 -0.00016922 0.12747"
       rpy="0.0038504 -0.0036204 -0.013619" />
     <parent
-      link="base_link" />
+      link="x650_0/base_link" />
     <child
-      link="lidar_link" />
+      link="x650_0/lidar_link" />
     <axis
       xyz="0 0 0" />
   </joint>
 
   <!-- LiDAR link -->
-  <link name="laser_sensor_link">
+  <link name="x650_0/laser_sensor_link">
     <visual>
       <geometry>
         <cylinder radius="0.02" length="0.03"/>
@@ -116,14 +116,14 @@
     </visual>
   </link>
 
-  <joint name="laser_sensor_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="laser_sensor_link"/>
+  <joint name="x650_0/laser_sensor_joint" type="fixed">
+    <parent link="x650_0/base_link"/>
+    <child link="x650_0/laser_sensor_link"/>
     <origin xyz="0 0 0.15" rpy="0 0 0"/>
   </joint>
   
   <link
-    name="gps_module_link">
+    name="x650_0/gps_module_link">
     <inertial>
       <origin
         xyz="3.55581267098143E-06 3.11348564280278E-06 0.0074610663167827"
@@ -163,21 +163,21 @@
     </collision>
   </link>
   <joint
-    name="gps_module_joint"
+    name="x650_0/gps_module_joint"
     type="fixed">
     <origin
       xyz="-0.13598 0.0015189 0.10049"
       rpy="0.0025723 0.004617 -1.8307" />
     <parent
-      link="base_link" />
+      link="x650_0/base_link" />
     <child
-      link="gps_module_link" />
+      link="x650_0/gps_module_link" />
     <axis
       xyz="0 0 0" />
   </joint>
 
   <link
-    name="front_prop_ccw_link">
+    name="x650_0/front_prop_ccw_link">
     <inertial>
       <origin
         xyz="1.9285E-05 -0.0005696 0.0086392"
@@ -217,15 +217,15 @@
     </collision>
   </link>
   <joint
-    name="front_prop_ccw_joint"
+    name="x650_0/front_prop_ccw_joint"
     type="continuous">
     <origin
       xyz="0.22481 -0.23326 0.086028"
       rpy="0 0 0" />
     <parent
-      link="base_link" />
+      link="x650_0/base_link" />
     <child
-      link="front_prop_ccw_link" />
+      link="x650_0/front_prop_ccw_link" />
     <axis
       xyz="0 0 1" />
     <limit effort="1e12" velocity="1e12"/>
@@ -233,7 +233,7 @@
   </joint>
 
   <link
-    name="front_prop_cw_link">
+    name="x650_0/front_prop_cw_link">
     <inertial>
       <origin
         xyz="1.89889458346304E-06 -0.000131188965704798 0.00588670324654172"
@@ -273,15 +273,15 @@
     </collision>
   </link>
   <joint
-    name="front_prop_cw_joint"
+    name="x650_0/front_prop_cw_joint"
     type="continuous">
     <origin
       xyz="0.23106 0.22649 0.090005"
       rpy="0 0 0" />
     <parent
-      link="base_link" />
+      link="x650_0/base_link" />
     <child
-      link="front_prop_cw_link" />
+      link="x650_0/front_prop_cw_link" />
     <axis
       xyz="0 0 1" />
     <limit effort="1e12" velocity="1e12"/>
@@ -289,7 +289,7 @@
   </joint>
 
   <link
-    name="back_prop_ccw_link">
+    name="x650_0/back_prop_ccw_link">
     <inertial>
       <origin
         xyz="1.92448384979671E-05 -0.000547906471534965 0.00827249285044868"
@@ -329,15 +329,15 @@
     </collision>
   </link>
   <joint
-    name="back_prop_ccw_joint"
+    name="x650_0/back_prop_ccw_joint"
     type="continuous">
     <origin
       xyz="-0.2287 0.23276 0.086501"
       rpy="0 0 0" />
     <parent
-      link="base_link" />
+      link="x650_0/base_link" />
     <child
-      link="back_prop_ccw_link" />
+      link="x650_0/back_prop_ccw_link" />
     <axis
       xyz="0 0 1" />
     <limit effort="1e12" velocity="1e12"/>
@@ -345,7 +345,7 @@
   </joint>
 
   <link
-    name="back_prop_cw_link">
+    name="x650_0/back_prop_cw_link">
     <inertial>
       <origin
         xyz="2.5989393493131E-06 -0.00013126973913305 0.00575531220060893"
@@ -385,15 +385,15 @@
     </collision>
   </link>
   <joint
-    name="back_prop_cw_joint"
+    name="x650_0/back_prop_cw_joint"
     type="continuous">
     <origin
       xyz="-0.23496 -0.22701 0.086701"
       rpy="0 0 0" />
     <parent
-      link="base_link" />
+      link="x650_0/base_link" />
     <child
-      link="back_prop_cw_link" />
+      link="x650_0/back_prop_cw_link" />
     <axis
       xyz="0 0 1" />
     <limit effort="1e12" velocity="1e12"/>
@@ -401,7 +401,7 @@
   </joint>
 
   <link
-    name="depth_camera_link">
+    name="x650_0/depth_camera_link">
     <inertial>
       <origin
         xyz="0.0149830161779797 -6.98368398157727E-05 9.2241584007894E-06"
@@ -441,15 +441,15 @@
     </collision>
   </link>
   <joint
-    name="depth_camera_joint"
+    name="x650_0/depth_camera_joint"
     type="fixed">
     <origin
       xyz="0.13758 -0.00058142 -0.0090308"
       rpy="-3.1377 -0.0036204 -0.013619" />
     <parent
-      link="base_link" />
+      link="x650_0/base_link" />
     <child
-      link="depth_camera_link" />
+      link="x650_0/depth_camera_link" />
     <axis
       xyz="0 0 0" />
   </joint>
