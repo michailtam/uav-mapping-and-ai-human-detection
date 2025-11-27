@@ -1,22 +1,21 @@
 import os
+import subprocess
 from launch_ros.actions import Node
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch. actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
 from ament_index_python.packages import get_package_share_directory
-import xacro
 
 
 def generate_launch_description():
     # Package and file paths
     share_dir = get_package_share_directory('uav_description')
-    rviz_config_file = os.path.join(share_dir, 'rviz', 'rviz_conf_rtabmap.rviz')
+    rviz_config_file = os.path.join(share_dir, 'rviz', 'rviz_conf_rtabmap_2.rviz')
 
     # Create the robot_description from xacro file
     xacro_file = os.path.join(share_dir, 'urdf', 'uav.urdf.xacro') 
-    robot_description_config = xacro.process_file(xacro_file)
-    robot_urdf = robot_description_config.toxml()
+    robot_urdf = subprocess.check_output(['xacro', xacro_file]). decode('utf-8')
 
     # Declare launch arguments and default parameters
     gui = LaunchConfiguration('gui')
@@ -39,17 +38,17 @@ def generate_launch_description():
         name='robot_state_publisher',
         parameters=[{
                 'use_sim_time': use_sim_time, 
-                'robot_description': robot_urdf,
-                'frame_prefix': 'x650_0/'}])
+                'robot_description': robot_urdf
+            }])
 
-    # Create the joint-state-publisher node (with/without UI)
-    joint_state_publisher_node = Node(
-        condition=UnlessCondition(gui),
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        name='joint_state_publisher',
-        parameters=[{'use_sim_time': use_sim_time}]
-    )
+    # # Create the joint-state-publisher node (with/without UI)
+    # joint_state_publisher_node = Node(
+    #     condition=UnlessCondition(gui),
+    #     package='joint_state_publisher',
+    #     executable='joint_state_publisher',
+    #     name='joint_state_publisher',
+    #     parameters=[{'use_sim_time': use_sim_time}]
+    # )
     # joint_state_publisher_gui_node = Node(
     #     condition=IfCondition(gui),
     #     package='joint_state_publisher_gui',
@@ -71,7 +70,7 @@ def generate_launch_description():
     ld.add_action(gui_arg)
     ld.add_action(use_sim_time_arg)
     ld.add_action(robot_state_publisher_node)
-    ld.add_action(joint_state_publisher_node)
+    # ld.add_action(joint_state_publisher_node)
     # ld.add_action(joint_state_publisher_gui_node)
     ld.add_action(rviz_node)
 

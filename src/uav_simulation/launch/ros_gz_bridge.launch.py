@@ -11,7 +11,6 @@ def generate_launch_description():
 
     # Package and file paths
     pkg_share_uav_simulation = get_package_share_directory('uav_simulation')
-    pkg_share_uav_mapping = get_package_share_directory('uav_mapping')
     
     # Set default launch arguments
     ros_gz_bridge_config = PathJoinSubstitution([
@@ -82,16 +81,6 @@ def generate_launch_description():
       parameters=[{"use_sim_time": True}],
     )
     
-    # Camera frame republisher: Republishes camera topics with optical frame_id
-    # This ensures point clouds display correctly in RViz with proper orientation
-    camera_frame_republisher_node = Node(
-      package='uav_vision',
-      executable='camera_frame_republisher',
-      name='camera_frame_republisher',
-      output='screen',
-      parameters=[{"use_sim_time": True}],
-    )
-    
     # Convert odometry message to TF transform
     # Publishes dynamic TF: x650_0/odom -> x650_0/base_footprint
     odom_to_tf_node = Node(
@@ -101,14 +90,21 @@ def generate_launch_description():
       output='screen',
       parameters=[{'use_sim_time': True}],
       remappings=[('odom/perfect', '/odom')])
+    
+    # Propeller joint states publisher
+    offboard_ctrl_node = Node(
+      package='uav_offboard_ctrl',
+      executable='px4_prop_joint_states_pub',
+      name='px4_prop_joint_states_pub',
+      output='screen',
+      parameters=[{'use_sim_time': True}])
 
-
-    # Include the launch of Visual Slam for 3D mapping
-    vslam_incl = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([pkg_share_uav_mapping, 'launch', 'vslam.launch.py'])
-        )
-    )
+    # # Include the launch of Visual Slam for 3D mapping
+    # vslam_incl = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         PathJoinSubstitution([pkg_share_uav_mapping, 'launch', 'vslam.launch.py'])
+    #     )
+    # )
     
     ld = LaunchDescription()
     ld.add_action(gazebo_ros_bridge_cmd)
@@ -118,7 +114,6 @@ def generate_launch_description():
     ld.add_action(static_imu_tf)
     ld.add_action(odom_to_tf_node)
     ld.add_action(image_tools_rgb_node)
-    ld.add_action(camera_frame_republisher_node)
-    ld.add_action(vslam_incl)
+    ld.add_action(offboard_ctrl_node)
 
     return ld

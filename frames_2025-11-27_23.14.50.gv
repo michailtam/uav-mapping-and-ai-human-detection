@@ -1,0 +1,20 @@
+digraph G {
+"x650_0/base_link/rgbd_cam" -> "x650_0/base_link/rgbd_cam_optical"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"x650_0/base_footprint" -> "x650_0/base_link/rgbd_cam"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"x650_0/base_footprint" -> "x650_0/base_link/imu_sensor"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"x650_0/odom" -> "x650_0/base_footprint"[label=" Broadcaster: default_authority\nAverage rate: 50.225\nBuffer length: 4.44\nMost recent transform: 167.45\nOldest transform: 163.01\n"];
+"x650_0/base_footprint" -> "x650_0/base_link/laser_sensor"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "back_prop_ccw_link"[label=" Broadcaster: default_authority\nAverage rate: 19.955\nBuffer length: 4.41\nMost recent transform: 167.43\nOldest transform: 163.02\n"];
+"base_footprint" -> "base_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "back_prop_cw_link"[label=" Broadcaster: default_authority\nAverage rate: 19.955\nBuffer length: 4.41\nMost recent transform: 167.43\nOldest transform: 163.02\n"];
+"base_link" -> "front_prop_ccw_link"[label=" Broadcaster: default_authority\nAverage rate: 19.955\nBuffer length: 4.41\nMost recent transform: 167.43\nOldest transform: 163.02\n"];
+"base_link" -> "front_prop_cw_link"[label=" Broadcaster: default_authority\nAverage rate: 19.955\nBuffer length: 4.41\nMost recent transform: 167.43\nOldest transform: 163.02\n"];
+"base_link" -> "depth_camera_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "gps_module_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "laser_sensor_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "lidar_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1764278090.477002"[ shape=plaintext ] ;
+}->"base_footprint";
+}

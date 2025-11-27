@@ -9,7 +9,7 @@ Px4PropellerJointStatePub::Px4PropellerJointStatePub() : Node("px4_propeller_joi
       "back_prop_cw_joint"},
     angles_{0.0, 0.0, 0.0, 0.0},    // Initial joint angles
     armed_(false)
-  {
+  { 
     joint_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 
     // Use SensorData QoS (best effort) because PX4 publishes actuator outputs
@@ -42,7 +42,7 @@ void Px4PropellerJointStatePub::motorCallback(const px4_msgs::msg::ActuatorMotor
      */
     // dt per message (approximate, purely visual)
     const double dt = 0.02;
-    const double scale = 300.0;  // normalized 1.0 -> 300 rad/s
+    const double scale = 300.0;  // Normalized 1.0 -> 300 rad/s
 
     std::array<double, 4> speeds{0.0, 0.0, 0.0, 0.0};
     for (size_t i = 0; i < speeds.size() && i < msg->control.size(); ++i) {
@@ -58,6 +58,11 @@ void Px4PropellerJointStatePub::motorCallback(const px4_msgs::msg::ActuatorMotor
     if (!armed_) {
         speeds = {0.0, 0.0, 0.0, 0.0};
     }
+
+    // Apply rotation direction (CW vs CCW)
+    // Assuming: index 0,1 are CCW, index 2,3 are CW
+    speeds[2] = -speeds[2];  // CW rotates opposite
+    speeds[3] = -speeds[3];  // CW rotates opposite
 
     RCLCPP_INFO_THROTTLE(
         this->get_logger(), *this->get_clock(), 500,

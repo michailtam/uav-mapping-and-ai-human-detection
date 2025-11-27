@@ -8,7 +8,12 @@
   <xacro:include filename="$(find uav_description)/urdf/uav.gazebo.xacro"/>
   <!-- <xacro:include filename="$(find uav_description)/urdf/uav.ros2_control.xacro"/> -->
   
-  <!-- <link name="base_footprint"/> -->
+  <link name="base_footprint"/>
+  <joint name="base_footprint_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="base_footprint" />
+    <child link="base_link" />
+  </joint>
 
   <link name="base_link">
     <inertial>
@@ -47,12 +52,6 @@
       </geometry>
     </collision>
   </link>
-  <!-- <joint name="base_footprint_joint"
-    type="fixed">
-    <origin xyz="0 0 0" rpy="0 0 0" />
-    <parent link="base_footprint" />
-    <child link="base_link" />
-  </joint> -->
   
   <link
     name="lidar_link">
@@ -106,6 +105,21 @@
       link="lidar_link" />
     <axis
       xyz="0 0 0" />
+  </joint>
+
+  <!-- LiDAR link -->
+  <link name="laser_sensor_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.02" length="0.03"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="laser_sensor_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="laser_sensor_link"/>
+    <origin xyz="0 0 0.15" rpy="0 0 0"/>
   </joint>
   
   <link

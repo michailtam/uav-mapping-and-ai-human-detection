@@ -30,8 +30,8 @@ class ImageTools(Node):
         self.depth_sub_ = self.create_subscription(Image, "/camera/depth_image", self.depth_image_callback, sensor_qos)
 
         # Publishers
-        self.rgb_pub_ = self.create_publisher(Image, "image_rgb", sensor_qos)
-        self.depth_pub_ = self.create_publisher(Image, "image_depth", sensor_qos)
+        self.rgb_pub_ = self.create_publisher(Image, "/camera/rgb/image", sensor_qos)
+        self.depth_pub_ = self.create_publisher(Image, "/camera/depth/image", sensor_qos)
         
         self.get_logger().info("ImageTools node started (RGB + depth)")
 
