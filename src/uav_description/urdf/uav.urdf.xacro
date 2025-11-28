@@ -6,7 +6,6 @@
 
   <xacro:include filename="$(find uav_description)/urdf/core.xacro"/>
   <xacro:include filename="$(find uav_description)/urdf/uav.gazebo.xacro"/>
-  <!-- <xacro:include filename="$(find uav_description)/urdf/uav.ros2_control.xacro"/> -->
   
   <link name="x650_0/base_footprint"/>
   <joint name="x650_0/base_footprint_joint" type="fixed">

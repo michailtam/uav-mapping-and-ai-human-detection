@@ -1,12 +1,12 @@
 #include "uav_offboard_ctrl/px4_propeller_jointstate_pub.h"
 
 
-Px4PropellerJointStatePub::Px4PropellerJointStatePub() : Node("px4_propeller_jointstate_pub"),
+Px4PropellerJointStatePub::Px4PropellerJointStatePub() : Node("px4_propeller_jointstate_publisher"),
     joint_names_{
-      "front_prop_ccw_joint",
-      "back_prop_ccw_joint",
-      "front_prop_cw_joint",
-      "back_prop_cw_joint"},
+      "x650_0/front_prop_ccw_joint",
+      "x650_0/back_prop_ccw_joint",
+      "x650_0/front_prop_cw_joint",
+      "x650_0/back_prop_cw_joint"},
     angles_{0.0, 0.0, 0.0, 0.0},    // Initial joint angles
     armed_(false)
   { 

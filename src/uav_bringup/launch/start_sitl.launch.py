@@ -18,6 +18,13 @@ def generate_launch_description():
             )
         )
     
+    # Include the joint state publisher from PX4 to display and rotate the propellers in RViz
+    px4_prop_js_pub_incl = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([pkg_share_uav_offboard_ctrl, 'launch', 'start_px4_js_publisher.launch.py'])
+            )
+        )
+    
     # Include the launch of PX4-Autopilot
     px4_autopilot_incl = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
