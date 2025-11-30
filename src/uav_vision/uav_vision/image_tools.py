@@ -24,14 +24,14 @@ class ImageTools(Node):
 
         # Subscribers
         # RGB image from Gazebo bridge
-        self.rgb_sub_ = self.create_subscription(Image, "/camera/image", self.rgb_image_callback, sensor_qos)
+        self.rgb_sub_ = self.create_subscription(Image, "/camera/rgb/image", self.rgb_image_callback, sensor_qos)
 
         # Depth image from Gazebo bridge
-        self.depth_sub_ = self.create_subscription(Image, "/camera/depth_image", self.depth_image_callback, sensor_qos)
+        self.depth_sub_ = self.create_subscription(Image, "/camera/depth/image", self.depth_image_callback, sensor_qos)
 
         # Publishers
-        self.rgb_pub_ = self.create_publisher(Image, "/camera/rgb/image", sensor_qos)
-        self.depth_pub_ = self.create_publisher(Image, "/camera/depth/image", sensor_qos)
+        self.rgb_pub_ = self.create_publisher(Image, "/camera/image", sensor_qos)
+        self.depth_pub_ = self.create_publisher(Image, "/camera/depth_image", sensor_qos)
         
         self.get_logger().info("ImageTools node started (RGB + depth)")
 
@@ -41,6 +41,7 @@ class ImageTools(Node):
         try:
             # Assume RGB-like image
             cv_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+            
             # Rotate / flip rgb
             rotated = cv2.rotate(cv_img, cv2.ROTATE_180)  # This fix solves the image orientation problem from the camera
             out_msg = self.bridge.cv2_to_imgmsg(rotated, encoding="bgr8")
@@ -56,6 +57,7 @@ class ImageTools(Node):
         try:
             # Depth: keep original encoding
             cv_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
+            
             # Rotate / flip depth
             rotated = cv2.rotate(cv_img, cv2.ROTATE_180)
             out_msg = self.bridge.cv2_to_imgmsg(rotated, encoding=msg.encoding)

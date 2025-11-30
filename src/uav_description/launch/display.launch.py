@@ -1,4 +1,5 @@
 import os
+import xacro
 import subprocess
 from launch_ros.actions import Node
 from launch import LaunchDescription
@@ -15,7 +16,8 @@ def generate_launch_description():
 
     # Create the robot_description from xacro file
     xacro_file = os.path.join(share_dir, 'urdf', 'uav.urdf.xacro') 
-    robot_urdf = subprocess.check_output(['xacro', xacro_file]). decode('utf-8')
+    robot_description_config = xacro.process_file(xacro_file)
+    robot_urdf = robot_description_config.toxml()
 
     # Declare launch arguments and default parameters
     gui = LaunchConfiguration('gui')
@@ -41,24 +43,9 @@ def generate_launch_description():
                 'robot_description': robot_urdf
             }])
 
-    # # Create the joint-state-publisher node (with/without UI)
-    # joint_state_publisher_node = Node(
-    #     condition=UnlessCondition(gui),
-    #     package='joint_state_publisher',
-    #     executable='joint_state_publisher',
-    #     name='joint_state_publisher',
-    #     parameters=[{'use_sim_time': use_sim_time}]
-    # )
-    # joint_state_publisher_gui_node = Node(
-    #     condition=IfCondition(gui),
-    #     package='joint_state_publisher_gui',
-    #     executable='joint_state_publisher_gui',
-    #     name='joint_state_publisher_gui',
-    #     parameters=[{'use_sim_time': use_sim_time}]
-    # )
-
     # Create RViz node
     rviz_node = Node(
+        condition=UnlessCondition(gui),
         package='rviz2',
         executable='rviz2',
         name='rviz2',
@@ -70,8 +57,6 @@ def generate_launch_description():
     ld.add_action(gui_arg)
     ld.add_action(use_sim_time_arg)
     ld.add_action(robot_state_publisher_node)
-    # ld.add_action(joint_state_publisher_node)
-    # ld.add_action(joint_state_publisher_gui_node)
     ld.add_action(rviz_node)
 
     return ld

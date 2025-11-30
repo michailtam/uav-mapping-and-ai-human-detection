@@ -1,6 +1,6 @@
 # Bridge for the Clock plugin
-- ros_topic_name: "/clock"
-  gz_topic_name: "/clock"
+- ros_topic_name: "clock"
+  gz_topic_name: "clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS
@@ -24,7 +24,7 @@
 
 # Bridge for odometry
 - ros_topic_name: "/odom"
-  gz_topic_name: "/model/x650_0/odometry"
+  gz_topic_name: "/odom"
   ros_type_name: "nav_msgs/msg/Odometry"
   gz_type_name: "gz.msgs.Odometry"
   direction: GZ_TO_ROS
@@ -46,7 +46,7 @@
   qos_profile: "SENSOR_DATA"
 
 # Bridge for camera info
-- ros_topic_name: "/camera/rgb/camera_info"
+- ros_topic_name: "/camera/camera_info"
   gz_topic_name: "/camera/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
@@ -67,12 +67,11 @@
   ros_type_name: "sensor_msgs/msg/LaserScan"
   gz_type_name: "gz.msgs.LaserScan"
   direction: GZ_TO_ROS
-  qos_profile: "SENSOR_DATA"
+  # qos_profile: "SENSOR_DATA"
 
 # IMU plugin
-- ros_topic_name: "/imu/data_raw"
-  gz_topic_name: "/world/baylands/model/x650_0/link/base_link/sensor/imu_sensor/imu"
-  ros_type_name: "sensor_msgs/msg/Imu"
-  gz_type_name: "gz.msgs.IMU"
-  qos_profile: "SENSOR_DATA"
-  direction: GZ_TO_ROS
+# # gz topic published by the IMU plugin
+#   gz_topic_name: "imu"
+#   ros_type_name: "sensor_msgs/msg/Imu"
+#   gz_type_name: "gz.msgs.IMU"
+#   direction: GZ_TO_ROS

@@ -30,17 +30,7 @@ def generate_launch_description():
       output='screen'
     )
     
-    # This node is necessary to create a static transform between the base_footprint and x650_0/base_link/laser_sensor link.
-    # Otherwise, the lidar sensor data don't get published and therefore shown to RViz.
-    static_laser_tf = Node(
-      package="tf2_ros",
-      executable="static_transform_publisher",
-      name="laser_static_tf",
-      parameters=[{'use_sim_time': True}],
-      arguments=["0", "0", "0", "0", "0", "0",
-                "x650_0/base_footprint", "x650_0/base_link/laser_sensor"])
-    
-    # Static transform for camera: base_footprint -> x650_0/base_link/rgbd_cam
+    # Static transform for camera: base_footprint -> /base_link/rgbd_cam
     # Connects the main base_footprint (from odom/Gazebo) to the camera frame where data is published
     # Camera has original orientation to look forward (Gazebo cameras see along +Z)
     static_camera_tf = Node(
@@ -50,7 +40,7 @@ def generate_launch_description():
       parameters=[{'use_sim_time': True}],
       arguments=["0.13758", "-0.00058142", "-0.0090308",
                   "-3.1377", "-0.0036204", "-0.013619",
-                "x650_0/base_footprint", "x650_0/base_link/rgbd_cam"])
+                "/base_footprint", "/base_link/rgbd_cam"])
     
     # Camera optical frame: Identity transform since camera orientation is already correct
     static_camera_optical_tf = Node(
@@ -59,9 +49,9 @@ def generate_launch_description():
       name="camera_optical_tf",
       parameters=[{'use_sim_time': True}],
       arguments=["0", "0", "0", "-1.5708", "0", "-1.5708",
-                "x650_0/base_link/rgbd_cam", "x650_0/base_link/rgbd_cam_optical"])
+                "/base_link/rgbd_cam", "/base_link/rgbd_cam_optical"])
     
-    # Static transform for IMU: base_footprint -> x650_0/base_link/imu_sensor
+    # Static transform for IMU: base_footprint -> /base_link/imu_sensor
     # IMU is at the center of the drone (same as base_footprint)
     static_imu_tf = Node(
       package="tf2_ros",
@@ -69,20 +59,20 @@ def generate_launch_description():
       name="imu_static_tf",
       parameters=[{'use_sim_time': True}],
       arguments=["0", "0", "0", "0", "0", "0",
-                "x650_0/base_footprint", "x650_0/base_link/imu_sensor"])
+                "/base_footprint", "/base_link/imu_sensor"])
     
     # Image processor: rotates and republishes camera images
     
     image_tools_rgb_node = Node(
       package='uav_vision',
       executable='image_tools',
-      name='camera_image_tools',
+      name='image_tools',
       output='screen',
       parameters=[{"use_sim_time": True}],
     )
     
     # Convert odometry message to TF transform
-    # Publishes dynamic TF: x650_0/odom -> x650_0/base_footprint
+    # Publishes dynamic TF: /odom -> /base_footprint
     odom_to_tf_node = Node(
       package='odom_to_tf_ros2',
       executable='odom_to_tf',
@@ -94,8 +84,8 @@ def generate_launch_description():
     # Propeller joint states publisher
     offboard_ctrl_node = Node(
       package='uav_offboard_ctrl',
-      executable='px4_prop_joint_states_pub',
-      name='px4_prop_joint_states_pub',
+      executable='px4_prop_js_publisher',
+      name='px4_prop_js_publisher',
       output='screen',
       parameters=[{'use_sim_time': True}])
 
@@ -108,7 +98,7 @@ def generate_launch_description():
     
     ld = LaunchDescription()
     ld.add_action(gazebo_ros_bridge_cmd)
-    ld.add_action(static_laser_tf)
+    # ld.add_action(static_laser_tf)
     ld.add_action(static_camera_tf)
     ld.add_action(static_camera_optical_tf)
     ld.add_action(static_imu_tf)

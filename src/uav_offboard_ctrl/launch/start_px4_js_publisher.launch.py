@@ -20,7 +20,7 @@ def launch_px4_prop_js_pub(context, *args, **kwargs):
             rclpy.spin_once(tmp_node, timeout_sec=0.5)
 
     tmp_node.get_logger().info(
-        f'PX4 actuator topic detected -> launching px4_prop_joint_states_pub and px4_ctrl'
+        f'PX4 actuator topic detected -> launching px4_prop_js_publisher and px4_ctrl'
     )
     tmp_node.destroy_node()
     rclpy.shutdown()
@@ -29,8 +29,8 @@ def launch_px4_prop_js_pub(context, *args, **kwargs):
     # Note: This is required for RViz to display propellers and rotating on place. 
     px4_prop_joint_states_pub_node = Node(
         package='uav_offboard_ctrl',
-        executable='px4_prop_js_pub',  # Be sure this matches CMakeLists setting
-        name='px4_prop_joint_states_pub',
+        executable='px4_prop_js_publisher',  # Be sure this matches CMakeLists setting
+        name='px4_prop_js_publisher',
         parameters=[{
             'use_sim_time': True
         }],
@@ -45,7 +45,7 @@ def launch_px4_prop_js_pub(context, *args, **kwargs):
 
 def generate_launch_description():
     ld = LaunchDescription()
-
+    
     # Add the OpaqueFunction that waits for PX4 and launches the two nodes
     ld.add_action(OpaqueFunction(function=launch_px4_prop_js_pub))
 

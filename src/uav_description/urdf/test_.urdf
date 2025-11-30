@@ -268,7 +268,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/base_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/base_link.STL"/>
       </geometry>
       <material name="">
         <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -277,7 +277,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/base_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/base_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -296,7 +296,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/lidar_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/lidar_link.STL"/>
       </geometry>
       <material name="">
         <color rgba="1 1 1 0.35"/>
@@ -305,7 +305,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/lidar_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/lidar_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -324,7 +324,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/gps_module_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/gps_module_link.STL"/>
       </geometry>
       <material name="">
         <color rgba="1 1 1 0.35"/>
@@ -333,7 +333,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/gps_module_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/gps_module_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -352,7 +352,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/front_prop_ccw_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/front_prop_ccw_link.STL"/>
       </geometry>
       <material name="">
         <color rgba="0.75294 0.75294 0.75294 1"/>
@@ -361,7 +361,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/front_prop_ccw_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/front_prop_ccw_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -382,7 +382,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/front_prop_cw_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/front_prop_cw_link.STL"/>
       </geometry>
       <material name="">
         <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -391,7 +391,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/front_prop_cw_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/front_prop_cw_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -412,7 +412,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/back_prop_ccw_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/back_prop_ccw_link.STL"/>
       </geometry>
       <material name="">
         <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -421,7 +421,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/back_prop_ccw_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/back_prop_ccw_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -442,7 +442,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/back_prop_cw_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/back_prop_cw_link.STL"/>
       </geometry>
       <material name="">
         <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1"/>
@@ -451,7 +451,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/back_prop_cw_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/back_prop_cw_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -472,7 +472,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/depth_camera_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/depth_camera_link.STL"/>
       </geometry>
       <material name="">
         <color rgba="1 1 1 0.35"/>
@@ -481,7 +481,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///media/mikelap/DATA2/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/depth_camera_link.STL"/>
+        <mesh filename="file:///media/mikelap/DATA21/Development/GithubRepos/robotics-sim-projects/uav_project_ws/install/uav_description/share/uav_description/meshes/depth_camera_link.STL"/>
       </geometry>
     </collision>
   </link>

@@ -1,9 +1,23 @@
 <?xml version="1.0"?>
 
-<robot name="uav" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="uav_uav" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <gazebo reference="back_prop_cw_link">
+        <material>${gazebo_black}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="back_prop_ccw_link">
+        <material>${gazebo_black}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
 
     <!-- Base link -->
-    <gazebo reference="x650_0/base_link">
+    <gazebo reference="base_link">
         <material>${gazebo_grey}</material>
         <mu1>0.1</mu1>
         <mu2>0.1</mu2>
@@ -11,47 +25,135 @@
     </gazebo>
 
     <!-- Front CCW --> 
-    <gazebo reference="x650_0/front_prop_ccw_link">
+    <gazebo reference="front_arm_ccw_link">
+        <material>${gazebo_grey}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="front_motor_ccw_link">
+        <material>${gazebo_grey}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="front_prop_ccw_link">
         <material>${gazebo_black}</material>
-        <gravity>false</gravity>
-        <self_collide>false</self_collide>
-        <enable_wind>false</enable_wind>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
     </gazebo>
 
     <!-- Front CW --> 
-    <gazebo reference="x650_0/front_prop_cw_link">
+    <gazebo reference="front_arm_cw_link">
+        <material>${gazebo_grey}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="front_motor_cw_link">
+        <material>${gazebo_dark_grey}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="front_prop_cw_link">
         <material>${gazebo_black}</material>
-        <gravity>false</gravity>
-        <self_collide>false</self_collide>
-        <enable_wind>false</enable_wind>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
     </gazebo>
 
     <!-- Back CCW --> 
-    <gazebo reference="x650_0/back_prop_ccw_link">
+    <gazebo reference="back_arm_ccw_link">
+        <material>${gazebo_grey}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="back_motor_ccw_link">
+        <material>${gazebo_dark_grey}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="back_prop_ccw_link">
         <material>${gazebo_black}</material>
-        <gravity>false</gravity>
-        <self_collide>false</self_collide>
-        <enable_wind>false</enable_wind>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
     </gazebo>
 
     <!-- Back CW --> 
-    <gazebo reference="x650_0/back_prop_cw_link">
+    <gazebo reference="back_arm_cw_link">
+        <material>${gazebo_dark_grey}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="back_motor_cw_link">
+        <material>${gazebo_dark_grey}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <gazebo reference="back_prop_cw_link">
         <material>${gazebo_black}</material>
-        <gravity>false</gravity>
-        <self_collide>false</self_collide>
-        <enable_wind>false</enable_wind>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <!-- Telemetry -->
+    <gazebo reference="telemetry_link">
+        <material>${gazebo_black}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
     </gazebo>
 
     <!-- GPS module -->
-    <gazebo reference="x650_0/gps_module_link">
+    <gazebo reference="gps_module_link">
         <material>${gazebo_black}</material>
         <mu1>0.1</mu1>
         <mu2>0.1</mu2>
         <gravity>true</gravity>
     </gazebo>
     
+    <!-- Pixhawk Jetson Nanon microcontroller -->
+    <gazebo reference="pixhawk_jetson_mc_link">
+        <material>${gazebo_gazebo_flatblack}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <!-- Left landing gear -->
+    <gazebo reference="left_landing_gear_link">
+        <material>${gazebo_gazebo_flatblack}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+
+    <!-- Right landing gear -->
+    <gazebo reference="right_landing_gear_link">
+        <material>${gazebo_gazebo_flatblack}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+    </gazebo>
+    
     <!-- Depth camera -->
-    <gazebo reference="x650_0/depth_camera_link">
+    <gazebo reference="depth_camera_link">
         <material>${gazebo_white}</material>
         <mu1>0.1</mu1>
         <mu2>0.1</mu2>
@@ -78,7 +180,7 @@
     </gazebo>
 
     <!-- Lidar sensor -->
-    <gazebo reference="x650_0/lidar_link">
+    <gazebo reference="lidar_link">
         <material>${gazebo_dark_grey}</material>
         <mu1>0.1</mu1>
         <mu2>0.1</mu2>
@@ -86,7 +188,7 @@
         <sensor name="laser_sensor" type="gpu_lidar">
             <pose>0 0 0 0 0 0</pose>
             <topic>scan</topic>
-            <update_rate>50</update_rate>   <!-- 10 -->
+            <update_rate>10</update_rate>
             <always_on>true</always_on>
             <visualize>true</visualize>
             <gz_frame_id>lidar_link</gz_frame_id>
@@ -107,13 +209,6 @@
                         <min_angle>0.0</min_angle>
                         <max_angle>0.0</max_angle>
                     </vertical>
-                    
-                    <!-- 3D Lidar settings (PointCloud)-->
-                    <!-- <vertical>
-                        <samples>32</samples>
-                        <min_angle>-0.5353</min_angle>
-                        <max_angle>0.1862</max_angle>
-                    </vertical> -->
                 </scan>
                 <range>
                     <min>0.15</min>                  
@@ -124,110 +219,10 @@
         </sensor>
     </gazebo>
 
-    <!-- Plugin for sensor handling -->
     <gazebo>
         <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
             <render_engine>ogre2</render_engine>
         </plugin>
-    </gazebo>
-
-    <!-- Enables the communication with ros2_control -->
-    <!-- <gazebo>
-        <plugin name="gz_ros2_control::GazeboSimROS2ControlPlugin" filename="gz_ros2_control-system">
-            <parameters>$(find uav_control)/config/uav_controllers.yaml</parameters>
-        </plugin>
-    </gazebo> -->
-
-    <!-- Front CCW motor --> 
-    <gazebo>
-      <plugin filename="gz-sim-multicopter-motor-model-system" 
-      name="gz::sim::systems::MulticopterMotorModel">
-        <jointName>x650_0/front_prop_ccw_joint</jointName>
-        <linkName>x650_0/front_prop_ccw_link</linkName>
-        <turningDirection>ccw</turningDirection>
-        <timeConstantUp>0.0125</timeConstantUp>
-        <timeConstantDown>0.025</timeConstantDown> <!-- 8.54858e-06 -->
-        <maxRotVelocity>1200</maxRotVelocity>
-        <motorConstant>3.0e-05</motorConstant>
-        <momentConstant>0.016</momentConstant>
-        <commandSubTopic>command/motor_speed</commandSubTopic>
-        <!-- <actuator_number>0</actuator_number> -->
-        <motorNumber>0</motorNumber>
-        <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
-        <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-        <!-- <motorSpeedPubTopic>motor_speed/0</motorSpeedPubTopic> -->
-        <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
-        <motorType>velocity</motorType>
-      </plugin>
-    </gazebo>
-
-    <!-- Back CCW motor --> 
-    <gazebo>
-      <plugin filename="gz-sim-multicopter-motor-model-system" 
-      name="gz::sim::systems::MulticopterMotorModel">
-        <jointName>x650_0/back_prop_ccw_joint</jointName>
-        <linkName>x650_0/back_prop_ccw_link</linkName>
-        <turningDirection>ccw</turningDirection>
-        <timeConstantUp>0.0125</timeConstantUp>
-        <timeConstantDown>0.025</timeConstantDown>
-        <maxRotVelocity>1200</maxRotVelocity>
-        <motorConstant>3.0e-05</motorConstant>
-        <momentConstant>0.016</momentConstant>
-        <commandSubTopic>command/motor_speed</commandSubTopic>
-        <!-- <actuator_number>2</actuator_number> -->
-        <motorNumber>1</motorNumber>
-        <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
-        <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-        <!-- <motorSpeedPubTopic>motor_speed/2</motorSpeedPubTopic> -->
-        <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
-        <motorType>velocity</motorType>
-      </plugin>
-    </gazebo>
-
-    <!-- Front CW motor --> 
-    <gazebo>
-      <plugin filename="gz-sim-multicopter-motor-model-system" 
-      name="gz::sim::systems::MulticopterMotorModel">
-        <jointName>x650_0/front_prop_cw_joint</jointName>
-        <linkName>x650_0/front_prop_cw_link</linkName>
-        <turningDirection>cw</turningDirection>
-        <timeConstantUp>0.0125</timeConstantUp>
-        <timeConstantDown>0.025</timeConstantDown>
-        <maxRotVelocity>1200</maxRotVelocity>
-        <motorConstant>3.0e-05</motorConstant>
-        <momentConstant>0.016</momentConstant>
-        <commandSubTopic>command/motor_speed</commandSubTopic>
-        <!-- <actuator_number>1</actuator_number> -->
-        <motorNumber>2</motorNumber>
-        <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
-        <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-        <!-- <motorSpeedPubTopic>motor_speed/1</motorSpeedPubTopic> -->
-        <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
-        <motorType>velocity</motorType>
-      </plugin>
-    </gazebo>
-
-    <!-- Back CW motor --> 
-    <gazebo>
-      <plugin filename="gz-sim-multicopter-motor-model-system" 
-      name="gz::sim::systems::MulticopterMotorModel">
-        <jointName>x650_0/back_prop_cw_joint</jointName>
-        <linkName>x650_0/back_prop_cw_link</linkName>
-        <turningDirection>cw</turningDirection>
-        <timeConstantUp>0.0125</timeConstantUp>
-        <timeConstantDown>0.025</timeConstantDown>
-        <maxRotVelocity>1200</maxRotVelocity>
-        <motorConstant>3.0e-05</motorConstant>
-        <momentConstant>0.016</momentConstant>
-        <commandSubTopic>command/motor_speed</commandSubTopic>
-        <!-- <actuator_number>3</actuator_number> -->
-        <motorNumber>3</motorNumber>
-        <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
-        <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
-        <!-- <motorSpeedPubTopic>motor_speed/3</motorSpeedPubTopic> -->
-        <rotorVelocitySlowdownSim>30</rotorVelocitySlowdownSim>
-        <motorType>velocity</motorType>
-      </plugin>
     </gazebo>
 
 </robot>
