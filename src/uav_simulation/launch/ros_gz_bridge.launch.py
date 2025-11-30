@@ -30,37 +30,6 @@ def generate_launch_description():
       output='screen'
     )
     
-    # Static transform for camera: base_footprint -> /base_link/rgbd_cam
-    # Connects the main base_footprint (from odom/Gazebo) to the camera frame where data is published
-    # Camera has original orientation to look forward (Gazebo cameras see along +Z)
-    static_camera_tf = Node(
-      package="tf2_ros",
-      executable="static_transform_publisher",
-      name="camera_static_tf",
-      parameters=[{'use_sim_time': True}],
-      arguments=["0.13758", "-0.00058142", "-0.0090308",
-                  "-3.1377", "-0.0036204", "-0.013619",
-                "/base_footprint", "/base_link/rgbd_cam"])
-    
-    # Camera optical frame: Identity transform since camera orientation is already correct
-    static_camera_optical_tf = Node(
-      package="tf2_ros",
-      executable="static_transform_publisher",
-      name="camera_optical_tf",
-      parameters=[{'use_sim_time': True}],
-      arguments=["0", "0", "0", "-1.5708", "0", "-1.5708",
-                "/base_link/rgbd_cam", "/base_link/rgbd_cam_optical"])
-    
-    # Static transform for IMU: base_footprint -> /base_link/imu_sensor
-    # IMU is at the center of the drone (same as base_footprint)
-    static_imu_tf = Node(
-      package="tf2_ros",
-      executable="static_transform_publisher",
-      name="imu_static_tf",
-      parameters=[{'use_sim_time': True}],
-      arguments=["0", "0", "0", "0", "0", "0",
-                "/base_footprint", "/base_link/imu_sensor"])
-    
     # Image processor: rotates and republishes camera images
     
     image_tools_rgb_node = Node(
@@ -72,7 +41,7 @@ def generate_launch_description():
     )
     
     # Convert odometry message to TF transform
-    # Publishes dynamic TF: /odom -> /base_footprint
+    # Publishes dynamic TF: /odom -> /base_link
     odom_to_tf_node = Node(
       package='odom_to_tf_ros2',
       executable='odom_to_tf',
@@ -98,10 +67,6 @@ def generate_launch_description():
     
     ld = LaunchDescription()
     ld.add_action(gazebo_ros_bridge_cmd)
-    # ld.add_action(static_laser_tf)
-    ld.add_action(static_camera_tf)
-    ld.add_action(static_camera_optical_tf)
-    ld.add_action(static_imu_tf)
     ld.add_action(odom_to_tf_node)
     ld.add_action(image_tools_rgb_node)
     ld.add_action(offboard_ctrl_node)

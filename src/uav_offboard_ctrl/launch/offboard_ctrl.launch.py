@@ -1,8 +1,5 @@
-import rclpy
 from launch import LaunchDescription
-from launch.actions import OpaqueFunction
 from launch_ros.actions import Node
-from rclpy.node import Node as RclNode
 
 
 def generate_launch_description():

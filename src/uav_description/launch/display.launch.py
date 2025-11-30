@@ -1,11 +1,10 @@
 import os
 import xacro
-import subprocess
 from launch_ros.actions import Node
 from launch import LaunchDescription
 from launch. actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -25,7 +24,7 @@ def generate_launch_description():
 
     gui_arg = DeclareLaunchArgument(
         name='gui',
-        default_value='false'
+        default_value='true'
     )
 
     use_sim_time_arg = DeclareLaunchArgument(
@@ -45,7 +44,7 @@ def generate_launch_description():
 
     # Create RViz node
     rviz_node = Node(
-        condition=UnlessCondition(gui),
+        condition=IfCondition(gui),
         package='rviz2',
         executable='rviz2',
         name='rviz2',
