@@ -26,11 +26,10 @@ class OffboardControl : public rclcpp::Node
 {
 public:
     OffboardControl();
-    void switchToOffboardMode();
+    void engageOffboardMode();
     void arm();
     void disarm();
     void takeOff();
-    void navigate();
     void land();
     void run();
     void localPositionCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
@@ -47,13 +46,14 @@ private:
 		INIT_MODE,              // initialization Mode
 		OFFBOARD_MODE,          // Flight Mode
 		ARMING_MODE,            // Flight Mode
-        DISARM_MODE,            // Flight Mode
+        DISARMING_MODE,         // Flight Mode
         TAKEOFF_MODE,           // Flight Mode
         HOLD_MODE,              // Flight Mode
         MISSION_MODE,           // Flight Mode
         POSITION_MODE,          // Flight Mode    
         LANDING_MODE,           // Flight Mode
-        RETURN_MODE             // Flight Mode
+        RETURN_MODE,            // Flight Mode
+        MANUAL_MODE             // Manual Mode
 	} state_;
 
 	uint8_t service_result_;

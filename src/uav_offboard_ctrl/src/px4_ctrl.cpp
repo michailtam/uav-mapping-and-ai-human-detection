@@ -47,7 +47,7 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
             std::bind(&OffboardControl::statusCallback, this, std::placeholders::_1));
 }
 
-void OffboardControl::switchToOffboardMode() {
+void OffboardControl::engageOffboardMode() {
     /**
      * @brief Send a command to switch to offboard mode 
      */
@@ -167,7 +167,7 @@ void OffboardControl::timerUpdateStateMachine(void) {
 	switch (state_)
 	{
 	case State::INIT_MODE:
-		switchToOffboardMode();
+		engageOffboardMode();
 		state_ = State::OFFBOARD_MODE;
 		break;
 	case State::OFFBOARD_MODE:
@@ -212,8 +212,8 @@ void OffboardControl::timerUpdateStateMachine(void) {
             if(service_result_==0) {
                 if (!msg_logged_) {
                     RCLCPP_INFO(this->get_logger(), "Take Off completed");
-                    RCLCPP_INFO(this->get_logger(), "Landing mode engaged");
-                    state_ = State::LANDING_MODE;
+                    RCLCPP_INFO(this->get_logger(), "Manual mode engaged");
+                    state_ = State::MANUAL_MODE;
                     msg_logged_ = true;
                 }
             } 
@@ -224,6 +224,12 @@ void OffboardControl::timerUpdateStateMachine(void) {
         break;
     case State::MISSION_MODE:
         RCLCPP_INFO(this->get_logger(), "Mission mode");
+        break;
+    case State::MANUAL_MODE:
+        if (!msg_logged_) {
+            RCLCPP_INFO(this->get_logger(), "Manual mode");
+            msg_logged_ = true;
+        }
         break;
     case State::HOLD_MODE:
         if(service_done_) {
@@ -240,17 +246,21 @@ void OffboardControl::timerUpdateStateMachine(void) {
         break;
     case State::LANDING_MODE:
         land();
-        // if(service_done_) {
-        //     if(service_result_==0) {
-        //         RCLCPP_INFO(this->get_logger(), "Landing completed");
-        //         RCLCPP_INFO(this->get_logger(), "Disarming mode engaged");
-        //     } else {
-        //         RCLCPP_ERROR(this->get_logger(), "Landing mode failed, exiting!");
-        //         rclcpp::shutdown();
-        //     }
-        // }
+        if(service_done_) {
+            if(service_result_==0) {
+                if (!msg_logged_) {
+                    RCLCPP_INFO(this->get_logger(), "Landing completed");
+                    RCLCPP_INFO(this->get_logger(), "Disarming mode engaged");
+                    msg_logged_ = true;
+                }
+                // state_ = State::DISARMING_MODE;
+            } else {
+                RCLCPP_ERROR(this->get_logger(), "Landing mode failed, exiting!");
+                rclcpp::shutdown();
+            }
+        }
         break;
-    case State::DISARM_MODE:
+    case State::DISARMING_MODE:
         disarm();
         if(service_done_) {
             if(service_result_==0) {
@@ -281,45 +291,17 @@ void OffboardControl::takeOff() {
     if (curr_z_ > (take_off_height_+0.1)) {
         publishTrajectorySetpoint(curr_x_, curr_y_, take_off_height_); 
     } else {
-        RCLCPP_INFO(this->get_logger(), "Takeoff altitude of %f.2m reached", (-1)*take_off_height_);
+        RCLCPP_INFO(this->get_logger(), "Takeoff altitude of %.2fm reached", (-1)*take_off_height_);
         msg_logged_ = false;
-        state_ = State::HOLD_MODE;
+        state_ = State::MANUAL_MODE;
     }
 }
 
 void OffboardControl::land() {
-    if(curr_z_ >= 0.0) {
-        RCLCPP_INFO(this->get_logger(), "Altitude:%f.2m", curr_z_);
-        publishTrajectorySetpoint(curr_x_, curr_y_, 0.0);
-    } else {
-        RCLCPP_INFO(this->get_logger(), "Vehicle landed");
-        state_ = State::DISARM_MODE;
-    }
-}
-
-void OffboardControl::navigate() {
-    if (navigating_) 
-    {
-        // TODO: The trajectory gets calculated by <another> node.
-        if (trajectory_index_ < trajectory_.size()) {
-            const auto &p = trajectory_[trajectory_index_];
-
-            px4_msgs::msg::TrajectorySetpoint msg{};
-            msg.position = {p.x, p.y, p.z};
-            msg.yaw = 0.0;
-            msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-
-            traj_setpoint_pub_->publish(msg);
-            trajectory_index_++;
-        }
-        else {
-            navigating_ = false;
-            RCLCPP_INFO(this->get_logger(), "Destination reached!");
-
-            // switch FSM state
-            state_ = State::HOLD_MODE;
-        }
-    }
+    /**
+     * @brief The landing process gets fully taken charge from PX4 and not from the program 
+     */
+    sendVehicleCommand(VehicleCommand::VEHICLE_CMD_NAV_LAND, 0.0, 0.0);
 }
 
 void OffboardControl::localPositionCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg) {
