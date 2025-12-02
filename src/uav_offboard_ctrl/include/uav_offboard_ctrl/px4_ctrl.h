@@ -6,6 +6,7 @@
 #include <px4_msgs/msg/trajectory_setpoint.hpp>
 #include <px4_msgs/msg/vehicle_control_mode.hpp>
 #include <px4_msgs/msg/vehicle_local_position.hpp>
+#include <px4_msgs/msg/vehicle_status.hpp>
 #include <px4_msgs/srv/vehicle_command.hpp>
 
 using namespace std::chrono;
@@ -30,11 +31,10 @@ public:
     void disarm();
     void takeOff();
     void navigate();
+    void land();
     void run();
-    void poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
-    // std::vector<Point3D> planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step);  // TODO: move to another pkg
-    // double calculateDistance(const Point3D& start, const Point3D& end); // TODO: move to another pkg
-    // void prepareTrajectory(float x, float y, float z); // TODO: move to another pkg
+    void localPositionCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
+    void statusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg);
     
 private:
     void publishOffboardControlMode();
@@ -45,15 +45,14 @@ private:
 
     enum class State{
 		INIT_MODE,              // initialization Mode
-		OFFBOARD_REQUESTED,     
 		OFFBOARD_MODE,          // Flight Mode
-		ARM_REQUESTED,          
-        ARM_MODE,               // Flight Mode
+		ARMING_MODE,            // Flight Mode
+        DISARM_MODE,            // Flight Mode
         TAKEOFF_MODE,           // Flight Mode
         HOLD_MODE,              // Flight Mode
         MISSION_MODE,           // Flight Mode
         POSITION_MODE,          // Flight Mode    
-        LAND_MODE,              // Flight Mode
+        LANDING_MODE,           // Flight Mode
         RETURN_MODE             // Flight Mode
 	} state_;
 
@@ -65,11 +64,13 @@ private:
     std::vector<Point3D> trajectory_;
     size_t trajectory_index_ = 0;
     bool navigating_ = false;
+    bool msg_logged_ = false;
 
     rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_ctrl_mode_pub_;
     rclcpp::Publisher<TrajectorySetpoint>::SharedPtr traj_setpoint_pub_;
     rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
     rclcpp::Subscription<px4_msgs::msg::VehicleLocalPosition>::SharedPtr uav_pose_sub_;
+    rclcpp::Subscription<px4_msgs::msg::VehicleStatus>::SharedPtr uav_status_sub_;
     
     float curr_x_;
     float curr_y_;

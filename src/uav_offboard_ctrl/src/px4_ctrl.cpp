@@ -1,9 +1,14 @@
 #include "uav_offboard_ctrl/px4_ctrl.h"
 
 
-OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::INIT_MODE}, service_result_{0}, service_done_{false}, 
-    take_off_height_{-5.0} {
-    // Create the service for changing the control mode
+OffboardControl::OffboardControl() : Node("offboard_ctrl"), 
+    state_{State::INIT_MODE},   // Initial state at startup
+    service_result_{0},         // State of the service request
+    service_done_{false},       // Flag that indicates if the service request has succeeded or not  
+    take_off_height_{-5.0}      // NED Coord system i.e. z is pointing downwards but in ROS is facing upwards 
+    {
+    
+        // Create the service for changing the control mode
     RCLCPP_INFO(this->get_logger(), "Starting Offboard Control with PX4 services");
     vehicle_cmd_client_ = this->create_client<px4_msgs::srv::VehicleCommand>("/fmu/vehicle_command");
 
@@ -33,11 +38,13 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"), state_{State::INIT_M
     // Create the offboard control mode and trajectory publisher
     offboard_ctrl_mode_pub_ = this->create_publisher<px4_msgs::msg::OffboardControlMode>("/fmu/in/offboard_control_mode", 10);
     traj_setpoint_pub_ = this->create_publisher<px4_msgs::msg::TrajectorySetpoint>("/fmu/in/trajectory_setpoint", 10);
-
+    
     // ** Subscribers **
     // Callback to store the current position of the UAV
     uav_pose_sub_ = this->create_subscription<px4_msgs::msg::VehicleLocalPosition>("/fmu/out/vehicle_local_position_v1", qos_profile,  // QoS of 10
-            std::bind(&OffboardControl::poseCallback, this, std::placeholders::_1));
+            std::bind(&OffboardControl::localPositionCallback, this, std::placeholders::_1));
+    uav_status_sub_ = this->create_subscription<px4_msgs::msg::VehicleStatus>("/fmu/out/vehicle_status_v1", qos_profile, 
+            std::bind(&OffboardControl::statusCallback, this, std::placeholders::_1));
 }
 
 void OffboardControl::switchToOffboardMode() {
@@ -100,7 +107,7 @@ void OffboardControl::publishOffboardControlMode() {
      */
     OffboardControlMode mode{};
     mode.position = true;
-    mode.velocity = true; // false;
+    mode.velocity = false;
     mode.acceleration = false;
     mode.attitude = false;
     mode.body_rate = false;
@@ -152,7 +159,7 @@ void OffboardControl::timerUpdateStateMachine(void) {
     /**
      * @brief Finite-State-Machine (FSM) to switch from one state to the other in specific intervals.
      */
-    static uint8_t num_of_steps = 0;
+    static uint8_t num_of_steps = 0;  // Counter to engage the offboard mode
 
 	// Always publish OffboardControlMode
 	publishOffboardControlMode();
@@ -161,48 +168,98 @@ void OffboardControl::timerUpdateStateMachine(void) {
 	{
 	case State::INIT_MODE:
 		switchToOffboardMode();
-		state_ = State::OFFBOARD_REQUESTED;
+		state_ = State::OFFBOARD_MODE;
 		break;
-	case State::OFFBOARD_REQUESTED:
-		if(service_done_){
-			if (service_result_==0){
-				RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
-				state_ = State::OFFBOARD_MODE;				
+	case State::OFFBOARD_MODE:
+		if(service_done_) {
+			if (service_result_==0) {
+                // Wait 10 steps (warming up offboard mode) before engaging the arm mode
+                if (++num_of_steps > 10) {
+                    RCLCPP_INFO(this->get_logger(), "Arming mode engaged");
+                    state_ = State::ARMING_MODE;
+                    msg_logged_ = false;
+                    arm();
+                } else {
+                    if (!msg_logged_) {
+                        RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
+                        msg_logged_ = true;
+                    }
+                }
 			} else {
 				RCLCPP_ERROR(this->get_logger(), "Failed to enter offboard mode, exiting");
 				rclcpp::shutdown();
 			}
 		}
 		break;
-	case State::OFFBOARD_MODE:
-		if (++num_of_steps > 10) {
-			arm();
-			state_ = State::ARM_REQUESTED;
-		}
-		break;
-	case State::ARM_REQUESTED:
-		if(service_done_){
-			if (service_result_==0){
-				RCLCPP_INFO(this->get_logger(), "Vehicle is armed");
-				state_ = State::ARM_MODE;
+    case State::ARMING_MODE:
+        if(service_done_) {
+			if (service_result_==0) {
+                if (!msg_logged_) {
+                    RCLCPP_INFO(this->get_logger(), "Vehicle armed");
+                    RCLCPP_INFO(this->get_logger(), "Take Off engaged");
+                    state_ = State::TAKEOFF_MODE;
+                    msg_logged_ = true;
+                }
 			} else {
-				RCLCPP_ERROR(this->get_logger(), "Failed to arm, exiting");
+				RCLCPP_ERROR(this->get_logger(), "Arming failed, exiting!");
 				rclcpp::shutdown();
 			}
 		}
-		break;
-    case State::ARM_MODE:
-        RCLCPP_INFO(this->get_logger(), "Take Off");
-        state_ = State::TAKEOFF_MODE;
         break;
     case State::TAKEOFF_MODE:
         takeOff();
+        if(service_done_) {
+            if(service_result_==0) {
+                if (!msg_logged_) {
+                    RCLCPP_INFO(this->get_logger(), "Take Off completed");
+                    RCLCPP_INFO(this->get_logger(), "Landing mode engaged");
+                    state_ = State::LANDING_MODE;
+                    msg_logged_ = true;
+                }
+            } 
+        } else {
+            RCLCPP_ERROR(this->get_logger(), "Take Off failed, exiting!");
+            rclcpp::shutdown();
+        }
         break;
     case State::MISSION_MODE:
-        // navigate();
+        RCLCPP_INFO(this->get_logger(), "Mission mode");
         break;
     case State::HOLD_MODE:
-        // Do nothing, just hover at last setpoint
+        if(service_done_) {
+            if(service_result_==0) {
+                if (!msg_logged_) {
+                    RCLCPP_INFO(this->get_logger(), "Holding on position:%f %f %f", curr_x_, curr_y_, curr_z_);
+                    msg_logged_ = true;
+                }
+            } else {
+                RCLCPP_ERROR(this->get_logger(), "Holding mode failed, exiting!");
+                rclcpp::shutdown();
+            }
+        }
+        break;
+    case State::LANDING_MODE:
+        land();
+        // if(service_done_) {
+        //     if(service_result_==0) {
+        //         RCLCPP_INFO(this->get_logger(), "Landing completed");
+        //         RCLCPP_INFO(this->get_logger(), "Disarming mode engaged");
+        //     } else {
+        //         RCLCPP_ERROR(this->get_logger(), "Landing mode failed, exiting!");
+        //         rclcpp::shutdown();
+        //     }
+        // }
+        break;
+    case State::DISARM_MODE:
+        disarm();
+        if(service_done_) {
+            if(service_result_==0) {
+                RCLCPP_INFO(this->get_logger(), "Vehicle disarmed!");
+            } else {
+                RCLCPP_ERROR(this->get_logger(), "Disarming mode failed, exiting!");
+                rclcpp::shutdown();
+            }
+        }
         break;
 	default:
 		break;
@@ -210,22 +267,33 @@ void OffboardControl::timerUpdateStateMachine(void) {
 }
 
 void OffboardControl::arm() {
-  RCLCPP_INFO(this->get_logger(), "Arm");	
-  sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, VehicleCommand::ARMING_ACTION_ARM, 0.0);
+  sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, 
+    VehicleCommand::ARMING_ACTION_ARM, 0.0);  // param 2 = 0.0
 }
 
 void OffboardControl::disarm() {
-  RCLCPP_INFO(this->get_logger(), "Disarm");
-  sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, VehicleCommand::ARMING_ACTION_DISARM, 0.0);
+  sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, 
+    VehicleCommand::ARMING_ACTION_DISARM, 0.0); // param 2 = 0.0
 }
 
 void OffboardControl::takeOff() {
-    if (curr_z_ > (take_off_height_+0.2)) {
-        RCLCPP_INFO(this->get_logger(), "z:%f, takeoff_h:%f", curr_z_, take_off_height_);
-        publishTrajectorySetpoint(0.0, 0.0, take_off_height_);  // Takeoff until approx. 5 m altitude has been reached
+    // Takeoff until approx. 5 m altitude has been reached
+    if (curr_z_ > (take_off_height_+0.1)) {
+        publishTrajectorySetpoint(curr_x_, curr_y_, take_off_height_); 
     } else {
-        RCLCPP_INFO(this->get_logger(), "Takeoff altitude reached");
-        state_ = State::MISSION_MODE;
+        RCLCPP_INFO(this->get_logger(), "Takeoff altitude of %f.2m reached", (-1)*take_off_height_);
+        msg_logged_ = false;
+        state_ = State::HOLD_MODE;
+    }
+}
+
+void OffboardControl::land() {
+    if(curr_z_ >= 0.0) {
+        RCLCPP_INFO(this->get_logger(), "Altitude:%f.2m", curr_z_);
+        publishTrajectorySetpoint(curr_x_, curr_y_, 0.0);
+    } else {
+        RCLCPP_INFO(this->get_logger(), "Vehicle landed");
+        state_ = State::DISARM_MODE;
     }
 }
 
@@ -254,7 +322,7 @@ void OffboardControl::navigate() {
     }
 }
 
-void OffboardControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg) {
+void OffboardControl::localPositionCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg) {
     /**
     * @brief Save the current coordinates (PX4’s NED frame) of the UAV.
     */
@@ -264,69 +332,11 @@ void OffboardControl::poseCallback(const px4_msgs::msg::VehicleLocalPosition::Sh
     // RCLCPP_INFO(this->get_logger(), "Pose: x:%f y:%f z:%f", curr_x_, curr_y_, curr_z_);
 }
 
-// void OffboardControl::prepareTrajectory(float x, float y, float z) {
-//     /**
-//      * @brief Calculates the trajectory to fly.
-//      */
-//     Point3D start = {curr_x_, curr_y_, curr_z_};  
-//     Point3D end = {x, y, z};
-
-//     double v_max = 0.5; // m/sec
-//     double time_step = 0.1; 
-
-//     trajectory_ = planTrajectory(start, end, v_max, time_step);
-//     trajectory_index_ = 0;
-//     navigating_ = true;
-
-//     if (trajectory_.size() > 0) {
-//         RCLCPP_INFO(this->get_logger(), "Trajectory has %zu points", trajectory_.size());
-//     } else {
-//         RCLCPP_WARN(this->get_logger(), "Empty trajectory!");
-//     }
-// }
-
-// double OffboardControl::calculateDistance(const Point3D& start, const Point3D& end) {
-//     /**
-//     * @brief Calculate the Euclidean distance between two 3D points.
-//     */
-//     return std::hypot(end.x - start.x, end.y - start.y, end.z - start.z);
-// }
-
-// std::vector<Point3D> OffboardControl::planTrajectory(const Point3D& start, const Point3D& end, double v_max, double time_step) {
-//     /**
-//      * @brief Plan the trajectory between two points
-//      */
-//     std::vector<Point3D> waypoints;
-    
-//     // Calculate the total distance between the start and end points
-//     double total_distance = calculateDistance(start, end); 
-
-//     // Calculate the total time required to reach the end point
-//     double total_time = total_distance / v_max;
-
-//     // Calculate the number of time steps needed
-//     int num_steps = std::ceil(total_time / time_step);
-
-//     // Calculate the velocity components for each axis
-//     double v_x = (end.x - start.x) / (num_steps * time_step);
-//     double v_y = (end.y - start.y) / (num_steps * time_step);
-//     double v_z = (end.z - start.z) / (num_steps * time_step);
-
-//     // Generate waypoints for each time step
-//     for (int i = 0; i <= num_steps; ++i) {
-//         double t = i * time_step;  // Current time
-
-//         // Calculate the position at time t
-//         Point3D waypoint;
-//         waypoint.x = start.x + v_x * t;
-//         waypoint.y = start.y + v_y * t;
-//         waypoint.z = start.z + v_z * t;
-
-//         waypoints.push_back(waypoint);
-//     }
-
-//     return waypoints;
-// }
+void OffboardControl::statusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg) {
+    /**
+     * @brief Show the vehicle status
+     */
+}
 
 void OffboardControl::run() {
     /**
