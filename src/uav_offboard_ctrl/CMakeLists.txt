@@ -11,6 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(px4_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 # Add include folder so .h files are found
 include_directories(include)
@@ -19,7 +20,12 @@ add_executable(px4_ctrl src/px4_ctrl.cpp)
 ament_target_dependencies(px4_ctrl px4_msgs rclcpp)
 
 add_executable(px4_prop_js_publisher src/px4_prop_js_publisher.cpp)
-ament_target_dependencies(px4_prop_js_publisher px4_msgs rclcpp sensor_msgs)
+ament_target_dependencies(px4_prop_js_publisher 
+  px4_msgs 
+  rclcpp 
+  sensor_msgs 
+  geometry_msgs
+)
 
 # Install the header files
 install(

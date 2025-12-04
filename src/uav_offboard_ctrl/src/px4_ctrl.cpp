@@ -38,11 +38,14 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
     // Create the offboard control mode and trajectory publisher
     offboard_ctrl_mode_pub_ = this->create_publisher<px4_msgs::msg::OffboardControlMode>("/fmu/in/offboard_control_mode", 10);
     traj_setpoint_pub_ = this->create_publisher<px4_msgs::msg::TrajectorySetpoint>("/fmu/in/trajectory_setpoint", 10);
+    // nav2_goal_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("/goal_pose", 10); // TODO: Check the topic name
     
     // ** Subscribers **
     // Callback to store the current position of the UAV
     uav_pose_sub_ = this->create_subscription<px4_msgs::msg::VehicleLocalPosition>("/fmu/out/vehicle_local_position_v1", qos_profile,  // QoS of 10
             std::bind(&OffboardControl::localPositionCallback, this, std::placeholders::_1));
+    uav_target_pose_sub_ = this->create_subscription<px4_msgs::msg::PositionSetpointTriplet>("/fmu/out/position_setpoint_triplet", qos_profile, 
+            std::bind(&OffboardControl::targetPositionCallback, this, std::placeholders::_1));
     uav_status_sub_ = this->create_subscription<px4_msgs::msg::VehicleStatus>("/fmu/out/vehicle_status_v1", qos_profile, 
             std::bind(&OffboardControl::statusCallback, this, std::placeholders::_1));
 }
@@ -121,7 +124,7 @@ void OffboardControl::publishTrajectorySetpoint(float pos_x, float pos_y, float 
      */
     TrajectorySetpoint msg{};
 	msg.position = {pos_x, pos_y, pos_z};
-	msg.yaw = 0.0;
+	msg.yaw = 0.0;  // Keep the drone only facing forward.
 	msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
 	traj_setpoint_pub_->publish(msg);
 }
@@ -167,43 +170,39 @@ void OffboardControl::timerUpdateStateMachine(void) {
 	switch (state_)
 	{
 	case State::INIT_MODE:
-		engageOffboardMode();
+        engageOffboardMode();
 		state_ = State::OFFBOARD_MODE;
 		break;
 	case State::OFFBOARD_MODE:
-		if(service_done_) {
-			if (service_result_==0) {
-                // Wait 10 steps (warming up offboard mode) before engaging the arm mode
-                if (++num_of_steps > 10) {
-                    RCLCPP_INFO(this->get_logger(), "Arming mode engaged");
-                    state_ = State::ARMING_MODE;
-                    msg_logged_ = false;
-                    arm();
-                } else {
-                    if (!msg_logged_) {
-                        RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
-                        msg_logged_ = true;
-                    }
-                }
-			} else {
-				RCLCPP_ERROR(this->get_logger(), "Failed to enter offboard mode, exiting");
-				rclcpp::shutdown();
-			}
-		}
+        if(service_done_) {
+            // Wait 10 steps (warming up offboard mode) before engaging the arm mode
+            if (++num_of_steps > 10) {
+                RCLCPP_INFO(this->get_logger(), "Arming mode engaged");
+                state_ = State::ARMING_MODE;
+                arm();
+            } else if (service_result_==0) {
+                RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
+                msg_logged_ = true;
+            } else {
+                RCLCPP_ERROR(this->get_logger(), "Switching to Offboard mode failed, exiting!");
+                rclcpp::shutdown();
+            }
+        }
+        else {
+            RCLCPP_ERROR(this->get_logger(), "Failed to enter offboard mode, exiting");
+            rclcpp::shutdown();
+        } 
 		break;
     case State::ARMING_MODE:
         if(service_done_) {
 			if (service_result_==0) {
-                if (!msg_logged_) {
-                    RCLCPP_INFO(this->get_logger(), "Vehicle armed");
-                    RCLCPP_INFO(this->get_logger(), "Take Off engaged");
-                    state_ = State::TAKEOFF_MODE;
-                    msg_logged_ = true;
-                }
+                RCLCPP_INFO(this->get_logger(), "Vehicle armed");
+                RCLCPP_INFO(this->get_logger(), "Take Off engaged");
+                state_ = State::TAKEOFF_MODE;
 			} else {
-				RCLCPP_ERROR(this->get_logger(), "Arming failed, exiting!");
-				rclcpp::shutdown();
-			}
+                RCLCPP_ERROR(this->get_logger(), "Arming failed, exiting!");
+                rclcpp::shutdown();
+            }
 		}
         break;
     case State::TAKEOFF_MODE:
@@ -211,9 +210,7 @@ void OffboardControl::timerUpdateStateMachine(void) {
         if(service_done_) {
             if(service_result_==0) {
                 if (!msg_logged_) {
-                    RCLCPP_INFO(this->get_logger(), "Take Off completed");
-                    RCLCPP_INFO(this->get_logger(), "Manual mode engaged");
-                    state_ = State::MANUAL_MODE;
+                    RCLCPP_INFO(this->get_logger(), "Nav2 navigation mode engaged");
                     msg_logged_ = true;
                 }
             } 
@@ -222,42 +219,47 @@ void OffboardControl::timerUpdateStateMachine(void) {
             rclcpp::shutdown();
         }
         break;
-    case State::MISSION_MODE:
-        RCLCPP_INFO(this->get_logger(), "Mission mode");
+    case State::NAV2_NAV_MODE:
+        if(service_done_) {
+            if(service_result_==0) {
+                if (!msg_logged_) {
+                    RCLCPP_INFO(this->get_logger(), "Nav2 navigation mode...");
+                    msg_logged_ = true;
+                }
+            } 
+        } else {
+            RCLCPP_ERROR(this->get_logger(), "Nav2 navigation mode failed, exiting!");
+            rclcpp::shutdown();
+        }
         break;
-    case State::MANUAL_MODE:
+    case State::TELEOP_MODE:
         if (!msg_logged_) {
-            RCLCPP_INFO(this->get_logger(), "Manual mode");
+            RCLCPP_INFO(this->get_logger(), "Teleop mode");
             msg_logged_ = true;
         }
         break;
     case State::HOLD_MODE:
         if(service_done_) {
             if(service_result_==0) {
-                if (!msg_logged_) {
-                    RCLCPP_INFO(this->get_logger(), "Holding on position:%f %f %f", curr_x_, curr_y_, curr_z_);
-                    msg_logged_ = true;
-                }
-            } else {
-                RCLCPP_ERROR(this->get_logger(), "Holding mode failed, exiting!");
-                rclcpp::shutdown();
-            }
-        }
+                RCLCPP_INFO(this->get_logger(), "Holding on position:%f %f %f", curr_x_, curr_y_, curr_z_);
+                msg_logged_ = true;
+            } 
+        } else {
+            RCLCPP_ERROR(this->get_logger(), "Holding mode failed, exiting!");
+            rclcpp::shutdown();
+        } 
         break;
     case State::LANDING_MODE:
         land();
         if(service_done_) {
             if(service_result_==0) {
-                if (!msg_logged_) {
                     RCLCPP_INFO(this->get_logger(), "Landing completed");
                     RCLCPP_INFO(this->get_logger(), "Disarming mode engaged");
-                    msg_logged_ = true;
-                }
-                // state_ = State::DISARMING_MODE;
-            } else {
-                RCLCPP_ERROR(this->get_logger(), "Landing mode failed, exiting!");
-                rclcpp::shutdown();
-            }
+                    state_ = State::DISARMING_MODE;
+            } 
+        } else {
+            RCLCPP_ERROR(this->get_logger(), "Landing mode failed, exiting!");
+            rclcpp::shutdown();
         }
         break;
     case State::DISARMING_MODE:
@@ -265,13 +267,18 @@ void OffboardControl::timerUpdateStateMachine(void) {
         if(service_done_) {
             if(service_result_==0) {
                 RCLCPP_INFO(this->get_logger(), "Vehicle disarmed!");
-            } else {
-                RCLCPP_ERROR(this->get_logger(), "Disarming mode failed, exiting!");
-                rclcpp::shutdown();
+                msg_logged_ = true;
             }
+        } else {
+            RCLCPP_ERROR(this->get_logger(), "Disarming mode failed, exiting!");
+            rclcpp::shutdown();
         }
         break;
 	default:
+        if (!msg_logged_) {
+            RCLCPP_INFO(this->get_logger(), "Unknown state mode!");
+            msg_logged_ = true;
+        }
 		break;
 	}
 }
@@ -288,12 +295,12 @@ void OffboardControl::disarm() {
 
 void OffboardControl::takeOff() {
     // Takeoff until approx. 5 m altitude has been reached
-    if (curr_z_ > (take_off_height_+0.1)) {
-        publishTrajectorySetpoint(curr_x_, curr_y_, take_off_height_); 
+    if (curr_z_ >= (take_off_height_+0.2)) {
+        publishTrajectorySetpoint(curr_x_, curr_y_, take_off_height_);
     } else {
         RCLCPP_INFO(this->get_logger(), "Takeoff altitude of %.2fm reached", (-1)*take_off_height_);
         msg_logged_ = false;
-        state_ = State::MANUAL_MODE;
+        state_ = State::NAV2_NAV_MODE;
     }
 }
 
@@ -311,13 +318,33 @@ void OffboardControl::localPositionCallback(const px4_msgs::msg::VehicleLocalPos
     curr_x_ = msg->x;
     curr_y_ = msg->y;
     curr_z_ = msg->z;
-    // RCLCPP_INFO(this->get_logger(), "Pose: x:%f y:%f z:%f", curr_x_, curr_y_, curr_z_);
+    
+    // Check if home position is set
+    if (!home_position_set_) {
+        home_x_ = curr_x_;
+        home_y_ = curr_y_;
+        home_z_ = curr_z_;
+        home_position_set_ = true;
+        RCLCPP_INFO(this->get_logger(), "Home pos: x:%f y:%f z:%f", home_x_, home_y_, home_z_);
+    }
+    // RCLCPP_INFO(this->get_logger(), "Local pos: x:%f y:%f z:%f", curr_x_, curr_y_, curr_z_);
+}
+
+void OffboardControl::targetPositionCallback(const px4_msgs::msg::PositionSetpointTriplet::SharedPtr msg) {
+    /**
+    * @brief Save the target coordinates (PX4’s NED frame) acquired from Nav2.
+    */
+    // target_x_ = msg->previous;
+    // target_y_ = msg->current;
+    // target_z_ = msg->next;
+    RCLCPP_INFO(this->get_logger(), "Target pos: x:%f y:%f z:%f", msg->current.lat, msg->current.lon, msg->current.alt);
 }
 
 void OffboardControl::statusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg) {
     /**
-     * @brief Show the vehicle status
+     * @brief Saves the vehicle status
      */
+    vehicle_status_msg_ = msg;
 }
 
 void OffboardControl::run() {
