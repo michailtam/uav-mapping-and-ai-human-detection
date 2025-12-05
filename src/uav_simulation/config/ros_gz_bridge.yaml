@@ -69,9 +69,15 @@
   direction: GZ_TO_ROS
   # qos_profile: "SENSOR_DATA"
 
-# IMU plugin
-# # gz topic published by the IMU plugin
-#   gz_topic_name: "imu"
-#   ros_type_name: "sensor_msgs/msg/Imu"
-#   gz_type_name: "gz.msgs.IMU"
+# Bridge for IMU
+- ros_topic_name: "/imu"
+  gz_topic_name: "/world/baylands/model/x650_0/link/base_link/sensor/imu_sensor/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+
+# # Bridge for GPS navsat
+# - ros_topic_name: "gps/fix"
+#   ros_type_name: "sensor_msgs/msg/NavSatFix"
+#   gz_type_name: "gz.msgs.NavSat"
 #   direction: GZ_TO_ROS

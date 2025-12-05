@@ -12,6 +12,7 @@ find_package(std_msgs REQUIRED)
 find_package(px4_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_library(GEOGRAPHICLIB_LIB GeographicLib)
 
 # Add include folder so .h files are found
 include_directories(include)
@@ -25,6 +26,10 @@ ament_target_dependencies(px4_prop_js_publisher
   rclcpp 
   sensor_msgs 
   geometry_msgs
+)
+
+target_link_libraries(px4_ctrl
+  ${GEOGRAPHICLIB_LIB}
 )
 
 # Install the header files

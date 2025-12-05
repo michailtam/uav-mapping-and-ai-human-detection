@@ -42,9 +42,13 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
     
     // ** Subscribers **
     // Callback to store the current position of the UAV
-    uav_pose_sub_ = this->create_subscription<px4_msgs::msg::VehicleLocalPosition>("/fmu/out/vehicle_local_position_v1", qos_profile,  // QoS of 10
+    uav_home_pos_sub_ = this->create_subscription<px4_msgs::msg::HomePosition>("/fmu/out/home_position_v1", qos_profile, 
+            std::bind(&OffboardControl::homePositionCallback, this, std::placeholders::_1));
+    uav_pos_sub_ = this->create_subscription<px4_msgs::msg::VehicleLocalPosition>("/fmu/out/vehicle_local_position_v1", qos_profile,  // QoS of 10
             std::bind(&OffboardControl::localPositionCallback, this, std::placeholders::_1));
-    uav_target_pose_sub_ = this->create_subscription<px4_msgs::msg::PositionSetpointTriplet>("/fmu/out/position_setpoint_triplet", qos_profile, 
+    uav_pos_global_sub_ = this->create_subscription<px4_msgs::msg::VehicleGlobalPosition>("/fmu/out/vehicle_global_position", qos_profile,  // QoS of 10
+            std::bind(&OffboardControl::globalPositionCallback, this, std::placeholders::_1));
+    uav_target_pos_sub_ = this->create_subscription<px4_msgs::msg::PositionSetpointTriplet>("/fmu/out/position_setpoint_triplet", qos_profile, 
             std::bind(&OffboardControl::targetPositionCallback, this, std::placeholders::_1));
     uav_status_sub_ = this->create_subscription<px4_msgs::msg::VehicleStatus>("/fmu/out/vehicle_status_v1", qos_profile, 
             std::bind(&OffboardControl::statusCallback, this, std::placeholders::_1));
@@ -177,18 +181,12 @@ void OffboardControl::timerUpdateStateMachine(void) {
         if(service_done_) {
             // Wait 10 steps (warming up offboard mode) before engaging the arm mode
             if (++num_of_steps > 10) {
+                RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
                 RCLCPP_INFO(this->get_logger(), "Arming mode engaged");
                 state_ = State::ARMING_MODE;
                 arm();
-            } else if (service_result_==0) {
-                RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
-                msg_logged_ = true;
-            } else {
-                RCLCPP_ERROR(this->get_logger(), "Switching to Offboard mode failed, exiting!");
-                rclcpp::shutdown();
-            }
-        }
-        else {
+            } 
+        } else {
             RCLCPP_ERROR(this->get_logger(), "Failed to enter offboard mode, exiting");
             rclcpp::shutdown();
         } 
@@ -199,25 +197,18 @@ void OffboardControl::timerUpdateStateMachine(void) {
                 RCLCPP_INFO(this->get_logger(), "Vehicle armed");
                 RCLCPP_INFO(this->get_logger(), "Take Off engaged");
                 state_ = State::TAKEOFF_MODE;
-			} else {
-                RCLCPP_ERROR(this->get_logger(), "Arming failed, exiting!");
-                rclcpp::shutdown();
-            }
-		}
+			} 
+		} else {
+            RCLCPP_ERROR(this->get_logger(), "Arming failed, exiting!");
+            rclcpp::shutdown();
+        }
         break;
     case State::TAKEOFF_MODE:
         takeOff();
-        if(service_done_) {
-            if(service_result_==0) {
-                if (!msg_logged_) {
-                    RCLCPP_INFO(this->get_logger(), "Nav2 navigation mode engaged");
-                    msg_logged_ = true;
-                }
-            } 
-        } else {
+        if(!service_done_) {
             RCLCPP_ERROR(this->get_logger(), "Take Off failed, exiting!");
-            rclcpp::shutdown();
-        }
+            rclcpp::shutdown();  
+        } 
         break;
     case State::NAV2_NAV_MODE:
         if(service_done_) {
@@ -241,8 +232,8 @@ void OffboardControl::timerUpdateStateMachine(void) {
     case State::HOLD_MODE:
         if(service_done_) {
             if(service_result_==0) {
-                RCLCPP_INFO(this->get_logger(), "Holding on position:%f %f %f", curr_x_, curr_y_, curr_z_);
-                msg_logged_ = true;
+                RCLCPP_INFO(this->get_logger(), "Holding on global position:%f %f %f", 
+                    curr_glob_.lat, curr_glob_.lon, curr_glob_.alt);
             } 
         } else {
             RCLCPP_ERROR(this->get_logger(), "Holding mode failed, exiting!");
@@ -256,6 +247,7 @@ void OffboardControl::timerUpdateStateMachine(void) {
                     RCLCPP_INFO(this->get_logger(), "Landing completed");
                     RCLCPP_INFO(this->get_logger(), "Disarming mode engaged");
                     state_ = State::DISARMING_MODE;
+                    disarm();
             } 
         } else {
             RCLCPP_ERROR(this->get_logger(), "Landing mode failed, exiting!");
@@ -263,11 +255,9 @@ void OffboardControl::timerUpdateStateMachine(void) {
         }
         break;
     case State::DISARMING_MODE:
-        disarm();
         if(service_done_) {
             if(service_result_==0) {
                 RCLCPP_INFO(this->get_logger(), "Vehicle disarmed!");
-                msg_logged_ = true;
             }
         } else {
             RCLCPP_ERROR(this->get_logger(), "Disarming mode failed, exiting!");
@@ -295,12 +285,13 @@ void OffboardControl::disarm() {
 
 void OffboardControl::takeOff() {
     // Takeoff until approx. 5 m altitude has been reached
-    if (curr_z_ >= (take_off_height_+0.2)) {
-        publishTrajectorySetpoint(curr_x_, curr_y_, take_off_height_);
+    if (curr_loc_.z >= (take_off_height_+0.1)) {
+        publishTrajectorySetpoint(curr_loc_.x, curr_loc_.y, take_off_height_);
     } else {
         RCLCPP_INFO(this->get_logger(), "Takeoff altitude of %.2fm reached", (-1)*take_off_height_);
-        msg_logged_ = false;
+        RCLCPP_INFO(this->get_logger(), "Nav2 navigation mode engaged");
         state_ = State::NAV2_NAV_MODE;
+        msg_logged_ = false;
     }
 }
 
@@ -315,29 +306,74 @@ void OffboardControl::localPositionCallback(const px4_msgs::msg::VehicleLocalPos
     /**
     * @brief Save the current coordinates (PX4’s NED frame) of the UAV.
     */
-    curr_x_ = msg->x;
-    curr_y_ = msg->y;
-    curr_z_ = msg->z;
-    
-    // Check if home position is set
-    if (!home_position_set_) {
-        home_x_ = curr_x_;
-        home_y_ = curr_y_;
-        home_z_ = curr_z_;
-        home_position_set_ = true;
-        RCLCPP_INFO(this->get_logger(), "Home pos: x:%f y:%f z:%f", home_x_, home_y_, home_z_);
+    curr_loc_.x = msg->x;
+    curr_loc_.y = msg->y;
+    curr_loc_.z = msg->z;
+    // RCLCPP_INFO(this->get_logger(), "Local pos: x:%f y:%f z:%f", 
+    //     curr_loc_.x, curr_loc_.y, curr_loc_.z);
+}
+
+void OffboardControl::globalPositionCallback(const px4_msgs::msg::VehicleGlobalPosition::SharedPtr msg) {
+    /**
+    * @brief Save the current coordinates (PX4’s NED frame) of the UAV.
+    */
+    curr_glob_.lat = msg->lat;
+    curr_glob_.lon = msg->lon;
+    curr_glob_.alt = msg->alt;
+    // RCLCPP_INFO(this->get_logger(), "Global pos: lat:%f lon:%f alt:%f", 
+    //     curr_glob_.lat, curr_glob_.lon, curr_glob_.alt);
+}
+
+void OffboardControl::homePositionCallback(const px4_msgs::msg::HomePosition::SharedPtr msg) {
+    /**
+    * @brief Save the home position coordinates of the UAV.
+    */
+    home_loc_.x = msg->x;
+    home_loc_.y = msg->y;
+    home_loc_.z = msg->z;
+    home_glob_.lat = msg->lat;
+    home_glob_.lon = msg->lon;
+    home_glob_.alt = msg->alt;
+    if(!home_pos_set_) { 
+        RCLCPP_INFO(this->get_logger(), "Global home position: lat:%f lon:%f alt:%f", 
+            home_glob_.lat, home_glob_.lon, home_glob_.alt);
+        home_pos_set_ = true;
     }
-    // RCLCPP_INFO(this->get_logger(), "Local pos: x:%f y:%f z:%f", curr_x_, curr_y_, curr_z_);
 }
 
 void OffboardControl::targetPositionCallback(const px4_msgs::msg::PositionSetpointTriplet::SharedPtr msg) {
     /**
     * @brief Save the target coordinates (PX4’s NED frame) acquired from Nav2.
     */
-    // target_x_ = msg->previous;
-    // target_y_ = msg->current;
-    // target_z_ = msg->next;
-    RCLCPP_INFO(this->get_logger(), "Target pos: x:%f y:%f z:%f", msg->current.lat, msg->current.lon, msg->current.alt);
+    target_glob_.lat = msg->current.lat;
+    target_glob_.lon = msg->current.lon;
+    target_glob_.alt = msg->current.alt;
+    RCLCPP_INFO(this->get_logger(), "Global target position: x:%f y:%f z:%f", 
+        target_glob_.lat, target_glob_.lon, target_glob_.alt);
+    
+    target_loc_ = convertWGS84ToENU(target_glob_.lat, target_glob_.lon, target_glob_.alt);
+}
+
+PosInENU convertWGS84ToENU(double target_lat, double target_lon, double target_alt) {
+    /**
+     * @brief Convert target WGS84 coordinates to ENU relative to home position.
+     * 
+     * @param target_lat, target_lon, target_alt: Target position in WGS84
+     * @return PosInENU: Target position in ENU (x, y, z) in meters relative to home
+     */
+    GeographicLib::LocalCartesian proj(home_glob_.lat, home_glob_.lon, home_glob_.alt);
+    
+    double x, y, z;
+    proj.Forward(target_glob_.lat, target_glob_.lon, target_glob_.alt, x, y, z);
+    
+    PosInENU enu_point;
+    enu_point.x = x;
+    enu_point. y = y;
+    enu_point.z = z;
+    
+    RCLCPP_INFO(this->get_logger(), "Target ENU position: x:%f y:%f z:%f", x, y, z);
+    
+    return enu_point;
 }
 
 void OffboardControl::statusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg) {
