@@ -354,7 +354,7 @@ void OffboardControl::targetPositionCallback(const px4_msgs::msg::PositionSetpoi
     target_loc_ = convertWGS84ToENU(target_glob_.lat, target_glob_.lon, target_glob_.alt);
 }
 
-PosInENU convertWGS84ToENU(double target_lat, double target_lon, double target_alt) {
+PosInENU OffboardControl::convertWGS84ToENU(double target_lat, double target_lon, double target_alt) {
     /**
      * @brief Convert target WGS84 coordinates to ENU relative to home position.
      * 
@@ -364,13 +364,14 @@ PosInENU convertWGS84ToENU(double target_lat, double target_lon, double target_a
     GeographicLib::LocalCartesian proj(home_glob_.lat, home_glob_.lon, home_glob_.alt);
     
     double x, y, z;
-    proj.Forward(target_glob_.lat, target_glob_.lon, target_glob_.alt, x, y, z);
+    proj.Forward(target_lat, target_lon, target_alt, x, y, z);
     
     PosInENU enu_point;
     enu_point.x = x;
     enu_point. y = y;
     enu_point.z = z;
     
+    RCLCPP_INFO(this->get_logger(), "Home ENU position: x:%f y:%f z:%f", home_loc_.x, home_loc_.y, home_loc_.z);
     RCLCPP_INFO(this->get_logger(), "Target ENU position: x:%f y:%f z:%f", x, y, z);
     
     return enu_point;
