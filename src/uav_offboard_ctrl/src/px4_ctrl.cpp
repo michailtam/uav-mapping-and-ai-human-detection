@@ -371,8 +371,8 @@ PosInENU OffboardControl::convertWGS84ToENU(double target_lat, double target_lon
     enu_point. y = y;
     enu_point.z = z;
     
-    RCLCPP_INFO(this->get_logger(), "Home ENU position: x:%f y:%f z:%f", home_loc_.x, home_loc_.y, home_loc_.z);
-    RCLCPP_INFO(this->get_logger(), "Target ENU position: x:%f y:%f z:%f", x, y, z);
+    // RCLCPP_INFO(this->get_logger(), "Home ENU position: x:%f y:%f z:%f", home_loc_.x, home_loc_.y, home_loc_.z);
+    // RCLCPP_INFO(this->get_logger(), "Target ENU position: x:%f y:%f z:%f", x, y, z);
     
     return enu_point;
 }
