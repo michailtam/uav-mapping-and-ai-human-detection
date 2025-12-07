@@ -17,6 +17,19 @@ def generate_launch_description():
         default_value="true"
     )
 
+
+    # Launch SLAM
+    slam = Node(
+        package="slam_toolbox",
+        executable="async_slam_toolbox_node",
+        name="slam_toolbox",
+        output="screen",
+        parameters=[
+            slam_config,
+            {"use_sim_time": use_sim_time},
+        ]
+    )
+       
     slam_config_arg = DeclareLaunchArgument(
         "slam_config",
         default_value=os.path.join(

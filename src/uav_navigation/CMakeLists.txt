@@ -7,6 +7,31 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED) 
+find_package(rclpy REQUIRED)
+find_package(rclcpp REQUIRED)
+
+## CPP EXECUTABLES
+# include_directories(include)
+
+## Create the cpp executables
+# add_executable(cpp_node src/cpp_node.cpp)
+# ament_target_dependencies(cpp_node rclcpp)
+
+# # Install C++ executables
+# install(TARGETS
+#   cpp_node
+#   DESTINATION lib/${PROJECT_NAME}
+# )
+
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
+
+# Install Python scripts
+install(PROGRAMS
+  scripts/simple_commander.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 install(
   DIRECTORY launch config maps
