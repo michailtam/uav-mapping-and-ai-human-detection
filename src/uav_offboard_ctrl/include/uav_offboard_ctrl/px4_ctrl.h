@@ -12,23 +12,35 @@
 #include <px4_msgs/msg/home_position.hpp>
 #include <px4_msgs/srv/vehicle_command.hpp>
 #include <GeographicLib/LocalCartesian.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2/LinearMath/Quaternion.hpp>
+#include "uav_navigation/srv/set_nav_data.hpp"
 
 using namespace std::chrono;
 using namespace std::chrono_literals;
 using namespace px4_msgs::msg;
 using namespace std;
+using SetNavData = uav_navigation::srv::SetNavData;
 
 
 struct PosInENU {
     /**
-     * @brief Stores the x, y, and z ENU (i.e. Gazebo) coordinates.
+     * @brief Stores the position ENU coordinates (for Gazebo).
      */
-    double x, y, z;
+    double x, y, z, yaw;
+};
+
+struct PosInNED {
+    /**
+     * @brief Stores the position NED coordinates (for PX4).
+     */
+    double x, y, z, yaw;
 };
 
 struct PosInWGS84 {
     /**
-     * @brief Stores the lat, lon and alt WGS84 coordinates.
+     * @brief Stores position WGS84 coordinates.
      */
     double lat, lon, alt;
 };
@@ -52,13 +64,15 @@ public:
     
 private:
     void publishOffboardControlMode();
-    void publishTrajectorySetpoint(float pos_x, float pos_y, float pos_z);
+    void publishTrajectorySetpoint(float pos_x, float pos_y, float pos_z, float pos_yaw);
     void sendVehicleCommand(uint16_t command, float param1, float param2);
     void srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future);
+    void setNavDataCallback(const uav_navigation::srv::SetNavData::Request::SharedPtr request,
+                            const uav_navigation::srv::SetNavData::Response::SharedPtr response);
     void timerUpdateStateMachine(void);
 
     enum class State{
-		INIT_MODE,              // initialization Mode
+		INIT_MODE,              // Initialization Mode
 		OFFBOARD_MODE,          // Flight Mode
 		ARMING_MODE,            // Flight Mode
         DISARMING_MODE,         // Flight Mode
@@ -92,8 +106,9 @@ private:
     rclcpp::Subscription<px4_msgs::msg::VehicleGlobalPosition>::SharedPtr uav_pos_global_sub_;
     rclcpp::Subscription<px4_msgs::msg::PositionSetpointTriplet>::SharedPtr uav_target_pos_sub_;
     rclcpp::Subscription<px4_msgs::msg::VehicleStatus>::SharedPtr uav_status_sub_;
+
     rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
-    
+    rclcpp::Service<uav_navigation::srv::SetNavData>::SharedPtr  nav2_nav_data_srv_;
     
     PosInENU curr_loc_;          // Local position coordinates in NED
     PosInWGS84 curr_glob_;       // Global position coordinates in WGS84

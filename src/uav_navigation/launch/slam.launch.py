@@ -17,25 +17,12 @@ def generate_launch_description():
         default_value="true"
     )
 
-
-    # Launch SLAM
-    slam = Node(
-        package="slam_toolbox",
-        executable="async_slam_toolbox_node",
-        name="slam_toolbox",
-        output="screen",
-        parameters=[
-            slam_config,
-            {"use_sim_time": use_sim_time},
-        ]
-    )
-       
-    slam_config_arg = DeclareLaunchArgument(
-        "slam_config",
-        default_value=os.path.join(
-            get_package_share_directory("uav_navigation"), "config", "slam_toolbox.yaml"),
-        description="Full path to slam yaml file to load"
-    )
+    # slam_config_arg = DeclareLaunchArgument(
+    #     "slam_config",
+    #     default_value=os.path.join(
+    #         get_package_share_directory("uav_navigation"), "config", "slam_toolbox.yaml"),
+    #     description="Full path to slam yaml file to load"
+    # )
 
     # Launch SLAM
     slam = Node(
@@ -87,7 +74,7 @@ def generate_launch_description():
     
     return LaunchDescription([
         use_sim_time_arg,
-        slam_config_arg,
+        # slam_config_arg,
         slam,
         ekf,
         nav2_map_saver,

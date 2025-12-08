@@ -12,13 +12,24 @@ find_package(std_msgs REQUIRED)
 find_package(px4_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
 find_library(GEOGRAPHICLIB_LIB GeographicLib)
+find_package(uav_navigation REQUIRED) 
 
 # Add include folder so .h files are found
 include_directories(include)
 
 add_executable(px4_ctrl src/px4_ctrl.cpp)
-ament_target_dependencies(px4_ctrl px4_msgs rclcpp)
+ament_target_dependencies(px4_ctrl 
+  px4_msgs 
+  geometry_msgs  
+  tf2_geometry_msgs
+  rclcpp
+  uav_navigation
+  # tf2_ros
+  # tf2
+)
 
 add_executable(px4_prop_js_publisher src/px4_prop_js_publisher.cpp)
 ament_target_dependencies(px4_prop_js_publisher 

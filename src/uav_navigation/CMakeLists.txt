@@ -7,9 +7,10 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_python REQUIRED) 
 find_package(rclpy REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
 ## CPP EXECUTABLES
 # include_directories(include)
@@ -24,9 +25,6 @@ find_package(rclcpp REQUIRED)
 #   DESTINATION lib/${PROJECT_NAME}
 # )
 
-# Install Python modules
-ament_python_install_package(${PROJECT_NAME})
-
 # Install Python scripts
 install(PROGRAMS
   scripts/simple_commander.py
@@ -34,8 +32,14 @@ install(PROGRAMS
 )
 
 install(
-  DIRECTORY launch config maps
+  DIRECTORY launch config maps srv
   DESTINATION share/${PROJECT_NAME}
+)
+
+# Generate interfaces (srv)
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/SetNavData.srv"
+  DEPENDENCIES geometry_msgs
 )
 
 if(BUILD_TESTING)
@@ -44,5 +48,7 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+ament_export_dependencies(rosidl_default_runtime)
 
 ament_package()

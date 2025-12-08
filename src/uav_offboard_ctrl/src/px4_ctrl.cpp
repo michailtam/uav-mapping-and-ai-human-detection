@@ -38,7 +38,6 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
     // Create the offboard control mode and trajectory publisher
     offboard_ctrl_mode_pub_ = this->create_publisher<px4_msgs::msg::OffboardControlMode>("/fmu/in/offboard_control_mode", 10);
     traj_setpoint_pub_ = this->create_publisher<px4_msgs::msg::TrajectorySetpoint>("/fmu/in/trajectory_setpoint", 10);
-    // nav2_goal_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("/goal_pose", 10); // TODO: Check the topic name
     
     // ** Subscribers **
     // Callback to store the current position of the UAV
@@ -52,6 +51,10 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
             std::bind(&OffboardControl::targetPositionCallback, this, std::placeholders::_1));
     uav_status_sub_ = this->create_subscription<px4_msgs::msg::VehicleStatus>("/fmu/out/vehicle_status_v1", qos_profile, 
             std::bind(&OffboardControl::statusCallback, this, std::placeholders::_1));
+
+    // PX4 server communication with Nav2
+    nav2_nav_data_srv_ = this->create_service<uav_navigation::srv::SetNavData>("set_nav_data",
+        std::bind(&OffboardControl::setNavDataCallback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void OffboardControl::engageOffboardMode() {
@@ -108,6 +111,44 @@ void OffboardControl::srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>:
     }
 }
 
+void OffboardControl::setNavDataCallback(const uav_navigation::srv::SetNavData::Request::SharedPtr request,
+                                         const uav_navigation::srv::SetNavData::Response::SharedPtr response) {
+    /**
+     * @brief Callback function which sends the start and end pose to receive the velocity data from Nav 2
+     */
+    
+    if (request->code == 1) {
+        // Send the start pose of the robot
+        tf2::Quaternion quat_tf2_start, quat_tf2_goal;
+        
+        // Convert start euler angles to a quaternion
+        quat_tf2_start.setRPY(0.0, 0.0, curr_loc_.yaw);
+        quat_tf2_start = quat_tf2_start.normalize();
+        geometry_msgs::msg::Quaternion quat_msg1 = tf2::toMsg(quat_tf2_start);
+
+        response->start.header.frame_id = "map";
+        response->start.header.stamp = this->now();
+        response->start.pose.position.x = curr_loc_.x;
+        response->start.pose.position.y = curr_loc_.y;
+        response->start.pose.position.z = curr_loc_.z;
+        response->start.pose.orientation = quat_msg1;
+
+        // Convert goal euler angles to a quaternion
+        quat_tf2_goal.setRPY(0.0, 0.0, 0.0);
+        quat_tf2_goal = quat_tf2_goal.normalize();
+        geometry_msgs::msg::Quaternion quat_msg2 = tf2::toMsg(quat_tf2_goal);
+
+        response->goal.header.frame_id = "map";
+        response->goal.header.stamp = this->now();
+        response->goal.pose.position.x = target_loc_.x;
+        response->goal.pose.position.y = target_loc_.y;
+        response->goal.pose.position.z = target_loc_.z;
+        response->goal.pose.orientation = quat_msg2;
+        
+        RCLCPP_INFO(this->get_logger(), "Start and End pose send");
+    }
+}
+
 void OffboardControl::publishOffboardControlMode() {
     /**
      * @brief Is called to change to offboard mode. Here, position and altitude controls are active
@@ -122,13 +163,13 @@ void OffboardControl::publishOffboardControlMode() {
     offboard_ctrl_mode_pub_->publish(mode);
 }
 
-void OffboardControl::publishTrajectorySetpoint(float pos_x, float pos_y, float pos_z) {
+void OffboardControl::publishTrajectorySetpoint(float pos_x, float pos_y, float pos_z, float pos_yaw) {
     /**
      * @brief Publish a trajectory setpoint (i.e. the position to fly)
      */
     TrajectorySetpoint msg{};
 	msg.position = {pos_x, pos_y, pos_z};
-	msg.yaw = 0.0;  // Keep the drone only facing forward.
+	msg.yaw = pos_yaw;
 	msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
 	traj_setpoint_pub_->publish(msg);
 }
@@ -286,7 +327,7 @@ void OffboardControl::disarm() {
 void OffboardControl::takeOff() {
     // Takeoff until approx. 5 m altitude has been reached
     if (curr_loc_.z >= (take_off_height_+0.1)) {
-        publishTrajectorySetpoint(curr_loc_.x, curr_loc_.y, take_off_height_);
+        publishTrajectorySetpoint(curr_loc_.x, curr_loc_.y, take_off_height_, curr_loc_.yaw);
     } else {
         RCLCPP_INFO(this->get_logger(), "Takeoff altitude of %.2fm reached", (-1)*take_off_height_);
         RCLCPP_INFO(this->get_logger(), "Nav2 navigation mode engaged");
@@ -309,8 +350,10 @@ void OffboardControl::localPositionCallback(const px4_msgs::msg::VehicleLocalPos
     curr_loc_.x = msg->x;
     curr_loc_.y = msg->y;
     curr_loc_.z = msg->z;
-    // RCLCPP_INFO(this->get_logger(), "Local pos: x:%f y:%f z:%f", 
-    //     curr_loc_.x, curr_loc_.y, curr_loc_.z);
+    curr_loc_.yaw = msg->heading;
+
+    // RCLCPP_INFO(this->get_logger(), "Local pos: x:%f y:%f z:%f, yaw:%f", 
+    //     curr_loc_.x, curr_loc_.y, curr_loc_.z, curr_loc_.yaw);
 }
 
 void OffboardControl::globalPositionCallback(const px4_msgs::msg::VehicleGlobalPosition::SharedPtr msg) {
@@ -370,10 +413,7 @@ PosInENU OffboardControl::convertWGS84ToENU(double target_lat, double target_lon
     enu_point.x = x;
     enu_point. y = y;
     enu_point.z = z;
-    
-    // RCLCPP_INFO(this->get_logger(), "Home ENU position: x:%f y:%f z:%f", home_loc_.x, home_loc_.y, home_loc_.z);
-    // RCLCPP_INFO(this->get_logger(), "Target ENU position: x:%f y:%f z:%f", x, y, z);
-    
+
     return enu_point;
 }
 
