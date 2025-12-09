@@ -12,6 +12,6 @@ wmctrl -r "ROS Offboard Ctrl" -b add,hidden
 gnome-terminal --title="ROS-GZ-Bridge" --window --geometry=80x24+0+0 -- bash -c "source install/setup.bash && ros2 launch uav_simulation ros_gz_bridge.launch.py; exec bash" &
 wmctrl -r "ROS GZ Bridge" -b add,hidden
 
-# Terminal 4 (named & minimized): Start Nav 2 and SLAM
-gnome-terminal --title="Navigation" --window --geometry=80x24+0+0 -- bash -c "source install/setup.bash && ros2 launch uav_navigation slam.launch.py; exec bash" &
-wmctrl -r "Nav2 SLAM" -b add,hidden
+# # Terminal 4 (named & minimized): Start Nav 2 and SLAM
+# gnome-terminal --title="Navigation" --window --geometry=80x24+0+0 -- bash -c "source install/setup.bash && ros2 launch uav_navigation slam_and_nav.launch.py; exec bash" &
+# wmctrl -r "Nav2 SLAM" -b add,hidden

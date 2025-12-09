@@ -155,7 +155,7 @@ void OffboardControl::publishOffboardControlMode() {
      */
     OffboardControlMode mode{};
     mode.position = true;
-    mode.velocity = false;
+    mode.velocity = true;
     mode.acceleration = false;
     mode.attitude = false;
     mode.body_rate = false;

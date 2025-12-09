@@ -9,27 +9,27 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    use_sim_time = LaunchConfiguration("use_sim_time")
-    lifecycle_nodes = ["controller_server", "planner_server", "smoother_server", "bt_navigator"]
-    warehouse_bot_navigation_pkg = get_package_share_directory("warehouse_bot_navigation")
+    pkg_share_uav_navigation = get_package_share_directory("uav_navigation")
 
+    use_sim_time = LaunchConfiguration("use_sim_time")
     use_sim_time_arg = DeclareLaunchArgument(
         "use_sim_time",
         default_value="true"
     )
 
+    # Select what nodes to include in state machine
+    lifecycle_nodes = ["controller_server", "planner_server", "smoother_server", "bt_navigator"]
+
     # Start the server for the controller
     nav2_controller_server = Node(
         package="nav2_controller",
         executable="controller_server",
+        name='controller_server',
         output="screen",
         parameters=[
-            os.path.join(
-                warehouse_bot_navigation_pkg,
-                "config",
-                "controller_server.yaml"),
+            os.path.join(pkg_share_uav_navigation, "config", "controller_server.yaml"),
             {"use_sim_time": use_sim_time}
-        ],
+        ]
     )
     
     # Start the planner for planning the path
@@ -39,12 +39,9 @@ def generate_launch_description():
         name="planner_server",
         output="screen",
         parameters=[
-            os.path.join(
-                warehouse_bot_navigation_pkg,
-                "config",
-                "planner_server.yaml"),
+            os.path.join(pkg_share_uav_navigation, "config", "planner_server.yaml"),
             {"use_sim_time": use_sim_time}
-        ],
+        ]
     )
 
     # Start the smoother which smooths the path to the destination
@@ -54,27 +51,21 @@ def generate_launch_description():
         name="smoother_server",
         output="screen",
         parameters=[
-            os.path.join(
-                warehouse_bot_navigation_pkg,
-                "config",
-                "smoother_server.yaml"),
+            os.path.join(pkg_share_uav_navigation, "config", "smoother_server.yaml"),
             {"use_sim_time": use_sim_time}
-        ],
+        ]
     )
 
-    # Start the nav2 navigator for executing the navigation process
+    # Start the nav2 navigator for executing the navigation process ????????????????????
     nav2_bt_navigator = Node(
         package="nav2_bt_navigator",
         executable="bt_navigator",
         name="bt_navigator",
         output="screen",
         parameters=[
-            os.path.join(
-                warehouse_bot_navigation_pkg,
-                "config",
-                "bt_navigator.yaml"),
+            os.path.join(pkg_share_uav_navigation, "config", "bt_navigator.yaml"),
             {"use_sim_time": use_sim_time}
-        ],
+        ]
     )
 
     # Start the behavior of the robot when it cannot execute the navigation
@@ -84,12 +75,9 @@ def generate_launch_description():
         name="behavior_server",
         output="screen",
         parameters=[
-            os.path.join(
-                warehouse_bot_navigation_pkg,
-                "config",
-                "behavior_server.yaml"),
+            os.path.join(pkg_share_uav_navigation, "config", "behavior_server.yaml"),
             {"use_sim_time": use_sim_time}
-        ],
+        ]
     )
 
     # Start the finate state machine for navigation 
@@ -102,7 +90,7 @@ def generate_launch_description():
             {"node_names": lifecycle_nodes},
             {"use_sim_time": use_sim_time},
             {"autostart": True}
-        ],
+        ]
     )
 
     return LaunchDescription([
