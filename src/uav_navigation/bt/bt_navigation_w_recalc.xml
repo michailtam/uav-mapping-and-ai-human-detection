@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" main_tree_to_execute="NavigationWithRecalc">
+  <!-- Main navigation tree -->
+  <BehaviorTree ID="NavigationWithRecalc">
+    <PipelineSequence>
+      <!-- Compute the path to the goal using the planner plugin -->
+      <RateController hz="1">
+        <ComputePathToPose goal="{goal}" planner_id="GridBased" path="{path}"/>
+      </RateController>
+
+      <!-- Follow the computed path using the controller plugin -->
+      <FollowPath controller_id="FollowPath" path="{path}"/>
+    </PipelineSequence>
+  </BehaviorTree>
+</root>

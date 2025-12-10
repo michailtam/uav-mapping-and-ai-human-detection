@@ -50,7 +50,7 @@ def generate_launch_description():
         ]
     )
 
-    # Start the SLAM process for map creation automatically without doing it manually
+    # Manages node states 
     nav2_lifecycle_manager = Node(
         package="nav2_lifecycle_manager",
         executable="lifecycle_manager",

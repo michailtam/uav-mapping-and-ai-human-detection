@@ -18,9 +18,9 @@ def generate_launch_description():
     )
 
     # Select what nodes to include in state machine
-    lifecycle_nodes = ["controller_server", "planner_server", "smoother_server", "bt_navigator"]
+    lifecycle_nodes = ["controller_server", "planner_server", "bt_navigator"]
 
-    # Start the server for the controller
+    # Executes planned path following by generating velocity commands (necessary for PX4)
     nav2_controller_server = Node(
         package="nav2_controller",
         executable="controller_server",
@@ -32,7 +32,7 @@ def generate_launch_description():
         ]
     )
     
-    # Start the planner for planning the path
+    # Executes the planner for collision-free paths in 2D space from start to goal
     nav2_planner_server = Node(
         package="nav2_planner",
         executable="planner_server",
@@ -44,19 +44,19 @@ def generate_launch_description():
         ]
     )
 
-    # Start the smoother which smooths the path to the destination
-    nav2_smoother_server = Node(
-        package="nav2_smoother",
-        executable="smoother_server",
-        name="smoother_server",
-        output="screen",
-        parameters=[
-            os.path.join(pkg_share_uav_navigation, "config", "smoother_server.yaml"),
-            {"use_sim_time": use_sim_time}
-        ]
-    )
+    # # Executes smoothing the path to the destination (not necessary for Drones) TODO
+    # nav2_smoother_server = Node(
+    #     package="nav2_smoother",
+    #     executable="smoother_server",
+    #     name="smoother_server",
+    #     output="screen",
+    #     parameters=[
+    #         os.path.join(pkg_share_uav_navigation, "config", "smoother_server.yaml"),
+    #         {"use_sim_time": use_sim_time}
+    #     ]
+    # )
 
-    # Start the nav2 navigator for executing the navigation process ????????????????????
+    # Executes the high-level navigation coordinator using behavior trees
     nav2_bt_navigator = Node(
         package="nav2_bt_navigator",
         executable="bt_navigator",
@@ -80,7 +80,7 @@ def generate_launch_description():
         ]
     )
 
-    # Start the finate state machine for navigation 
+    # Manages node states 
     nav2_lifecycle_manager = Node(
         package="nav2_lifecycle_manager",
         executable="lifecycle_manager",
@@ -89,7 +89,8 @@ def generate_launch_description():
         parameters=[
             {"node_names": lifecycle_nodes},
             {"use_sim_time": use_sim_time},
-            {"autostart": True}
+            {"autostart": True},
+            {"bond_timeout": 0.0}
         ]
     )
 
@@ -97,7 +98,7 @@ def generate_launch_description():
         use_sim_time_arg,
         nav2_controller_server,
         nav2_planner_server,
-        nav2_smoother_server,
+        # nav2_smoother_server,
         nav2_bt_navigator,
         nav2_behaviours,
         nav2_lifecycle_manager,
