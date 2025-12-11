@@ -18,7 +18,7 @@ def generate_launch_description():
     )
 
     # Select what nodes to include in state machine
-    lifecycle_nodes = ["controller_server", "planner_server", "bt_navigator"]
+    lifecycle_nodes = ["controller_server", "planner_server", "behavior_server", "bt_navigator"]
 
     # Executes planned path following by generating velocity commands (necessary for PX4)
     nav2_controller_server = Node(
@@ -43,18 +43,6 @@ def generate_launch_description():
             {"use_sim_time": use_sim_time}
         ]
     )
-
-    # # Executes smoothing the path to the destination (not necessary for Drones) TODO
-    # nav2_smoother_server = Node(
-    #     package="nav2_smoother",
-    #     executable="smoother_server",
-    #     name="smoother_server",
-    #     output="screen",
-    #     parameters=[
-    #         os.path.join(pkg_share_uav_navigation, "config", "smoother_server.yaml"),
-    #         {"use_sim_time": use_sim_time}
-    #     ]
-    # )
 
     # Executes the high-level navigation coordinator using behavior trees
     nav2_bt_navigator = Node(
@@ -90,7 +78,7 @@ def generate_launch_description():
             {"node_names": lifecycle_nodes},
             {"use_sim_time": use_sim_time},
             {"autostart": True},
-            {"bond_timeout": 0.0}
+            {"bond_timeout": 20.0}
         ]
     )
 
@@ -98,7 +86,6 @@ def generate_launch_description():
         use_sim_time_arg,
         nav2_controller_server,
         nav2_planner_server,
-        # nav2_smoother_server,
         nav2_bt_navigator,
         nav2_behaviours,
         nav2_lifecycle_manager,

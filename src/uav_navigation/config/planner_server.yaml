@@ -2,13 +2,13 @@ planner_server:
   ros__parameters:
     expected_planner_frequency: 5.0  # How often to replan if needed
     use_sim_time:  true
-    planner_plugins:  ["GridBased"]
+    planner_plugins: ["GridBased"]
     
     GridBased:
       plugin: "nav2_navfn_planner::NavfnPlanner"
       tolerance: 0.5
       use_astar: false
-      allow_unknown:  true  # Important for drones - can fly over unknown areas
+      allow_unknown: true  # Important for drones, they can fly over unknown areas
       
 # GLOBAL COSTMAP CONFIGURATION
 global_costmap:
@@ -20,13 +20,7 @@ global_costmap:
       robot_base_frame: x650_0/base_footprint
       use_sim_time: true
       
-      # Footprint for drone (circular is typical for omnidirectional drones)
-      # Option 1: Radius (simpler)
       robot_radius: 0.3  # meters - adjust to your drone's size + safety margin
-      
-      # Option 2: Polygon footprint (for non-circular drones)
-      # footprint:  "[[0.3, 0.3], [0.3, -0.3], [-0.3, -0.3], [-0.3, 0.3]]"
-      
       resolution: 0.05  # meters/cell - must match SLAM map resolution
       track_unknown_space: true
       rolling_window: false  # Global costmap covers entire map
@@ -35,22 +29,15 @@ global_costmap:
       origin_x: -25.0  # Center the initial costmap
       origin_y: -25.0
       
-      plugins:  ["static_layer", "obstacle_layer", "inflation_layer"]
-      
-      # STATIC LAYER - The map from SLAM
-      static_layer: 
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: true
-        enabled: true
-        subscribe_to_updates: true
-        transform_tolerance: 0.5  # Increase for drones (wind effects)
+      plugins:  ["obstacle_layer", "inflation_layer"]
         
       # OBSTACLE LAYER - Real-time sensor data
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: true
-        observation_sources:  scan  # Add more if you have multiple sensors
+        observation_sources: scan depth
         
+        # 2D lidar settings
         scan:
           topic: /scan
           max_obstacle_height: 2.0  # Adjust for drone flight height
@@ -63,6 +50,17 @@ global_costmap:
           obstacle_max_range: 10.0
           obstacle_min_range: 0.0
           inf_is_valid: false
+
+        # Depth camera settings
+        depth:
+          topic: /camera/cloud
+          data_type: "PointCloud2"
+          max_obstacle_height: 2.0
+          min_obstacle_height: 0.0
+          clearing: true
+          marking: true
+          obstacle_max_range: 6.0
+          obstacle_min_range: 0.6
           
       # INFLATION LAYER - Safety buffer around obstacles
       inflation_layer: 

@@ -89,18 +89,30 @@ local_costmap:
         mark_threshold: 0
         observation_sources: scan
         
+        # 2D lidar settings
         scan:
           topic: /scan
+          data_type: "LaserScan"
           max_obstacle_height: 2.0
           min_obstacle_height: 0.0
           clearing: true
           marking: true
-          data_type: "LaserScan"
           raytrace_max_range: 12.0
           raytrace_min_range: 0.0
           obstacle_max_range: 10.0
           obstacle_min_range: 0.0
           inf_is_valid: false
+
+        # Depth camera settings
+        depth:
+          topic: /camera/cloud
+          data_type: "PointCloud2"
+          max_obstacle_height: 2.0
+          min_obstacle_height: 0.0
+          clearing: true
+          marking: true
+          obstacle_max_range: 6.0   # Adjusted based on RGB‑D range
+          obstacle_min_range: 0.6
       
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
