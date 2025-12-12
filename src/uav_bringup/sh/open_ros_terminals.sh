@@ -17,6 +17,6 @@ gnome-terminal --title="ROS-GZ-Bridge" --window --geometry=80x24+0+0 -- bash -c 
 wmctrl -r "ROS GZ Bridge" -b add,hidden
 
 # # Terminal 5 (named & minimized): Start Nav 2 and SLAM
-# gnome-terminal --title="SLAM-Navigation" --window --geometry=80x24+0+0 -- bash -c "source install/setup.bash && ros2 launch uav_navigation slam_and_nav.launch.py; exec bash" &
-# wmctrl -r "SLAM-Navigation" -b add,hidden
+gnome-terminal --title="SLAM-Navigation" --window --geometry=80x24+0+0 -- bash -c "source install/setup.bash && ros2 launch uav_navigation slam_and_nav.launch.py; exec bash" &
+wmctrl -r "SLAM-Navigation" -b add,hidden
 

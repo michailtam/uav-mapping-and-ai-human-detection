@@ -49,10 +49,12 @@ class OffboardControl : public rclcpp::Node
 {
 public:
     OffboardControl();
+    ~OffboardControl();
     void engageOffboardMode();
     void arm();
     void disarm();
     void takeOff();
+    void hover();
     void land();
     void run();
     void homePositionCallback(const px4_msgs::msg::HomePosition::SharedPtr msg);
@@ -67,8 +69,8 @@ private:
     void publishTrajectorySetpoint(float pos_x, float pos_y, float pos_z, float pos_yaw);
     void sendVehicleCommand(uint16_t command, float param1, float param2);
     void srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future);
-    void setNavDataCallback(const uav_navigation::srv::SetNavData::Request::SharedPtr request,
-                            const uav_navigation::srv::SetNavData::Response::SharedPtr response);
+    void sendStartGoalPoseCallback(rclcpp::Client<uav_navigation::srv::SetNavData>::SharedFuture future);
+    void sendStartGoalPose();
     void timerUpdateStateMachine(void);
 
     enum class State{
@@ -77,13 +79,13 @@ private:
 		ARMING_MODE,            // Flight Mode
         DISARMING_MODE,         // Flight Mode
         TAKEOFF_MODE,           // Flight Mode
-        HOLD_MODE,              // Flight Mode
+        HOVER_MODE,             // Flight Mode
         POSITION_MODE,          // Flight Mode    
         LANDING_MODE,           // Flight Mode
         RETURN_MODE,            // Flight Mode
         TELEOP_MODE,            // Teleoperation Mode
         RTL_MODE,               // Automatic Flight Mode (Return to Land)
-        NAV2_NAV_MODE           // Nav2 Navigation Mode (executes ROS2 Nav2 for navigation)
+        NAVIGATION_MODE         // Nav2 Navigation Mode (executes ROS2 Nav2 for navigation)
 	} state_;
 
 	uint8_t service_result_;
@@ -102,13 +104,13 @@ private:
     rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_ctrl_mode_pub_;
     rclcpp::Publisher<TrajectorySetpoint>::SharedPtr traj_setpoint_pub_;
     rclcpp::Subscription<px4_msgs::msg::HomePosition>::SharedPtr uav_home_pos_sub_;
-    rclcpp::Subscription<px4_msgs::msg::VehicleLocalPosition>::SharedPtr uav_pos_sub_;
-    rclcpp::Subscription<px4_msgs::msg::VehicleGlobalPosition>::SharedPtr uav_pos_global_sub_;
+    rclcpp::Subscription<px4_msgs::msg::VehicleLocalPosition>::SharedPtr uav_local_pos_sub_;
+    rclcpp::Subscription<px4_msgs::msg::VehicleGlobalPosition>::SharedPtr uav_global_pos_sub_;
     rclcpp::Subscription<px4_msgs::msg::PositionSetpointTriplet>::SharedPtr uav_target_pos_sub_;
     rclcpp::Subscription<px4_msgs::msg::VehicleStatus>::SharedPtr uav_status_sub_;
 
     rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
-    rclcpp::Service<uav_navigation::srv::SetNavData>::SharedPtr  nav2_nav_data_srv_;
+    rclcpp::Client<uav_navigation::srv::SetNavData>::SharedPtr  nav2_pose_data_client_;
     
     PosInENU curr_loc_;          // Local position coordinates in NED
     PosInWGS84 curr_glob_;       // Global position coordinates in WGS84
@@ -116,6 +118,10 @@ private:
     PosInWGS84 target_glob_;     // Global target position coordinates in NED
     PosInENU home_loc_;          // Local home position coordinates in NED
     PosInWGS84 home_glob_;       // Global home position coordinates in NED
+    PosInENU hover_pos_loc_;     // Fixed hover position
+
+    std::thread worker_thread_;
+    std::atomic<bool> stop_thread_;
 };
 
 #endif

@@ -11,7 +11,7 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
     # Package and file paths
     share_dir = get_package_share_directory('uav_description')
-    rviz_config_file = os.path.join(share_dir, 'rviz', 'rviz_conf.rviz')
+    rviz_config_file = os.path.join(share_dir, 'rviz', 'rviz_conf_new.rviz')
 
     # Create the robot_description from xacro file
     xacro_file = os.path.join(share_dir, 'urdf', 'uav.urdf.xacro') 

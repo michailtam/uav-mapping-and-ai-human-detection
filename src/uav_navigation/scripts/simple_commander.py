@@ -17,7 +17,7 @@ class Nav2SimpleCommander(Node):
         self._nav.waitUntilNav2Active(localizer='slam_toolbox')
 
         # Start the client to request start and goal pose from PX4
-        self._nav2_nav_data_client_ = self.create_client(SetNavData, "set_nav_data")
+        self._nav2_nav_data_client_ = self.create_client(SetNavData, "srv_nav_data")
         
     def call_nav_data(self, code):
         # Wait until server has the data

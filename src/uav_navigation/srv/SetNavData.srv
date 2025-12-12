@@ -1,7 +1,6 @@
-# REQUEST (empty)
-int64 code
----
-# RESPONSE
+# REQUEST
 geometry_msgs/PoseStamped start
 geometry_msgs/PoseStamped goal
+---
+# RESPONSE
 bool accepted
