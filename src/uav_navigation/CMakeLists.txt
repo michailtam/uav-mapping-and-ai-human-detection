@@ -32,7 +32,7 @@ install(PROGRAMS
 )
 
 install(
-  DIRECTORY launch config maps srv
+  DIRECTORY launch config maps srv bt
   DESTINATION share/${PROJECT_NAME}
 )
 

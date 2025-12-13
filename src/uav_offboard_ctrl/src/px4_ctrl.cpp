@@ -364,28 +364,28 @@ void OffboardControl::targetPositionCallback(const px4_msgs::msg::PositionSetpoi
     /**
     * @brief Save the target coordinates (PX4’s NED frame) acquired from Nav2.
     */
-    target_glob_.lat = msg->current.lat;
-    target_glob_.lon = msg->current.lon;
-    target_glob_.alt = msg->current.alt;
-    RCLCPP_INFO(this->get_logger(), "Global target position: x:%f y:%f z:%f", 
-        target_glob_.lat, target_glob_.lon, target_glob_.alt);
-    
-    target_loc_ = convertWGS84ToENU(target_glob_.lat, target_glob_.lon, target_glob_.alt);
+    if (state_ == State::HOVER_MODE) {
+        target_glob_.lat = msg->current.lat;
+        target_glob_.lon = msg->current.lon;
+        target_glob_.alt = msg->current.alt;
+        RCLCPP_INFO(this->get_logger(), "Global target position: x:%f y:%f z:%f", 
+            target_glob_.lat, target_glob_.lon, target_glob_.alt);
+        
+        target_loc_ = convertWGS84ToENU(target_glob_.lat, target_glob_.lon, target_glob_.alt);
 
-    // Wait for the srv_nav_data server to be online
-    while(!nav2_pose_data_client_->wait_for_service(1s)) {   // 1 sec.
-        if (!rclcpp::ok()) {
-            RCLCPP_INFO(this->get_logger(), "Shutdown requested, exiting waiting loop");
-            return;
+        // Wait for the srv_nav_data server to be online
+        while(!nav2_pose_data_client_->wait_for_service(1s)) {   // 1 sec.
+            if (!rclcpp::ok()) {
+                RCLCPP_INFO(this->get_logger(), "Shutdown requested, exiting waiting loop");
+                return;
+            }
+            RCLCPP_WARN(this->get_logger(), "Waiting for server...");
+            publishOffboardControlMode();
+            publishTrajectorySetpoint(curr_loc_.x, curr_loc_.y, curr_loc_.z, curr_loc_.yaw);
         }
-        RCLCPP_WARN(this->get_logger(), "Waiting for server...");
-        publishOffboardControlMode();
-        publishTrajectorySetpoint(curr_loc_.x, curr_loc_.y, curr_loc_.z, curr_loc_.yaw);
+
+        sendStartGoalPose(); // Send the start and goal pose to Nav 2 Simple Commander
     }
-
-    RCLCPP_WARN(this->get_logger(), "SENDING...");
-
-    // sendStartGoalPose(); // Send the start and goal pose to Nav 2 Simple Commander
 }
 
 PosInENU OffboardControl::convertWGS84ToENU(double target_lat, double target_lon, double target_alt) {

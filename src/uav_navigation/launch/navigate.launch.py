@@ -17,8 +17,8 @@ def generate_launch_description():
         default_value="true"
     )
 
-    # Select what nodes to include in state machine
-    lifecycle_nodes = ["controller_server", "planner_server", "behavior_server", "bt_navigator"]
+    # Nodes that gets managed by the lifecycle manager
+    lifecycle_nodes = ["controller_server", "planner_server"]
 
     # Executes planned path following by generating velocity commands (necessary for PX4)
     nav2_controller_server = Node(
@@ -44,29 +44,17 @@ def generate_launch_description():
         ]
     )
 
-    # Executes the high-level navigation coordinator using behavior trees
-    nav2_bt_navigator = Node(
-        package="nav2_bt_navigator",
-        executable="bt_navigator",
-        name="bt_navigator",
-        output="screen",
-        parameters=[
-            os.path.join(pkg_share_uav_navigation, "config", "bt_navigator.yaml"),
-            {"use_sim_time": use_sim_time}
-        ]
-    )
-
-    # Start the behavior of the robot when it cannot execute the navigation
-    nav2_behaviours = Node(
-        package="nav2_behaviors",
-        executable="behavior_server",
-        name="behavior_server",
-        output="screen",
-        parameters=[
-            os.path.join(pkg_share_uav_navigation, "config", "behavior_server.yaml"),
-            {"use_sim_time": use_sim_time}
-        ]
-    )
+    # # Executes the high-level navigation coordinator using behavior trees
+    # nav2_bt_navigator = Node(
+    #     package="nav2_bt_navigator",
+    #     executable="bt_navigator",
+    #     name="bt_navigator",
+    #     output="screen",
+    #     parameters=[
+    #         os.path.join(pkg_share_uav_navigation, "config", "bt_navigator.yaml"),
+    #         {"use_sim_time": use_sim_time}
+    #     ]
+    # )
 
     # Manages node states 
     nav2_lifecycle_manager = Node(
@@ -86,7 +74,6 @@ def generate_launch_description():
         use_sim_time_arg,
         nav2_controller_server,
         nav2_planner_server,
-        nav2_bt_navigator,
-        nav2_behaviours,
+        # nav2_bt_navigator,
         nav2_lifecycle_manager,
     ])

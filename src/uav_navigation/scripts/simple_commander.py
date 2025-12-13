@@ -11,48 +11,38 @@ from uav_navigation.srv import SetNavData
 class Nav2SimpleCommander(Node):
 
     def __init__(self):
-        super().__init__("nav2_simple_commander")
+        super().__init__("nav2_simple_commander_server")
 
         self._nav = BasicNavigator()
-        self._nav.waitUntilNav2Active(localizer='slam_toolbox')
+        # self.get_logger().warn("wait until Nav2 is active")
+        # self._nav.waitUntilNav2Active(localizer='slam_toolbox')
 
-        # Start the client to request start and goal pose from PX4
-        self._nav2_nav_data_client_ = self.create_client(SetNavData, "srv_nav_data")
+        # Start the server to handle start and goal pose from PX4
+        self._nav2_data_server_ = self.create_service(SetNavData, "srv_nav_data", self.callback_nav_data)
+        self.get_logger().warn("Nav2 simple commander server started and waiting for requests")
+
+    def callback_nav_data(self, request: SetNavData.Request, response: SetNavData.Response):
         
-    def call_nav_data(self, code):
-        # Wait until server has the data
-        while not self._nav2_nav_data_client_.wait_for_service():
-            self.get_logger().warn("Waiting for set_nav_data server...")
-
-        request = SetNavData.Request()
-        request.code = code
-
-        future = self._nav2_nav_data_client_.call_async(request)
-        future.add_done_callback(self.callback_nav_data)
-
-    def callback_nav_data(self, future):
-        response = future.result()
-        self.get_logger().info("Got start pose:"+str(response.start)+" and goal pose:"+str(response.goal))
-
-        # self._nav.setInitialPose(initial_pose)  # Send the initial pose to the navigation stack
-
-        # self._nav.goToPose()    # Send the goal pose to the navigation stack
-
-        # # Waits until the goal position is reached and exits
-        # while not self._nav.isTaskComplete():
-        #     feedback = self._nav.getFeedback()     # Get the current position of the robot
-        #     self.get_logger().info(f"Current position: {feedback}")
+        self._start = request.start
+        self._goal = request.goal
         
-        # result = self._nav.getResult()
-        # self.get_logger().info(f"Result: {result}")
+        start_x = request.start.pose.position.x
+        start_y = request.start.pose.position.y
+        start_z = request.start.pose.position.z
+        goal_x = request.goal.pose.position.x
+        goal_y = request.goal.pose.position.y
+        goal_z = request.goal.pose.position.z
+
+        self.get_logger().info(f"Received start pose: {start_x} {start_y} {start_z} and goal pose: {goal_x} {goal_y} {goal_z}")
+        
+        response.accepted = True
+        return response
         
 
 def main(args=None):
     rclpy.init(args=args)
     node = Nav2SimpleCommander()
-    node.call_nav_data(1)
     rclpy.spin(node)
-    node.destroy_node()
     rclpy.shutdown()
 
 
