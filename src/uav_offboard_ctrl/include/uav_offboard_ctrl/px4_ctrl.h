@@ -15,13 +15,16 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
-#include "uav_navigation/srv/set_nav_data.hpp"
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include "uav_navigation/srv/set_initial_pose.hpp"
+#include "uav_navigation/srv/set_goal_pose.hpp"
 
 using namespace std::chrono;
 using namespace std::chrono_literals;
 using namespace px4_msgs::msg;
 using namespace std;
-using SetNavData = uav_navigation::srv::SetNavData;
+using SetInitialPose = uav_navigation::srv::SetInitialPose;
+using SetGoalPose = uav_navigation::srv::SetGoalPose;
 
 
 struct PosInENU {
@@ -57,10 +60,10 @@ public:
     void hover();
     void land();
     void run();
-    void homePositionCallback(const px4_msgs::msg::HomePosition::SharedPtr msg);
     void localPositionCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
     void globalPositionCallback(const px4_msgs::msg::VehicleGlobalPosition::SharedPtr msg);
-    void targetPositionCallback(const px4_msgs::msg::PositionSetpointTriplet::SharedPtr msg);
+    void homePositionCallback(const px4_msgs::msg::HomePosition::SharedPtr msg);
+    void goalPositionCallback(const px4_msgs::msg::PositionSetpointTriplet::SharedPtr msg);
     void statusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg);
     PosInENU convertWGS84ToENU(double lat, double lon, double alt);
     
@@ -69,8 +72,10 @@ private:
     void publishTrajectorySetpoint(float pos_x, float pos_y, float pos_z, float pos_yaw);
     void sendVehicleCommand(uint16_t command, float param1, float param2);
     void srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future);
-    void sendStartGoalPoseCallback(rclcpp::Client<uav_navigation::srv::SetNavData>::SharedFuture future);
-    void sendStartGoalPose();
+    void homePoseCallback(px4_msgs::msg::HomePosition::SharedPtr msg);
+    void goalPoseCallback(px4_msgs::msg::PositionSetpointTriplet::SharedPtr msg);
+    void homeReplyCallback(rclcpp::Client<uav_navigation::srv::SetInitialPose>::SharedFuture future);
+    void goalReplyCallback(rclcpp::Client<uav_navigation::srv::SetGoalPose>::SharedFuture future);
     void timerUpdateStateMachine(void);
 
     enum class State{
@@ -110,7 +115,8 @@ private:
     rclcpp::Subscription<px4_msgs::msg::VehicleStatus>::SharedPtr uav_status_sub_;
 
     rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
-    rclcpp::Client<uav_navigation::srv::SetNavData>::SharedPtr  nav2_pose_data_client_;
+    rclcpp::Client<uav_navigation::srv::SetInitialPose>::SharedPtr  nav2_home_pose_client_;
+    rclcpp::Client<uav_navigation::srv::SetGoalPose>::SharedPtr  nav2_goal_pose_client_;
     
     PosInENU curr_loc_;          // Local position coordinates in NED
     PosInWGS84 curr_glob_;       // Global position coordinates in WGS84

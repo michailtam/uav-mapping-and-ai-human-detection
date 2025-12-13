@@ -30,7 +30,7 @@ global_costmap:
       origin_y: -25.0
       
       plugins:  ["obstacle_layer", "inflation_layer"]
-        
+  
       # OBSTACLE LAYER - Real-time sensor data
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"

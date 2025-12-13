@@ -28,6 +28,7 @@ find_package(rosidl_default_generators REQUIRED)
 # Install Python scripts
 install(PROGRAMS
   scripts/simple_commander.py
+  scripts/simple_commander_2.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -38,7 +39,8 @@ install(
 
 # Generate interfaces (srv)
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/SetNavData.srv"
+  "srv/SetInitialPose.srv"
+  "srv/SetGoalPose.srv"
   DEPENDENCIES geometry_msgs
 )
 

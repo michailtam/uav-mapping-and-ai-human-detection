@@ -2,6 +2,9 @@
 
 
 OffboardControl::OffboardControl() : Node("offboard_ctrl"), 
+    /**
+    * @brief 
+    */
     state_{State::INIT_MODE},   // Initial state at startup
     service_result_{0},         // State of the service request
     service_done_{false},       // Flag that indicates if the service request has succeeded or not  
@@ -42,23 +45,25 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
     // ** Subscribers **
     // Callback to store the current position of the UAV
     uav_home_pos_sub_ = this->create_subscription<px4_msgs::msg::HomePosition>("/fmu/out/home_position_v1", qos_profile, 
-            std::bind(&OffboardControl::homePositionCallback, this, std::placeholders::_1));
+            std::bind(&OffboardControl::homePoseCallback, this, std::placeholders::_1));
     uav_local_pos_sub_ = this->create_subscription<px4_msgs::msg::VehicleLocalPosition>("/fmu/out/vehicle_local_position_v1", qos_profile,  // QoS of 10
             std::bind(&OffboardControl::localPositionCallback, this, std::placeholders::_1));
     uav_global_pos_sub_ = this->create_subscription<px4_msgs::msg::VehicleGlobalPosition>("/fmu/out/vehicle_global_position", qos_profile,  // QoS of 10
             std::bind(&OffboardControl::globalPositionCallback, this, std::placeholders::_1));
     uav_target_pos_sub_ = this->create_subscription<px4_msgs::msg::PositionSetpointTriplet>("/fmu/out/position_setpoint_triplet", qos_profile, 
-            std::bind(&OffboardControl::targetPositionCallback, this, std::placeholders::_1));
+            std::bind(&OffboardControl::goalPoseCallback, this, std::placeholders::_1));
     uav_status_sub_ = this->create_subscription<px4_msgs::msg::VehicleStatus>("/fmu/out/vehicle_status_v1", qos_profile, 
             std::bind(&OffboardControl::statusCallback, this, std::placeholders::_1));
 
-    // Client to send start and goal position to Nav2 simple commander
-    nav2_pose_data_client_ = this->create_client<uav_navigation::srv::SetNavData>("srv_nav_data");
+    // ROS 2 service clients to send home and goal position to Nav2 simple commander
+    nav2_home_pose_client_ = this->create_client<uav_navigation::srv::SetInitialPose>("set_home_pose");
+    nav2_goal_pose_client_ = this->create_client<uav_navigation::srv::SetGoalPose>("set_goal_pose");
 }
 
 void OffboardControl::engageOffboardMode() {
     /**
-     * @brief Send a command to switch to offboard mode 
+     * @brief Send the appropriate command to switch to offboard mode. 
+     * This mode is required to handle the drone via code.
      */
     RCLCPP_INFO(this->get_logger(), "Requesting switch to Offboard mode");
 	sendVehicleCommand(VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
@@ -66,7 +71,7 @@ void OffboardControl::engageOffboardMode() {
 
 void OffboardControl::srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future) {
     /**
-     * @brief Callback function which waits for the service to return with a value. When it returns, 
+     * @brief Callback function which waits until the service has completed with "Command accepted", 
      * this means that the requested command was executed.
      */
     auto status = future.wait_for(1s);
@@ -112,7 +117,7 @@ void OffboardControl::srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>:
 
 void OffboardControl::publishOffboardControlMode() {
     /**
-     * @brief Is called to change to offboard mode. Here, position and altitude controls are active
+     * @brief Change to offboard mode with the desired parameters.
      */
     OffboardControlMode mode{};
     mode.position = true;
@@ -126,7 +131,7 @@ void OffboardControl::publishOffboardControlMode() {
 
 void OffboardControl::publishTrajectorySetpoint(float pos_x, float pos_y, float pos_z, float pos_yaw) {
     /**
-     * @brief Publish a trajectory setpoint (i.e. the position to fly)
+     * @brief Publish a trajectory setpoint (i.e. the position to fly).
      */
     TrajectorySetpoint msg{};
 	msg.position = {pos_x, pos_y, pos_z};
@@ -166,7 +171,7 @@ void OffboardControl::sendVehicleCommand(uint16_t command, float param1, float p
 
 void OffboardControl::timerUpdateStateMachine(void) {
     /**
-     * @brief Finite-State-Machine (FSM) to switch from one state to the other in specific intervals.
+     * @brief Finite-State-Machine (FSM) to switch from state to state in specific intervals.
      */
     static uint8_t num_of_steps = 0;  // Counter to engage the offboard mode
 
@@ -279,22 +284,33 @@ void OffboardControl::timerUpdateStateMachine(void) {
 }
 
 void OffboardControl::arm() {
-  sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, 
-    VehicleCommand::ARMING_ACTION_ARM, 0.0);  // param 2 = 0.0
+    /**
+     * @brief Publish the command to arm the vehicle
+     */
+    sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, 
+        VehicleCommand::ARMING_ACTION_ARM, 0.0);  // param 2 = 0.0
 }
 
 void OffboardControl::disarm() {
-  sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, 
-    VehicleCommand::ARMING_ACTION_DISARM, 0.0); // param 2 = 0.0
+    /**
+     * @brief Publish the command to disarm the vehicle
+     */
+    sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, 
+        VehicleCommand::ARMING_ACTION_DISARM, 0.0); // param 2 = 0.0
 }
 
 void OffboardControl::takeOff() {
+    /**
+     * @brief Publish the command for take off. When the desired altitude has been reached, 
+     * hover on position and change the state to HOVER_MODE.
+     */
+
     // Takeoff until approx. 5 m altitude has been reached
     if (curr_loc_.z >= (take_off_height_+0.1)) {
         publishTrajectorySetpoint(curr_loc_.x, curr_loc_.y, take_off_height_, curr_loc_.yaw);
     } else {
         RCLCPP_INFO(this->get_logger(), "Takeoff altitude of %.2fm reached", (-1)*take_off_height_);
-        RCLCPP_INFO(this->get_logger(), "Nav2 navigation mode engaged");
+        RCLCPP_INFO(this->get_logger(), "Hover mode engaged");
         state_ = State::HOVER_MODE;
         hover_pos_loc_.x = curr_loc_.x;
         hover_pos_loc_.y = curr_loc_.y;
@@ -307,21 +323,21 @@ void OffboardControl::takeOff() {
 
 void OffboardControl::hover() {
     /**
-     * @brief The drone hovers at fixed pose.
+     * @brief The drone hovers on position.
      */
     publishTrajectorySetpoint(hover_pos_loc_.x, hover_pos_loc_.y, hover_pos_loc_.z, hover_pos_loc_.yaw);
 }
 
 void OffboardControl::land() {
     /**
-     * @brief The landing process gets fully taken charge from PX4 and not from the program 
+     * @brief The landing process gets fully taken charged by PX4 and not from the program 
      */
     sendVehicleCommand(VehicleCommand::VEHICLE_CMD_NAV_LAND, 0.0, 0.0);
 }
 
 void OffboardControl::localPositionCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg) {
     /**
-    * @brief Save the current coordinates (PX4’s NED frame) of the UAV.
+    * @brief Save the current local position of the UAV (i.e. NED).
     */
     curr_loc_.x = msg->x;
     curr_loc_.y = msg->y;
@@ -334,18 +350,19 @@ void OffboardControl::localPositionCallback(const px4_msgs::msg::VehicleLocalPos
 
 void OffboardControl::globalPositionCallback(const px4_msgs::msg::VehicleGlobalPosition::SharedPtr msg) {
     /**
-    * @brief Save the current coordinates (PX4’s NED frame) of the UAV.
+    * @brief Save the current global position of the UAV (i.e. WGS84).
     */
     curr_glob_.lat = msg->lat;
     curr_glob_.lon = msg->lon;
     curr_glob_.alt = msg->alt;
+
     // RCLCPP_INFO(this->get_logger(), "Global pos: lat:%f lon:%f alt:%f", 
     //     curr_glob_.lat, curr_glob_.lon, curr_glob_.alt);
 }
 
-void OffboardControl::homePositionCallback(const px4_msgs::msg::HomePosition::SharedPtr msg) {
-    /**
-    * @brief Save the home position coordinates of the UAV.
+void OffboardControl::homePoseCallback(const px4_msgs::msg::HomePosition::SharedPtr msg) {
+    /** 
+    * @brief Save the local/global home position and send it (local pos) to Nav2. 
     */
     home_loc_.x = msg->x;
     home_loc_.y = msg->y;
@@ -353,18 +370,53 @@ void OffboardControl::homePositionCallback(const px4_msgs::msg::HomePosition::Sh
     home_glob_.lat = msg->lat;
     home_glob_.lon = msg->lon;
     home_glob_.alt = msg->alt;
+
     if(!home_pos_set_) { 
-        RCLCPP_INFO(this->get_logger(), "Global home position: lat:%f lon:%f alt:%f", 
+        // Send the start pose of the robot to Nav2
+        auto request = std::make_shared<uav_navigation::srv::SetInitialPose::Request>();
+        
+        // Convert start euler angles to a quaternion
+        tf2::Quaternion quat_tf2_start;
+        quat_tf2_start.setRPY(0.0, 0.0, home_loc_.yaw);
+        quat_tf2_start = quat_tf2_start.normalize();
+        geometry_msgs::msg::Quaternion quat_msg = tf2::toMsg(quat_tf2_start);
+
+        request->home.header.frame_id = "map";
+        request->home.header.stamp = this->now();
+        request->home.pose.position.x = home_loc_.x;
+        request->home.pose.position.y = home_loc_.y;
+        request->home.pose.position.z = home_loc_.z;
+        request->home.pose.orientation = quat_msg;
+        
+        // Wait for the start pose server to be online
+        while(!nav2_home_pose_client_->wait_for_service(1s)) {   // 1 sec.
+            if (!rclcpp::ok()) {
+                RCLCPP_INFO(this->get_logger(), "Shutdown requested, exiting waiting loop");
+                return;
+            }
+            RCLCPP_WARN(this->get_logger(), "Waiting for start pose server...");
+            publishOffboardControlMode();
+            publishTrajectorySetpoint(curr_loc_.x, curr_loc_.y, curr_loc_.z, curr_loc_.yaw);
+        }
+
+        // Once the service is available, send request
+        nav2_home_pose_client_->async_send_request(request, 
+            std::bind(&OffboardControl::homeReplyCallback, this, std::placeholders::_1));
+        
+        RCLCPP_INFO(this->get_logger(), "Global home position lat:%f lon:%f alt:%f set and send to Nav2", 
             home_glob_.lat, home_glob_.lon, home_glob_.alt);
+
         home_pos_set_ = true;
     }
 }
 
-void OffboardControl::targetPositionCallback(const px4_msgs::msg::PositionSetpointTriplet::SharedPtr msg) {
+void OffboardControl::goalPoseCallback(const px4_msgs::msg::PositionSetpointTriplet::SharedPtr msg) {
     /**
-    * @brief Save the target coordinates (PX4’s NED frame) acquired from Nav2.
+    * @brief Save the global goal position, convert it to ENU and send it (local pos) to Nav2.
     */
-    if (state_ == State::HOVER_MODE) {
+
+    if (state_ == State::HOVER_MODE) 
+    {
         target_glob_.lat = msg->current.lat;
         target_glob_.lon = msg->current.lon;
         target_glob_.alt = msg->current.alt;
@@ -373,18 +425,40 @@ void OffboardControl::targetPositionCallback(const px4_msgs::msg::PositionSetpoi
         
         target_loc_ = convertWGS84ToENU(target_glob_.lat, target_glob_.lon, target_glob_.alt);
 
-        // Wait for the srv_nav_data server to be online
-        while(!nav2_pose_data_client_->wait_for_service(1s)) {   // 1 sec.
+        // Wait for the goal pose server to be online
+        while(!nav2_goal_pose_client_->wait_for_service(1s)) {   // 1 sec.
             if (!rclcpp::ok()) {
                 RCLCPP_INFO(this->get_logger(), "Shutdown requested, exiting waiting loop");
                 return;
             }
-            RCLCPP_WARN(this->get_logger(), "Waiting for server...");
+            RCLCPP_WARN(this->get_logger(), "Waiting for goal pose server...");
             publishOffboardControlMode();
             publishTrajectorySetpoint(curr_loc_.x, curr_loc_.y, curr_loc_.z, curr_loc_.yaw);
         }
 
-        sendStartGoalPose(); // Send the start and goal pose to Nav 2 Simple Commander
+        auto request = std::make_shared<uav_navigation::srv::SetGoalPose::Request>();
+
+        // Convert to quaternion goal pose for Nav2
+        tf2::Quaternion quat_tf2_goal;
+
+        // Convert goal euler angles to a quaternion
+        quat_tf2_goal.setRPY(0.0, 0.0, 0.0);
+        quat_tf2_goal = quat_tf2_goal.normalize();
+        geometry_msgs::msg::Quaternion quat_msg = tf2::toMsg(quat_tf2_goal);
+
+        request->goal.header.frame_id = "map";
+        request->goal.header.stamp = this->now();
+        request->goal.pose.position.x = target_loc_.x;
+        request->goal.pose.position.y = target_loc_.y;
+        request->goal.pose.position.z = target_loc_.z;
+        request->goal.pose.orientation = quat_msg;
+
+        // Once the service is available, send request
+        nav2_goal_pose_client_->async_send_request(request, 
+            std::bind(&OffboardControl::goalReplyCallback, this, std::placeholders::_1));
+        
+        RCLCPP_INFO(this->get_logger(), "Global goal position lat:%f lon:%f alt:%f set and send to Nav2", 
+            home_glob_.lat, home_glob_.lon, home_glob_.alt);
     }
 }
 
@@ -408,65 +482,32 @@ PosInENU OffboardControl::convertWGS84ToENU(double target_lat, double target_lon
     return enu_point;
 }
 
-void OffboardControl::sendStartGoalPose() {
+void OffboardControl::homeReplyCallback(rclcpp::Client<uav_navigation::srv::SetInitialPose>::SharedFuture future) {
     /**
-     * @brief Client function which sends the local start and goal pose to from Nav 2
+     * @brief The response if Nav2 has received the local home position.
      */
-
-    auto request = std::make_shared<uav_navigation::srv::SetNavData::Request>();
-
-    // Send the start pose of the robot
-    tf2::Quaternion quat_tf2_start, quat_tf2_goal;
-    
-    // Convert start euler angles to a quaternion
-    quat_tf2_start.setRPY(0.0, 0.0, curr_loc_.yaw);
-    quat_tf2_start = quat_tf2_start.normalize();
-    geometry_msgs::msg::Quaternion quat_msg1 = tf2::toMsg(quat_tf2_start);
-
-    request->start.header.frame_id = "map";
-    request->start.header.stamp = this->now();
-    request->start.pose.position.x = curr_loc_.x;
-    request->start.pose.position.y = curr_loc_.y;
-    request->start.pose.position.z = curr_loc_.z;
-    request->start.pose.orientation = quat_msg1;
-
-    // Convert goal euler angles to a quaternion
-    quat_tf2_goal.setRPY(0.0, 0.0, 0.0);
-    quat_tf2_goal = quat_tf2_goal.normalize();
-    geometry_msgs::msg::Quaternion quat_msg2 = tf2::toMsg(quat_tf2_goal);
-
-    request->goal.header.frame_id = "map";
-    request->goal.header.stamp = this->now();
-    request->goal.pose.position.x = target_loc_.x;
-    request->goal.pose.position.y = target_loc_.y;
-    request->goal.pose.position.z = target_loc_.z;
-    request->goal.pose.orientation = quat_msg2;
-
-    RCLCPP_INFO(this->get_logger(), "Sending start: x=%.2f y=%.2f z=%.2f, goal: x=%.2f y=%.2f z=%.2f to Nav2 Simple Commander.",
-        curr_loc_.x, curr_loc_.y, curr_loc_.z,
-        target_loc_.x, target_loc_.y, target_loc_.z
-    );
-
-    // Once the service is available, send request
-    nav2_pose_data_client_->async_send_request(request, 
-        std::bind(&OffboardControl::sendStartGoalPoseCallback, this, std::placeholders::_1));
+    auto response = future.get();
+    RCLCPP_INFO(this->get_logger(), "Nav2 Simple Commander responded with %d", (int)response->accepted);
 }
 
-void OffboardControl::sendStartGoalPoseCallback(rclcpp::Client<uav_navigation::srv::SetNavData>::SharedFuture future) {
+void OffboardControl::goalReplyCallback(rclcpp::Client<uav_navigation::srv::SetGoalPose>::SharedFuture future) {
+    /**
+     * @brief The response if Nav2 has received the local goal position.
+     */
     auto response = future.get();
-    RCLCPP_INFO(this->get_logger(), "Nav2 Simple Commander respond with %d", (int)response->accepted);
+    RCLCPP_INFO(this->get_logger(), "Nav2 Simple Commander responded with %d", (int)response->accepted);
 }
 
 void OffboardControl::statusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg) {
     /**
-     * @brief Saves the vehicle status
+     * @brief Saves the vehicle status.
      */
     vehicle_status_msg_ = msg;
 }
 
 void OffboardControl::run() {
     /**
-     * @brief Start the program execution loop
+     * @brief Start the program execution loop.
      */
     rclcpp::spin(shared_from_this());
 }

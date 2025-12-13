@@ -1,0 +1,5 @@
+# REQUEST
+geometry_msgs/PoseStamped home
+---
+# RESPONSE
+bool accepted
