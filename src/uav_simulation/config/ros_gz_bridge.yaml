@@ -70,14 +70,21 @@
   direction: GZ_TO_ROS
 
 # Bridge for IMU
-- ros_topic_name: "/imu"
+- ros_topic_name: "/imu/data"
   gz_topic_name: "/world/baylands/model/x650_0/link/base_link/sensor/imu_sensor/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
-# # Bridge for GPS navsat
-# - ros_topic_name: "gps/fix"
-#   ros_type_name: "sensor_msgs/msg/NavSatFix"
-#   gz_type_name: "gz.msgs.NavSat"
-#   direction: GZ_TO_ROS
+# Bridge for GPS navsat
+- ros_topic_name: "/gps/fix"
+  gz_topic_name: "/world/baylands/model/x650_0/link/base_link/sensor/navsat_sensor/navsat"
+  ros_type_name: "sensor_msgs/msg/NavSatFix"
+  gz_type_name: "gz.msgs.NavSat"
+  direction: GZ_TO_ROS
+
+# # replace cmd_vel_bridge
+# - topic_name: "cmd_vel"
+#   ros_type_name: "geometry_msgs/msg/TwistStamped"
+#   gz_type_name: "gz.msgs.Twist"
+#   direction: ROS_TO_GZ

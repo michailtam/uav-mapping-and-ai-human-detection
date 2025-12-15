@@ -225,7 +225,7 @@
         </camera>
         <always_on>true</always_on>
         <topic>camera</topic>
-        <update_rate>15</update_rate>
+        <update_rate>5</update_rate>
         <visualize>true</visualize>
       </sensor>
 
@@ -233,17 +233,17 @@
       <sensor name="laser_sensor" type="gpu_lidar">
         <pose>-0.00044268 -0.00016922 0.12747 0.0038504 -0.0036204 -0.013619</pose>
         <topic>scan</topic>
-        <update_rate>10</update_rate>
+        <update_rate>5</update_rate>
         <always_on>true</always_on>
         <visualize>true</visualize>
         <gz_frame_id>lidar_link</gz_frame_id>
         <lidar>
           <scan>
             <horizontal>
-              <samples>720</samples>
+              <samples>360</samples>
               <resolution>1</resolution>
-              <min_angle>-3.14159</min_angle>
-              <max_angle>3.14159</max_angle>
+              <min_angle>0.000000</min_angle>
+              <max_angle>6.280000</max_angle>
             </horizontal>
             <vertical>
               <samples>1</samples>
@@ -253,8 +253,8 @@
             </vertical>
           </scan>
           <range>
-            <min>0.15</min>
-            <max>6</max>
+            <min>0.2</min>
+            <max>12.0</max>
             <resolution>0.001</resolution>
           </range>
           <noise>

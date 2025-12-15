@@ -2,20 +2,6 @@
 
 <robot name="uav_uav" xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <gazebo reference="back_prop_cw_link">
-        <material>${gazebo_black}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
-    <gazebo reference="back_prop_ccw_link">
-        <material>${gazebo_black}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
-
     <!-- Base link -->
     <gazebo reference="base_link">
         <material>${gazebo_grey}</material>
@@ -119,14 +105,6 @@
         <mu2>0.1</mu2>
         <gravity>true</gravity>
     </gazebo>
-
-    <!-- GPS module -->
-    <gazebo reference="gps_module_link">
-        <material>${gazebo_black}</material>
-        <mu1>0.1</mu1>
-        <mu2>0.1</mu2>
-        <gravity>true</gravity>
-    </gazebo>
     
     <!-- Pixhawk Jetson Nanon microcontroller -->
     <gazebo reference="pixhawk_jetson_mc_link">
@@ -151,6 +129,36 @@
         <mu2>0.1</mu2>
         <gravity>true</gravity>
     </gazebo>
+
+    <!-- GPS module -->
+    <gazebo reference="gps_module_link">
+        <material>${gazebo_black}</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+        <gravity>true</gravity>
+        <sensor name="navsat" type="navsat">
+            <always_on>true</always_on>
+            <update_rate>1</update_rate>
+            <topic>/gps/fix</topic>
+            <gz_frame_id>gps_module_link</gz_frame_id>
+            <navsat>
+                <position_sensing>
+                <horizontal>
+                    <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>0.0</stddev>
+                    </noise>
+                </horizontal>
+                <vertical>
+                    <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>0.0</stddev>
+                    </noise>
+                </vertical>
+                </position_sensing>
+            </navsat>
+        </sensor>          
+    </gazebo>
     
     <!-- Depth camera -->
     <gazebo reference="depth_camera_link">
@@ -159,8 +167,9 @@
         <mu2>0.1</mu2>
         <gravity>true</gravity>
         <sensor name="rgbd_cam" type="rgbd_camera">
+            <pose>0 0 0 0 0 0</pose>
             <camera>
-                <horizontal_fov>1.5184</horizontal_fov>
+                <horizontal_fov>1.2</horizontal_fov>
                 <image>
                     <width>600</width>
                     <height>480</height>
@@ -168,13 +177,14 @@
                 </image>
                 <clip>
                     <near>0.6</near>
-                    <far>6.0</far>
+                    <far>100.0</far>    <!-- Note: This is set to 100, otherwise the scene gets clipped -->
                 </clip>
+                <point_cloud>true</point_cloud>
             </camera>
-            <always_on>1</always_on>
+            <always_on>true</always_on>
             <gz_frame_id>depth_camera_link</gz_frame_id>
             <topic>camera</topic>
-            <update_rate>15.0</update_rate>
+            <update_rate>5</update_rate>
             <visualize>true</visualize>
         </sensor>
     </gazebo>
@@ -186,36 +196,90 @@
         <mu2>0.1</mu2>
         <gravity>true</gravity>
         <sensor name="laser_sensor" type="gpu_lidar">
-            <pose>0 0 0 0 0 0</pose>
+            <pose>-0.00044268 -0.00016922 0.12747 0.0038504 -0.0036204 -0.013619</pose>
             <topic>scan</topic>
-            <update_rate>10</update_rate>
+            <update_rate>5</update_rate>
             <always_on>true</always_on>
             <visualize>true</visualize>
             <gz_frame_id>lidar_link</gz_frame_id>
             <lidar>
                 <scan>
                     <horizontal>
-                        <!-- Based on technical specs -->
-                        <samples>720</samples> 
+                        <samples>360</samples> 
                         <resolution>1</resolution>
-                        <min_angle>-3.14159</min_angle>
-                        <max_angle>3.14159</max_angle>
+                        <min_angle>0.000000</min_angle>
+                        <max_angle>6.280000</max_angle>
                     </horizontal>
-                    
-                    <!-- 2D Lidar settings -->
                     <vertical>
                         <samples>1</samples>
                         <resolution>1</resolution>
-                        <min_angle>0.0</min_angle>
-                        <max_angle>0.0</max_angle>
+                        <min_angle>0</min_angle>
+                        <max_angle>0</max_angle>
                     </vertical>
                 </scan>
                 <range>
-                    <min>0.15</min>                  
-                    <max>6.0</max>                 
+                    <min>0.2</min>                  
+                    <max>12.0</max>                 
                     <resolution>0.001</resolution>
                 </range>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.01</stddev>
+                </noise>
             </lidar>
+        </sensor>
+    </gazebo>
+
+    <!-- IMU sensor -->
+    <gazebo reference="pixhawk_jetson_mc_link">
+        <sensor name="imu_sensor" type="imu">
+            <always_on>true</always_on>
+            <update_rate>100</update_rate>
+            <topic>/imu/data</topic>
+            <gz_frame_id>pixhawk_jetson_mc_link</gz_frame_id>
+            <imu>
+            <angular_velocity>
+                <x>
+                <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>2e-4</stddev>
+                </noise>
+                </x>
+                <y>
+                <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>2e-4</stddev>
+                </noise>
+                </y>
+                <z>
+                <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>2e-4</stddev>
+                </noise>
+                </z>
+            </angular_velocity>
+            <linear_acceleration>
+                <x>
+                <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>1.7e-2</stddev>
+                </noise>
+                </x>
+                <y>
+                <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>1.7e-2</stddev>
+                </noise>
+                </y>
+                <z>
+                <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>1.7e-2</stddev>
+                </noise>
+                </z>
+            </linear_acceleration>
+            </imu>
         </sensor>
     </gazebo>
 
