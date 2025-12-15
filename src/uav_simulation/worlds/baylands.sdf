@@ -60,5 +60,81 @@
       <longitude_deg>-121.998878727967</longitude_deg>
       <elevation>38</elevation>
     </spherical_coordinates>
+
+    <!-- Dynamic objects -->
+
+    <!-- First Actor -->
+    <actor name="walking_suspect">
+      <link name='link'>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.166667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.166667</iyy>
+            <iyz>0</iyz>
+            <izz>0.166667</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.5 1.5 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+      </link>
+
+      <skin>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="walk">
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <interpolate_x>true</interpolate_x>
+        <loop>true</loop>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <delay_start>0.0</delay_start>
+        <auto_start>true</auto_start>
+        <trajectory id="0" type="walking">
+          <!-- Start pose -->
+          <waypoint>
+            <time>0.0</time>
+            <pose>150 -5 1.0 0 0 0</pose>
+          </waypoint>
+
+          <!-- Walk forward for 5 seconds -->
+          <waypoint>
+            <time>5.0</time>
+            <pose>155 -5 1.0 0 0 0</pose>
+          </waypoint>
+
+          <!-- Turn 180 degrees in place -->
+          <waypoint>
+            <time>7.0</time>
+            <pose>155 -5 1.0 0 0 3.14</pose>
+          </waypoint>
+
+          <!-- Walk forward (backwards relative to start) for 5 seconds -->
+          <waypoint>
+            <time>12.0</time>
+            <pose>150 -5 1.0 0 0 3.14</pose>
+          </waypoint>
+
+          <!-- Turn 180 degrees back to original orientation -->
+          <waypoint>
+            <time>14.0</time>
+            <pose>150 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+    
   </world>
 </sdf>

@@ -1,5 +1,0 @@
-# REQUEST
-geometry_msgs/PoseStamped goal
----
-# RESPONSE
-bool accepted

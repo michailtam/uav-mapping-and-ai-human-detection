@@ -209,7 +209,7 @@
 
       <!-- RGB-D camera -->
       <sensor name="rgbd_cam" type="rgbd_camera">
-        <pose>0.13758 -0.00058142 -0.0090308 -3.1377 -0.0036204 -0.013619</pose>
+        <pose>0 0 0 0 0 0</pose>
         <camera>
           <horizontal_fov>1.2</horizontal_fov>
           <image>
@@ -219,7 +219,7 @@
           </image>
           <clip>
             <near>0.6</near>
-            <far>6</far>
+            <far>100.0</far>
           </clip>
           <point_cloud>true</point_cloud>
         </camera>

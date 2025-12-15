@@ -8,245 +8,283 @@ from rclpy.action import ActionClient
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 
-from nav2_msgs.action import ComputePathToPose, FollowPath
-from uav_navigation.srv import SetInitialPose, SetGoalPose
-from nav_msgs.msg import Path
+from nav2_msgs.action import FollowPath
+from nav_msgs.msg import Path, Odometry
 from geometry_msgs.msg import Twist, PoseStamped, Quaternion
-from px4_msgs.msg import TrajectorySetpoint
+from px4_msgs.msg import TrajectorySetpoint, HomePosition, PositionSetpointTriplet
+from geographiclib.geodesic import Geodesic
 
-from tf2_ros import Buffer, TransformListener
-from geometry_msgs.msg import TransformStamped
-
-from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy
-
-
-def normalize_quaternion(q: Quaternion) -> Quaternion:
-    n = math.sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w)
-    return Quaternion(x=0.0, y=0.0, z=0.0, w=1.0) if n == 0.0 else Quaternion(x=q.x/n, y=q.y/n, z=q.z/n, w=q.w/n)
-
-
-def sanitize_pose(ps: PoseStamped, frame: str) -> PoseStamped:
-    ps.header.frame_id = frame
-    # Force 2D planning
-    ps.pose.position.z = 0.0
-    ps.pose.orientation = normalize_quaternion(ps.pose.orientation)
-    return ps
+from rclpy.qos import (
+    QoSProfile,
+    QoSReliabilityPolicy,
+    QoSDurabilityPolicy,
+    QoSLivelinessPolicy,
+    HistoryPolicy,
+)
 
 
-def make_straight_path(start: PoseStamped, goal: PoseStamped, steps: int = 50) -> Path:
+def yaw_to_quaternion(yaw: float) -> Quaternion:
+    return Quaternion(x=0.0, y=0.0, z=math.sin(yaw * 0.5), w=math.cos(yaw * 0.5))
+
+
+def latlon_to_local(home_lat, home_lon, home_alt, target_lat, target_lon, target_alt):
+    g = Geodesic.WGS84.Inverse(home_lat, home_lon, target_lat, target_lon)
+    s = g["s12"]
+    az = math.radians(g["azi1"])
+    east = s * math.sin(az)
+    north = s * math.cos(az)
+    up = (0.0 if math.isnan(target_alt) else target_alt) - (0.0 if math.isnan(home_alt) else home_alt)
+    return east, north, up
+
+
+def make_straight_path(now_msg_time, start: PoseStamped, goal: PoseStamped, step: float, frame_id: str, max_len: float) -> Path:
+    sx, sy = start.pose.position.x, start.pose.position.y
+    gx, gy = goal.pose.position.x, goal.pose.position.y
+    dx, dy = gx - sx, gy - sy
+    dist = math.hypot(dx, dy)
+
+    # Clamp to local horizon
+    if dist > max_len and dist > 1e-6:
+        scale = max_len / dist
+        gx = sx + dx * scale
+        gy = sy + dy * scale
+        dx, dy = gx - sx, gy - sy
+        dist = max_len
+
+    yaw = math.atan2(dy, dx) if dist > 1e-6 else 0.0
+    q = yaw_to_quaternion(yaw)
+
+    n = max(1, int(dist / step))
+    poses = []
+
+    # First pose: exactly the start
+    ps0 = PoseStamped()
+    ps0.header.frame_id = frame_id
+    ps0.header.stamp = now_msg_time
+    ps0.pose.position.x = sx
+    ps0.pose.position.y = sy
+    ps0.pose.position.z = 0.0
+    ps0.pose.orientation = q
+    poses.append(ps0)
+
+    # Intermediate + end poses
+    for i in range(1, n + 1):
+        t = i / n
+        px = sx + dx * t
+        py = sy + dy * t
+        psi = PoseStamped()
+        psi.header.frame_id = frame_id
+        psi.header.stamp = now_msg_time
+        psi.pose.position.x = px
+        psi.pose.position.y = py
+        psi.pose.position.z = 0.0
+        psi.pose.orientation = q
+        poses.append(psi)
+
     path = Path()
-    path.header.frame_id = start.header.frame_id
-    path.header.stamp = start.header.stamp
-
-    sx, sy, sz = start.pose.position.x, start.pose.position.y, 0.0
-    gx, gy, gz = goal.pose.position.x, goal.pose.position.y, 0.0
-
-    for i in range(steps + 1):
-        t = i / float(steps)
-        p = PoseStamped()
-        p.header.frame_id = path.header.frame_id
-        p.header.stamp = start.header.stamp
-        p.pose.position.x = sx + t * (gx - sx)
-        p.pose.position.y = sy + t * (gy - sy)
-        p.pose.position.z = 0.0
-        # Face along the path (optional simple yaw)
-        yaw = math.atan2(gy - sy, gx - sx) if (gx != sx or gy != sy) else 0.0
-        p.pose.orientation = Quaternion(
-            x=0.0, y=0.0,
-            z=math.sin(yaw / 2.0),
-            w=math.cos(yaw / 2.0)
-        )
-        path.poses.append(p)
+    path.header.frame_id = frame_id
+    path.header.stamp = now_msg_time
+    path.poses = poses
     return path
 
 
-class Nav2SimpleCommander(Node):
+class SimpleCommander(Node):
     def __init__(self):
-        super().__init__("direct_nav2_simple_commander")
+        super().__init__("nav2_simple_commander")
 
-        # Frames
-        self.global_frame = "map"
-        self.base_frame = "x650_0/base_footprint"  # matches your costmap params
+        # Parameters aligned with your YAML
+        self.global_frame = "x650_0/odom"
+        self.controller_id = "FollowPath"  # matches controller_plugins ID
+        self.goal_checker_id = ""  # leave empty unless defined in YAML
+        self.path_step = 0.25
+        self.local_horizon = 30.0
 
-        # Reentrant group allows concurrent callbacks (services + action futures)
         self._cbg = ReentrantCallbackGroup()
 
-        # TF (to fallback to current robot pose if no home is set)
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self, spin_thread=True)
+        # Controller client
+        self._controller_client = ActionClient(self, FollowPath, "/follow_path", callback_group=self._cbg)
 
-        # Action clients (bind to actual endpoints exposed by servers)
-        self._planner_client = ActionClient(
-            self, ComputePathToPose, "/compute_path_to_pose", callback_group=self._cbg
-        )
-        self._controller_client = ActionClient(
-            self, FollowPath, "/follow_path", callback_group=self._cbg
-        )
-
-        # Services to receive home & goal
-        self.create_service(SetInitialPose, "set_home_pose", self.set_initial_pose_cbk, callback_group=self._cbg)
-        self.create_service(SetGoalPose, "set_goal_pose", self.set_goal_pose_cbk, callback_group=self._cbg)
-
-        # Publishers/subscribers
+        # Path publisher
         qos = QoSProfile(depth=10)
-        qos.durability = QoSDurabilityPolicy.VOLATILE
+        qos.durability = QoSDurabilityPolicy.TRANSIENT_LOCAL
         qos.reliability = QoSReliabilityPolicy.RELIABLE
-
         self.path_pub = self.create_publisher(Path, "/computed_path", qos)
-        self._px4_traj_pub = self.create_publisher(TrajectorySetpoint, "/fmu/in/trajectory_setpoint", 10)
-        self.create_subscription(Twist, "/cmd_vel", self.cmd_vel_to_px4, 10, callback_group=self._cbg)
+
+        # PX4 velocity bridge
+        self._traj_pub = self.create_publisher(TrajectorySetpoint, "/fmu/in/trajectory_setpoint", 10)
+
+        # PX4 QoS
+        px4_qos = QoSProfile(
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+            liveliness=QoSLivelinessPolicy.AUTOMATIC,
+        )
+
+        # Subscriptions
+        self.create_subscription(HomePosition, "/fmu/out/home_position_v1", self.home_cb, px4_qos, callback_group=self._cbg)
+        self.create_subscription(PositionSetpointTriplet, "/fmu/out/position_setpoint_triplet", self.goal_cb, px4_qos, callback_group=self._cbg)
+        self.create_subscription(Twist, "/cmd_vel", self.cmd_vel_cb, 10, callback_group=self._cbg)
+        self.create_subscription(Odometry, "/odom", self.odom_cb, 10, callback_group=self._cbg)
 
         # State
-        self.home_: PoseStamped | None = None
+        self.home_lat: float | None = None
+        self.home_lon: float | None = None
+        self.home_alt: float | None = None
+        self.current_pose_: PoseStamped | None = None
         self.goal_: PoseStamped | None = None
 
-        # Explicit planner id (matches your YAML: GridBased with Navfn)
-        self.planner_id = "GridBased"
+        # Concurrency
+        self._plan_thread: threading.Thread | None = None
+        self._busy: bool = False
+        self._lock = threading.Lock()
 
-        self.get_logger().warn("Nav2 simple commander server started and waiting for requests")
+        self.get_logger().info(f"Commander started. Using frame '{self.global_frame}'. Waiting for PX4 home and /odom...")
 
-    def cmd_vel_to_px4(self, msg: Twist):
+    def odom_cb(self, msg: Odometry):
+        ps = PoseStamped()
+        ps.header.frame_id = self.global_frame
+        ps.header.stamp = self.get_clock().now().to_msg()
+        ps.pose = msg.pose.pose
+        self.current_pose_ = ps
+
+    def home_cb(self, msg: HomePosition):
+        # Cache home; ignore NaNs
+        if msg.valid_hpos and not (math.isnan(msg.lat) or math.isnan(msg.lon)):
+            self.home_lat = msg.lat
+            self.home_lon = msg.lon
+        if msg.valid_alt and not math.isnan(msg.alt):
+            self.home_alt = msg.alt
+        if self.home_lat is not None and self.home_lon is not None:
+            self.get_logger().info(f"Home lat/lon cached: ({self.home_lat:.7f}, {self.home_lon:.7f})")
+
+    def goal_cb(self, msg: PositionSetpointTriplet):
+        sp = msg.current
+        # Filter invalid PX4 setpoints
+        if not sp.valid or math.isnan(sp.lat) or math.isnan(sp.lon):
+            self.get_logger().warn("Ignoring invalid goal setpoint from PX4")
+            return
+        if self.home_lat is None or self.home_lon is None:
+            self.get_logger().warn("Goal received but home lat/lon not yet available. Ignoring.")
+            return
+        if self.current_pose_ is None:
+            self.get_logger().warn("Goal received but /odom not yet available. Ignoring.")
+            return
+
+        east, north, up = latlon_to_local(
+            self.home_lat,
+            self.home_lon,
+            self.home_alt if self.home_alt is not None else 0.0,
+            sp.lat,
+            sp.lon,
+            sp.alt if not math.isnan(sp.alt) else 0.0,
+        )
+        print(f"East:{east:.3f}, North:{north:.3f}, Up:{up:.3f}")
+
+        yaw = sp.yaw if not math.isnan(sp.yaw) else 0.0
+
+        ps = PoseStamped()
+        ps.header.frame_id = self.global_frame
+        ps.header.stamp = self.get_clock().now().to_msg()
+        ps.pose.position.x = east
+        ps.pose.position.y = north
+        ps.pose.position.z = 0.0
+        ps.pose.orientation = yaw_to_quaternion(yaw)
+
+        with self._lock:
+            # Debounce near-duplicate goals
+            if (
+                self.goal_ is not None
+                and abs(self.goal_.pose.position.x - ps.pose.position.x) < 0.05
+                and abs(self.goal_.pose.position.y - ps.pose.position.y) < 0.05
+            ):
+                self.get_logger().debug("Duplicate goal within tolerance; ignoring.")
+                return
+
+            self.goal_ = ps
+            if not self._busy:
+                self._busy = True
+                self.get_logger().info(f"Goal pose {ps} received. Starting local path/controller thread...")
+                self._plan_thread = threading.Thread(target=self.plan_and_follow, daemon=True)
+                self._plan_thread.start()
+            else:
+                self.get_logger().info("Updated goal while controller is running; will plan next after current run.")
+
+    def cmd_vel_cb(self, msg: Twist):
+        # Bridge velocities to PX4 (ENU -> NED consideration handled by PX4 expectations if applicable)
         ts = TrajectorySetpoint()
-        ts.timestamp = self.get_clock().now().nanoseconds // 1000  # PX4 expects microseconds
-        # PX4 uses NED: x forward, y right, z down
+        ts.timestamp = self.get_clock().now().nanoseconds // 1000
         ts.velocity = [msg.linear.x, msg.linear.y, -msg.linear.z]
         ts.yaw = 0.0
-        self._px4_traj_pub.publish(ts)
+        self._traj_pub.publish(ts)
 
-    def set_initial_pose_cbk(self, request: SetInitialPose.Request, response: SetInitialPose.Response):
-        # Trust PX4 stamp/frame but sanitize for 2D planning
-        self.home_ = sanitize_pose(request.home, self.global_frame)
-        self.get_logger().info("Received home pose")
-        response.accepted = True
-        return response
-
-    def set_goal_pose_cbk(self, request: SetGoalPose.Request, response: SetGoalPose.Response):
-        # Trust PX4 stamp/frame but sanitize for 2D planning
-        self.goal_ = sanitize_pose(request.goal, self.global_frame)
-        self.get_logger().info("Received goal pose")
-        response.accepted = True
-
-        if self.home_ is not None:
-            threading.Thread(target=self.calculate_and_follow_path, daemon=True).start()
-        else:
-            self.get_logger().warn("Goal received but home not set yet; waiting for home pose.")
-        return response
-
-    def lookup_robot_pose(self, timeout_sec: float = 0.5) -> PoseStamped | None:
+    def plan_and_follow(self):
         try:
-            tf: TransformStamped = self.tf_buffer.lookup_transform(
-                self.global_frame, self.base_frame, rclpy.time.Time(), timeout_sec=timeout_sec
+            with self._lock:
+                start = self.current_pose_
+                goal = self.goal_
+
+            if start is None or goal is None:
+                if start is None:
+                    self.get_logger().error("Start (/odom) missing!")
+                else:
+                    self.get_logger().error("Goal position missing!")
+                return
+
+            # Ensure frame consistency
+            start.header.frame_id = self.global_frame
+            goal.header.frame_id = self.global_frame
+
+            now_msg_time = self.get_clock().now().to_msg()
+            path = make_straight_path(
+                now_msg_time,
+                start,
+                goal,
+                step=self.path_step,
+                frame_id=self.global_frame,
+                max_len=self.local_horizon,
             )
-            ps = PoseStamped()
-            ps.header.frame_id = self.global_frame
-            ps.header.stamp = tf.header.stamp
-            ps.pose.position.x = tf.transform.translation.x
-            ps.pose.position.y = tf.transform.translation.y
-            ps.pose.position.z = 0.0
-            ps.pose.orientation = normalize_quaternion(tf.transform.rotation)
-            return ps
-        except Exception as e:
-            self.get_logger().warn(f"TF lookup {self.global_frame}->{self.base_frame} failed: {e}")
-            return None
+            if not path.poses:
+                self.get_logger().error("Local path generation returned empty path")
+                return
 
-    def calculate_and_follow_path(self):
-        # Pre-flight validations
-        if self.goal_ is None:
-            self.get_logger().error("Cannot plan: goal is None")
-            return
+            self.path_pub.publish(path)
+            self.get_logger().info(f"Straight path ready with {len(path.poses)} poses in frame '{self.global_frame}'")
 
-        start = self.home_ or self.lookup_robot_pose()
-        if start is None:
-            self.get_logger().error("Cannot plan: no start pose (home missing and TF unavailable)")
-            return
+            # Wait for controller
+            if not self._controller_client.wait_for_server(timeout_sec=5.0):
+                self.get_logger().error("Controller not reachable")
+                return
 
-        start = sanitize_pose(start, self.global_frame)
-        goal = sanitize_pose(self.goal_, self.global_frame)
+            ctrl_goal = FollowPath.Goal()
+            ctrl_goal.path = path
+            ctrl_goal.controller_id = self.controller_id  # must match YAML ID
+            ctrl_goal.goal_checker_id = self.goal_checker_id
 
-        # Log start/goal for traceability
-        s, g = start.pose.position, goal.pose.position
-        self.get_logger().info(
-            f"Planning with planner_id='{self.planner_id}', base_frame='{self.base_frame}', "
-            f"Start: ({s.x:.2f},{s.y:.2f},{s.z:.2f}) Goal: ({g.x:.2f},{g.y:.2f},{g.z:.2f})"
-        )
+            future_ctrl = self._controller_client.send_goal_async(ctrl_goal)
+            rclpy.spin_until_future_complete(self, future_ctrl)
+            ctrl_handle = future_ctrl.result()
+            if ctrl_handle is None or not ctrl_handle.accepted:
+                self.get_logger().error("Controller goal not accepted")
+                return
 
-        # Bounded server wait
-        if not self._planner_client.wait_for_server(timeout_sec=5.0):
-            self.get_logger().error("Planner server not reachable within 5s")
-            # Fallback: synthesize a straight path so the controller can run
-            path = make_straight_path(start, goal, steps=50)
-            self._run_controller_with_path(path, use_fallback=True)
-            return
-
-        # Build planner goal
-        goal_msg = ComputePathToPose.Goal()
-        goal_msg.start = start
-        goal_msg.goal = goal
-        goal_msg.planner_id = self.planner_id
-
-        # Send planner goal
-        future_path = self._planner_client.send_goal_async(goal_msg)
-        rclpy.spin_until_future_complete(self, future_path)
-        plan_handle = future_path.result()
-        if plan_handle is None or not plan_handle.accepted:
-            self.get_logger().error("Planner goal was not accepted.")
-            # Fallback path
-            path = make_straight_path(start, goal, steps=50)
-            self._run_controller_with_path(path, use_fallback=True)
-            return
-
-        # Get planner result
-        result_future = plan_handle.get_result_async()
-        rclpy.spin_until_future_complete(self, result_future)
-        result = result_future.result()
-        if result is None or result.result is None:
-            self.get_logger().error("Planner result is None")
-            # Fallback path
-            path = make_straight_path(start, goal, steps=50)
-            self._run_controller_with_path(path, use_fallback=True)
-            return
-
-        path = result.result.path
-        if not path.poses:
-            self.get_logger().error("Planner returned empty path. Using synthetic straight path fallback.")
-            path = make_straight_path(start, goal, steps=50)
-
-        # Publish for RViz display and proceed to controller
-        self.get_logger().info(f"Path ready with {len(path.poses)} poses")
-        self.path_pub.publish(path)
-        self._run_controller_with_path(path)
-
-    def _run_controller_with_path(self, path: Path, use_fallback: bool = False):
-        # Controller phase
-        if not self._controller_client.wait_for_server(timeout_sec=5.0):
-            self.get_logger().error("Controller server not reachable within 5s")
-            return
-
-        ctrl_goal = FollowPath.Goal()
-        ctrl_goal.path = path
-        ctrl_goal.controller_id = ''
-        ctrl_goal.goal_checker_id = ''
-
-        future_ctrl = self._controller_client.send_goal_async(ctrl_goal)
-        rclpy.spin_until_future_complete(self, future_ctrl)
-        ctrl_handle = future_ctrl.result()
-        if ctrl_handle is None or not ctrl_handle.accepted:
-            self.get_logger().error("Controller goal was not accepted.")
-            return
-
-        result_future_ctrl = ctrl_handle.get_result_async()
-        self.get_logger().info("Following path..." + (" (synthetic fallback)" if use_fallback else ""))
-        rclpy.spin_until_future_complete(self, result_future_ctrl)
-        ctrl_result = result_future_ctrl.result()
-        if ctrl_result is None or ctrl_result.result is None:
-            self.get_logger().error("Controller result is None")
-            return
-        self.get_logger().info(f"Controller finished with result: {ctrl_result.result}")
+            result_future_ctrl = ctrl_handle.get_result_async()
+            self.get_logger().info("Following straight path with local obstacle avoidance...")
+            rclpy.spin_until_future_complete(self, result_future_ctrl)
+            ctrl_result = result_future_ctrl.result()
+            self.get_logger().info(
+                f"Controller finished with result: {ctrl_result.result}, error_code={getattr(ctrl_result, 'error_code', 'n/a')}"
+            )
+        finally:
+            with self._lock:
+                self._busy = False
+                self._plan_thread = None
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = Nav2SimpleCommander()
+    node = SimpleCommander()
     executor = MultiThreadedExecutor()
     executor.add_node(node)
     try:

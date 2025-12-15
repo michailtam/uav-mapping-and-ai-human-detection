@@ -2,8 +2,6 @@
 import rclpy
 from nav2_simple_commander.robot_navigator import BasicNavigator
 from rclpy.node import Node
-from uav_navigation.srv import SetInitialPose
-from uav_navigation.srv import SetGoalPose
 
 
 class Nav2SimpleCommander(Node):

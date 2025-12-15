@@ -16,15 +16,11 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
-#include "uav_navigation/srv/set_initial_pose.hpp"
-#include "uav_navigation/srv/set_goal_pose.hpp"
 
 using namespace std::chrono;
 using namespace std::chrono_literals;
 using namespace px4_msgs::msg;
 using namespace std;
-using SetInitialPose = uav_navigation::srv::SetInitialPose;
-using SetGoalPose = uav_navigation::srv::SetGoalPose;
 
 
 struct PosInENU {
@@ -52,7 +48,6 @@ class OffboardControl : public rclcpp::Node
 {
 public:
     OffboardControl();
-    ~OffboardControl();
     void engageOffboardMode();
     void arm();
     void disarm();
@@ -60,12 +55,9 @@ public:
     void hover();
     void land();
     void run();
-    void localPositionCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
-    void globalPositionCallback(const px4_msgs::msg::VehicleGlobalPosition::SharedPtr msg);
-    void homePositionCallback(const px4_msgs::msg::HomePosition::SharedPtr msg);
-    void goalPositionCallback(const px4_msgs::msg::PositionSetpointTriplet::SharedPtr msg);
+    void localPoseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
+    void globalPoseCallback(const px4_msgs::msg::VehicleGlobalPosition::SharedPtr msg);
     void statusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg);
-    PosInENU convertWGS84ToENU(double lat, double lon, double alt);
     
 private:
     void publishOffboardControlMode();
@@ -74,8 +66,6 @@ private:
     void srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future);
     void homePoseCallback(px4_msgs::msg::HomePosition::SharedPtr msg);
     void goalPoseCallback(px4_msgs::msg::PositionSetpointTriplet::SharedPtr msg);
-    void homeReplyCallback(rclcpp::Client<uav_navigation::srv::SetInitialPose>::SharedFuture future);
-    void goalReplyCallback(rclcpp::Client<uav_navigation::srv::SetGoalPose>::SharedFuture future);
     void timerUpdateStateMachine(void);
 
     enum class State{
@@ -115,8 +105,6 @@ private:
     rclcpp::Subscription<px4_msgs::msg::VehicleStatus>::SharedPtr uav_status_sub_;
 
     rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
-    rclcpp::Client<uav_navigation::srv::SetInitialPose>::SharedPtr  nav2_home_pose_client_;
-    rclcpp::Client<uav_navigation::srv::SetGoalPose>::SharedPtr  nav2_goal_pose_client_;
     
     PosInENU curr_loc_;          // Local position coordinates in NED
     PosInWGS84 curr_glob_;       // Global position coordinates in WGS84
@@ -125,9 +113,6 @@ private:
     PosInENU home_loc_;          // Local home position coordinates in NED
     PosInWGS84 home_glob_;       // Global home position coordinates in NED
     PosInENU hover_pos_loc_;     // Fixed hover position
-
-    std::thread worker_thread_;
-    std::atomic<bool> stop_thread_;
 };
 
 #endif

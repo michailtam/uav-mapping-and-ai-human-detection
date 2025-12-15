@@ -23,7 +23,7 @@
   direction: GZ_TO_ROS
 
 # Bridge for the rgb image 
-- ros_topic_name: "/camera/rgb/image"
+- ros_topic_name: "/camera/image"
   gz_topic_name: "/camera/image"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
@@ -31,7 +31,7 @@
   qos_profile: "SENSOR_DATA"
 
 # Bridge for the depth image
-- ros_topic_name: "/camera/depth/image"
+- ros_topic_name: "/camera/depth_image"
   gz_topic_name: "/camera/depth_image"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"

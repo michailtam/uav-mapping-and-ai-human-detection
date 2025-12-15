@@ -33,15 +33,8 @@ install(PROGRAMS
 )
 
 install(
-  DIRECTORY launch config maps srv bt
+  DIRECTORY launch config maps bt
   DESTINATION share/${PROJECT_NAME}
-)
-
-# Generate interfaces (srv)
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/SetInitialPose.srv"
-  "srv/SetGoalPose.srv"
-  DEPENDENCIES geometry_msgs
 )
 
 if(BUILD_TESTING)
