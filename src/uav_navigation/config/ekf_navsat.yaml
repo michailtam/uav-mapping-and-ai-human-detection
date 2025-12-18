@@ -12,24 +12,31 @@ ekf_filter_node_odom:
     map_frame: map
     odom_frame: odom
     base_link_frame: base_footprint
-    world_frame: odom
+    world_frame: map # Is getting set because the robot uses global absolute position data like GPS
 
     odom0: odom
     odom0_config: [false, false, false,
-                  false, false, false,
-                  true,  true,  true,
-                  false, false, true,
-                  false, false, false]
+                   false, false, false,
+                   true,  true,  true,
+                   false, false, true,
+                   false, false, false]
     odom0_queue_size: 10
     odom0_differential: false
     odom0_relative: false
 
+    #        [x_pos   , y_pos    , z_pos,
+    #         roll    , pitch    , yaw,
+    #         x_vel   , y_vel    , z_vel,
+    #         roll_vel, pitch_vel, yaw_vel,
+    #         x_accel , y_accel  , z_accel]
+
     imu0: /imu/data
     imu0_config: [false, false, false,
-                  false,  false,  true,
+                  false, false, true,
                   false, false, false,
-                  false,  false,  false,
-                  false,  false,  false]
+                  false, false, true,
+                  true,  true,  false]
+    
     imu0_differential: false  # If using a real robot you might want to set this to true, since usually absolute measurements from real imu's are not very accurate
     imu0_relative: false
     imu0_queue_size: 10
@@ -78,7 +85,7 @@ ekf_filter_node_map:
     odom0_relative: false
 
     odom1: odometry/gps
-    odom1_config: [true,  true,  false,
+    odom1_config: [true,  true,  false, # only x,y positions
                   false, false, false,
                   false, false, false,
                   false, false, false,
@@ -128,3 +135,7 @@ navsat_transform:
     publish_filtered_gps: true
     use_odometry_yaw: true
     wait_for_datum: false 
+    gps_frame_id: gps_module_link
+    base_link_frame: base_footprint
+    odom_frame: odom
+    world_frame: map

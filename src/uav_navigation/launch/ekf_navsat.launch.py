@@ -28,7 +28,7 @@ def generate_launch_description():
         executable="ekf_node",
         name="ekf_filter_node_odom",
         output="screen",
-        parameters=[rl_params_file, {"use_sim_time": True}, {"use_sim_time": use_sim_time}],
+        parameters=[rl_params_file, {"use_sim_time": True}],
         remappings=[("odometry/filtered", "odometry/local")]
     )
 
@@ -61,7 +61,7 @@ def generate_launch_description():
             ("gps/fix", "gps/fix"),
             ("gps/filtered", "gps/filtered"),
             ("odometry/gps", "odometry/gps"),
-            ("odometry/filtered", "odometry/global"),
+            ("odometry/filtered", "odometry/local"),
         ]
     )
 

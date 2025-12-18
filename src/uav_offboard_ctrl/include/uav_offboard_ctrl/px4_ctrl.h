@@ -10,12 +10,16 @@
 #include <px4_msgs/msg/position_setpoint_triplet.hpp>
 #include <px4_msgs/msg/vehicle_status.hpp>
 #include <px4_msgs/msg/home_position.hpp>
+#include <px4_msgs/msg/vehicle_attitude.hpp>
 #include <px4_msgs/srv/vehicle_command.hpp>
 #include <GeographicLib/LocalCartesian.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <cmath>
 
 using namespace std::chrono;
 using namespace std::chrono_literals;
@@ -44,6 +48,14 @@ struct PosInWGS84 {
     double lat, lon, alt;
 };
 
+struct Velocity {
+    /**
+     * @brief Stores the linear and angular velocity
+     */
+    float linear_x, linear_y, linear_z, angular_z;
+};
+
+
 class OffboardControl : public rclcpp::Node
 {
 public:
@@ -54,10 +66,14 @@ public:
     void takeOff();
     void hover();
     void land();
+    void teleop();
     void run();
     void localPoseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
     void globalPoseCallback(const px4_msgs::msg::VehicleGlobalPosition::SharedPtr msg);
     void statusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg);
+    void vehicleAttitudeCallback(const px4_msgs::msg::VehicleAttitude::SharedPtr msg);
+    void velocityCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
+    void teleopArmedCallback(const std_msgs::msg::Bool::SharedPtr msg);
     
 private:
     void publishOffboardControlMode();
@@ -77,9 +93,8 @@ private:
         HOVER_MODE,             // Flight Mode
         POSITION_MODE,          // Flight Mode    
         LANDING_MODE,           // Flight Mode
-        RETURN_MODE,            // Flight Mode
+        RTL_MODE,               // Flight Mode (Return To Land)
         TELEOP_MODE,            // Teleoperation Mode
-        RTL_MODE,               // Automatic Flight Mode (Return to Land)
         NAVIGATION_MODE         // Nav2 Navigation Mode (executes ROS2 Nav2 for navigation)
 	} state_;
 
@@ -92,7 +107,10 @@ private:
     bool navigating_ = false;
     bool msg_logged_ = false;
     bool home_pos_set_ = false;
+    bool teleop_armed_ = false;
     bool target_pos_set_ = false;
+    float true_yaw_ = 0.0;  // Current yaw value of drone
+    float cmd_yaw = 0.0;    // The yaw value send as command
 
     px4_msgs::msg::VehicleStatus::SharedPtr vehicle_status_msg_;
 
@@ -102,7 +120,12 @@ private:
     rclcpp::Subscription<px4_msgs::msg::VehicleLocalPosition>::SharedPtr uav_local_pos_sub_;
     rclcpp::Subscription<px4_msgs::msg::VehicleGlobalPosition>::SharedPtr uav_global_pos_sub_;
     rclcpp::Subscription<px4_msgs::msg::PositionSetpointTriplet>::SharedPtr uav_target_pos_sub_;
+
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr uav_velocity_pub_;
     rclcpp::Subscription<px4_msgs::msg::VehicleStatus>::SharedPtr uav_status_sub_;
+    rclcpp::Subscription<px4_msgs::msg::VehicleAttitude>::SharedPtr uav_attitude_sub_;
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr uav_velocity_sub_;
+    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr teleop_armed_sub_;
 
     rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
     
@@ -113,6 +136,7 @@ private:
     PosInENU home_loc_;          // Local home position coordinates in NED
     PosInWGS84 home_glob_;       // Global home position coordinates in NED
     PosInENU hover_pos_loc_;     // Fixed hover position
+    Velocity velocity_;          // The linear and angular velocities to publish to PX4
 };
 
 #endif
