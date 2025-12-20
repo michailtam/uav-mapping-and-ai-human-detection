@@ -8,7 +8,8 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
     state_{State::INIT_MODE},   // Initial state at startup
     service_result_{0},         // State of the service request
     service_done_{false},       // Flag that indicates if the service request has succeeded or not  
-    take_off_height_{-5.0}      // NED Coord system i.e. z is pointing downwards but in ROS is facing upwards
+    take_off_height_{-5.0},     // NED Coord system i.e. z is pointing downwards but in ROS is facing upwards
+    battery_status_perc_{1.0}   // Batter status 100%
     {
     
     // Create the service for changing the control mode
@@ -24,6 +25,14 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
         RCLCPP_INFO(this->get_logger(), "Service not available, waiting again...");
     }
 
+    // At startup, set all the scan distances to infinity
+    scan_dist_ = {
+        std::numeric_limits<float>::infinity(),
+        std::numeric_limits<float>::infinity(),
+        std::numeric_limits<float>::infinity(),
+        std::numeric_limits<float>::infinity()
+    };
+
     timer_ = this->create_wall_timer(100ms, std::bind(&OffboardControl::timerUpdateStateMachine, this)); // 10 Hz
 
     // To correctly receive data, set the quality of service
@@ -36,13 +45,12 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
     qos_profile.history(RMW_QOS_POLICY_HISTORY_KEEP_LAST);
     qos_profile.keep_last(10);
 
-    // ** Publishers ** 
+    // ** PX4 Publishers ** 
     // Create the offboard control mode and trajectory publisher
     offboard_ctrl_mode_pub_ = this->create_publisher<px4_msgs::msg::OffboardControlMode>("/fmu/in/offboard_control_mode", 10);
     traj_setpoint_pub_ = this->create_publisher<px4_msgs::msg::TrajectorySetpoint>("/fmu/in/trajectory_setpoint", 10);
     
-    // ** Subscribers **
-    // Callback to store the current position of the UAV
+    // ** PX4 Subscribers **
     uav_home_pos_sub_ = this->create_subscription<px4_msgs::msg::HomePosition>("/fmu/out/home_position_v1", qos_profile, 
             std::bind(&OffboardControl::homePoseCallback, this, std::placeholders::_1));
     uav_local_pos_sub_ = this->create_subscription<px4_msgs::msg::VehicleLocalPosition>("/fmu/out/vehicle_local_position_v1", qos_profile,  // QoS of 10
@@ -53,15 +61,19 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
             std::bind(&OffboardControl::goalPoseCallback, this, std::placeholders::_1));
     uav_status_sub_ = this->create_subscription<px4_msgs::msg::VehicleStatus>("/fmu/out/vehicle_status_v1", qos_profile, 
             std::bind(&OffboardControl::statusCallback, this, std::placeholders::_1));
-
-    // These topics are required for teleop operation
-    uav_velocity_sub_ = this->create_subscription<geometry_msgs::msg::Twist>("/offboard_velocity_cmd", qos_profile, 
-            std::bind(&OffboardControl::velocityCallback, this, std::placeholders::_1));
     uav_attitude_sub_ = this->create_subscription<px4_msgs::msg::VehicleAttitude>("/fmu/out/vehicle_attitude", qos_profile, 
             std::bind(&OffboardControl::vehicleAttitudeCallback, this, std::placeholders::_1));
+    uav_velocity_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/fmu/in/setpoint_velocity/cmd_vel_unstamped", qos_profile);
+
+    // Subscribers and Publishers for vehicle management
+    uav_velocity_sub_ = this->create_subscription<geometry_msgs::msg::Twist>("/offboard_velocity_cmd", qos_profile, 
+            std::bind(&OffboardControl::velocityCallback, this, std::placeholders::_1));
     teleop_armed_sub_ = this->create_subscription<std_msgs::msg::Bool>("/arm_message", qos_profile, 
             std::bind(&OffboardControl::teleopArmedCallback, this, std::placeholders::_1));
-    uav_velocity_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/fmu/in/setpoint_velocity/cmd_vel_unstamped", qos_profile);
+    lidar_scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>("/scan", qos_profile, 
+            std::bind(&OffboardControl::lidarScanCallback, this, std::placeholders::_1));
+    battery_status_sub_ = this->create_subscription<px4_msgs::msg::BatteryStatus>("/fmu/out/battery_status_v1", qos_profile, 
+            std::bind(&OffboardControl::batteryStatusCallback, this, std::placeholders::_1));
 }
 
 void OffboardControl::srvCallback(rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedFuture future) {
@@ -149,10 +161,11 @@ void OffboardControl::publishTrajectorySetpoint(float pos_x, float pos_y, float 
 	traj_msg.position = {pos_x, pos_y, pos_z};
     traj_msg.velocity = {vel_global_x, vel_global_y, velocity_.linear_z};
     traj_msg.acceleration = {std::nanf(""), std::nanf(""), std::nanf("")};
-	traj_msg.yaw = std::nanf(""); // pos_yaw;
-	traj_msg.yawspeed = cmd_yaw;
+	traj_msg.yaw = curr_loc_.yaw; // std::nanf("");
+	traj_msg.yawspeed = 0.0;
     traj_msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
 	
+    RCLCPP_INFO(this->get_logger(), "YAW:%f", curr_loc_.yaw);
     traj_setpoint_pub_->publish(traj_msg);
 }
 
@@ -197,8 +210,11 @@ void OffboardControl::timerUpdateStateMachine(void) {
 	switch (state_)
 	{
 	case State::INIT_MODE:
-        engageOffboardMode();
-		state_ = State::OFFBOARD_MODE;
+        // Check for teleop mode to start arming the vehicle.
+        if(teleop_armed_) {
+            engageOffboardMode();
+		    state_ = State::OFFBOARD_MODE;
+        }
 		break;
 	case State::OFFBOARD_MODE:
         if(service_done_) {
@@ -208,7 +224,7 @@ void OffboardControl::timerUpdateStateMachine(void) {
                 RCLCPP_INFO(this->get_logger(), "Arming mode engaged");
                 state_ = State::ARMING_MODE;
                 arm();
-            } 
+            }
         } else {
             RCLCPP_ERROR(this->get_logger(), "Failed to enter offboard mode, exiting");
             rclcpp::shutdown();
@@ -336,9 +352,14 @@ void OffboardControl::takeOff() {
 
 void OffboardControl::hover() {
     /**
-     * @brief The drone hovers on position.
+     * @brief The drone hovers on position and checks if teleop mode is desired.
      */
-    publishTrajectorySetpoint(hover_pos_loc_.x, hover_pos_loc_.y, hover_pos_loc_.z, hover_pos_loc_.yaw);
+    if (teleop_armed_) {
+        publishTrajectorySetpoint(hover_pos_loc_.x, hover_pos_loc_.y, hover_pos_loc_.z, hover_pos_loc_.yaw);
+        state_ = State::TELEOP_MODE;
+    } else {
+        publishTrajectorySetpoint(hover_pos_loc_.x, hover_pos_loc_.y, hover_pos_loc_.z, hover_pos_loc_.yaw);
+    }
 }
 
 void OffboardControl::land() {
@@ -352,7 +373,6 @@ void OffboardControl::teleop() {
     /**
      * @brief Teleoperation, user handles the drone
      */
-    
      // Passing NaNs tells the function to use velocity control
     publishTrajectorySetpoint(std::nanf(""), std::nanf(""), std::nanf(""), std::nanf(""));
 }
@@ -423,7 +443,7 @@ void OffboardControl::velocityCallback(const geometry_msgs::msg::Twist::SharedPt
         velocity_.linear_y = msg->linear.y;     // Left/Right
         velocity_.linear_z = -msg->linear.z;    // Convert ROS "Up" (+) to PX4 "Down" (-)
         // A conversion for angular z is done in the vehicleAttitudeCallback method (it's the '-' in front of true_yaw)
-        cmd_yaw = msg->angular.z;
+        cmd_yaw_ = msg->angular.z;
     }
 }
 
@@ -445,12 +465,34 @@ void OffboardControl::teleopArmedCallback(const std_msgs::msg::Bool::SharedPtr m
     /**
      * @brief Changes the stat to TELEOP_MODE if the space bar was pressed. This starts user interaction.
      */
-    
-    if (msg->data) {
+
+    if (msg->data == 1) {
         teleop_armed_ = msg->data;
-        RCLCPP_INFO(this->get_logger(), "Arm Message:%i", msg->data);
-        state_ = State::TELEOP_MODE;
+        RCLCPP_INFO(this->get_logger(), "Arm Message:%i", teleop_armed_);
     }
+}
+
+void OffboardControl::lidarScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg) {
+    /**
+     * @brief Retrieves the lidar scan data.
+     */
+    // This is a helper function. It returns a float TO the code below.
+    auto get_dist_at_angle = [&](float target_angle) -> float {
+        int index = (target_angle - msg->angle_min) / msg->angle_increment;
+        if (index >= 0 && static_cast<size_t>(index) < msg->ranges.size()) {
+            float d = msg->ranges[index];
+            return (std::isfinite(d)) ? d : -1.0f;
+        }
+        return -1.0f;
+    };
+
+    // We store the results in CLASS variables (e.g., this->distance_front_)
+    // so that the timerUpdateStateMachine() can see them later.
+    scan_dist_.front = get_dist_at_angle(0.0);
+    scan_dist_.left  = get_dist_at_angle(M_PI / 2.0);
+    // Log the values for debugging
+    RCLCPP_INFO(this->get_logger(), "Front: %.2f | Left: %.2f | Back: %.2f | Right: %.2f", 
+                scan_dist_.front, scan_dist_.left, scan_dist_.back, scan_dist_.right);
 }
 
 void OffboardControl::statusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg) {
@@ -458,6 +500,13 @@ void OffboardControl::statusCallback(const px4_msgs::msg::VehicleStatus::SharedP
      * @brief Saves the vehicle status.
      */
     vehicle_status_msg_ = msg;
+}
+
+void OffboardControl::batteryStatusCallback(const px4_msgs::msg::BatteryStatus::SharedPtr msg) {
+    /**
+     * Saves the current battery status in percentage.
+     */
+    battery_status_perc_ = msg->remaining;
 }
 
 void OffboardControl::run() {

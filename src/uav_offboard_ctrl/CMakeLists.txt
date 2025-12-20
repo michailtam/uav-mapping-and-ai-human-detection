@@ -12,6 +12,7 @@ find_package(std_msgs REQUIRED)
 find_package(px4_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_library(GEOGRAPHICLIB_LIB GeographicLib)
@@ -23,7 +24,8 @@ include_directories(include)
 add_executable(px4_ctrl src/px4_ctrl.cpp)
 ament_target_dependencies(px4_ctrl 
   px4_msgs 
-  geometry_msgs  
+  geometry_msgs
+  sensor_msgs
   tf2_geometry_msgs
   rclcpp
   uav_navigation

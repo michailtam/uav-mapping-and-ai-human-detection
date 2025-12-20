@@ -12,6 +12,7 @@
 #include <px4_msgs/msg/home_position.hpp>
 #include <px4_msgs/msg/vehicle_attitude.hpp>
 #include <px4_msgs/srv/vehicle_command.hpp>
+#include <px4_msgs/msg/battery_status.hpp>
 #include <GeographicLib/LocalCartesian.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -19,6 +20,7 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <std_msgs/msg/bool.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
 #include <cmath>
 
 using namespace std::chrono;
@@ -55,6 +57,13 @@ struct Velocity {
     float linear_x, linear_y, linear_z, angular_z;
 };
 
+struct ScanDistance {
+    /**
+     * @brief Stores the front, right, back and left distances (if obstacle detected)
+     */
+    float front, right, back, left;
+};
+
 
 class OffboardControl : public rclcpp::Node
 {
@@ -74,6 +83,8 @@ public:
     void vehicleAttitudeCallback(const px4_msgs::msg::VehicleAttitude::SharedPtr msg);
     void velocityCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
     void teleopArmedCallback(const std_msgs::msg::Bool::SharedPtr msg);
+    void lidarScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
+    void batteryStatusCallback(const px4_msgs::msg::BatteryStatus::SharedPtr msg);
     
 private:
     void publishOffboardControlMode();
@@ -110,9 +121,11 @@ private:
     bool teleop_armed_ = false;
     bool target_pos_set_ = false;
     float true_yaw_ = 0.0;  // Current yaw value of drone
-    float cmd_yaw = 0.0;    // The yaw value send as command
+    float cmd_yaw_ = 0.0;    // The yaw value send as command
+    float battery_status_perc_;  
 
     px4_msgs::msg::VehicleStatus::SharedPtr vehicle_status_msg_;
+    sensor_msgs::msg::LaserScan::SharedPtr lidar_scan_msg_;
 
     rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_ctrl_mode_pub_;
     rclcpp::Publisher<TrajectorySetpoint>::SharedPtr traj_setpoint_pub_;
@@ -120,12 +133,14 @@ private:
     rclcpp::Subscription<px4_msgs::msg::VehicleLocalPosition>::SharedPtr uav_local_pos_sub_;
     rclcpp::Subscription<px4_msgs::msg::VehicleGlobalPosition>::SharedPtr uav_global_pos_sub_;
     rclcpp::Subscription<px4_msgs::msg::PositionSetpointTriplet>::SharedPtr uav_target_pos_sub_;
-
-    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr uav_velocity_pub_;
     rclcpp::Subscription<px4_msgs::msg::VehicleStatus>::SharedPtr uav_status_sub_;
     rclcpp::Subscription<px4_msgs::msg::VehicleAttitude>::SharedPtr uav_attitude_sub_;
+    rclcpp::Subscription<px4_msgs::msg::BatteryStatus>::SharedPtr battery_status_sub_;
+    
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr uav_velocity_pub_;
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr uav_velocity_sub_;
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr teleop_armed_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr lidar_scan_sub_;
 
     rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
     
@@ -137,6 +152,7 @@ private:
     PosInWGS84 home_glob_;       // Global home position coordinates in NED
     PosInENU hover_pos_loc_;     // Fixed hover position
     Velocity velocity_;          // The linear and angular velocities to publish to PX4
+    ScanDistance scan_dist_;     // The distances detected by the lidar scanner  
 };
 
 #endif

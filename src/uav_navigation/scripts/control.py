@@ -34,10 +34,10 @@ moveBindings = {
     's': (0, 0, -1, 0),         # Z-
     'a': (0, 0, 0, -1),         # Yaw+
     'd': (0, 0, 0, 1),          # Yaw-
-    '\x1b[A' : (0, 1, 0, 0),    # Up Arrow
-    '\x1b[B' : (0, -1, 0, 0),   # Down Arrow
-    '\x1b[C' : (-1, 0, 0, 0),   # Right Arrow
-    '\x1b[D' : (1, 0, 0, 0),    # Left Arrow
+    '\x1b[A' : (-1, 0, 0, 0),   # Pitch forward -> Up Arrow
+    '\x1b[B' : (1, 0, 0, 0),    # Pitch backwards -> Down Arrow
+    '\x1b[C' : (0, -1, 0, 0),   # Right Arrow
+    '\x1b[D' : (0, 1, 0, 0),    # Left Arrow
 }
 
 
@@ -87,7 +87,7 @@ def main():
     arm_pub = node.create_publisher(std_msgs.msg.Bool, '/arm_message', qos_profile)
     arm_toggle = False
     
-    speed = 0.25 # 0.5
+    speed = 0.15 # 0.5
     turn = 0.2
     x = 0.0
     y = 0.0

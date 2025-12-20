@@ -29,16 +29,6 @@ def generate_launch_description():
       output='screen'
     )
     
-    # Image processor: rotates and republishes camera images
-    
-    # image_tools_rgb_node = Node(
-    #   package='uav_vision',
-    #   executable='image_tools',
-    #   name='image_tools',
-    #   output='screen',
-    #   parameters=[{"use_sim_time": True}],
-    # )
-    
     # Convert odometry message to TF transform
     # Publishes dynamic TF: /odom -> /base_link
     odom_to_tf_node = Node(
@@ -56,13 +46,6 @@ def generate_launch_description():
       name='px4_prop_js_publisher',
       output='screen',
       parameters=[{'use_sim_time': True}])
-
-    # # Include the launch of Visual Slam for 3D mapping
-    # vslam_incl = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         PathJoinSubstitution([pkg_share_uav_mapping, 'launch', 'vslam.launch.py'])
-    #     )
-    # )
     
     ld = LaunchDescription()
     ld.add_action(gazebo_ros_bridge_cmd)
