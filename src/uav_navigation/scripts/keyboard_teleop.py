@@ -59,15 +59,6 @@ def set_echo(enable):
         new_settings[3] = new_settings[3] & ~termios.ECHO
         
     termios.tcsetattr(fd, termios.TCSADRAIN, new_settings)
-def saveTerminalSettings():
-    if sys.platform == 'win32':
-        return None
-    return termios.tcgetattr(sys.stdin)
-
-def restoreTerminalSettings(old_settings):
-    if sys.platform == 'win32':
-        return
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
 
 
 def main():
@@ -78,53 +69,56 @@ def main():
         Handles when a key has been pressed
         :param key: The key that was pressed
         """
-        nonlocal x, y, z, th, status, x_val, y_val, z_val, yaw_val, arm_toggle
+        nonlocal x, y, z, th, status, x_val, y_val, z_val, yaw_val, arm_toggle, has_takeoff
         
         # print('\nYou Entered {0}'.format(key))
         
         # Transform the key code to char
         key_ch = getattr(key, 'char', key)
 
-        if key in moveBindings.keys() or getattr(key, 'char', key) in moveBindings.keys():
-            key_as_char = getattr(key, 'char', key)
-            x = moveBindings[key_as_char][0]
-            y = moveBindings[key_as_char][1]
-            z = moveBindings[key_as_char][2]
-            th = moveBindings[key_as_char][3]
+        if has_takeoff:
+            if key in moveBindings.keys() or getattr(key, 'char', key) in moveBindings.keys():
+                key_as_char = getattr(key, 'char', key)
+                x = moveBindings[key_as_char][0]
+                y = moveBindings[key_as_char][1]
+                z = moveBindings[key_as_char][2]
+                th = moveBindings[key_as_char][3]
 
-            x_val = (x * speed) + x_val
-            y_val = (y * speed) + y_val
-            z_val = (z * speed) + z_val
-            yaw_val = (th * turn) + yaw_val
-            
-            # # Keep value between -pi and pi
-            # if yaw_val > math.pi: yaw_val -= 2 * math.pi
-            # if yaw_val < -math.pi: yaw_val += 2 * math.pi
+                x_val = (x * speed) + x_val
+                y_val = (y * speed) + y_val
+                z_val = (z * speed) + z_val
+                yaw_val = (th * turn) + yaw_val
+                
+                # # Keep value between -pi and pi
+                # if yaw_val > math.pi: yaw_val -= 2 * math.pi
+                # if yaw_val < -math.pi: yaw_val += 2 * math.pi
 
-            # Create the Twist message to send to PX4
-            twist = geometry_msgs.msg.Twist()
-            twist.linear.x = float(x * speed)
-            twist.linear.y = float(y * speed)
-            twist.linear.z = float(z * speed)
-            twist.angular.x = 0.0
-            twist.angular.y = 0.0
-            twist.angular.z = float(th * turn)
-            pub.publish(twist)
+                # Create the Twist message to send to PX4
+                twist = geometry_msgs.msg.Twist()
+                twist.linear.x = float(x * speed)
+                twist.linear.y = float(y * speed)
+                twist.linear.z = float(z * speed)
+                twist.angular.x = 0.0
+                twist.angular.y = 0.0
+                twist.angular.z = float(th * turn)
+                pub.publish(twist)
 
-            print("X:",twist.linear.x, "   Y:",twist.linear.y, "   Z:",twist.linear.z, "   Yaw:",twist.angular.z)
+                print("X:",twist.linear.x, "   Y:",twist.linear.y, "   Z:",twist.linear.z, "   Yaw:",twist.angular.z)
 
-        elif key_ch == Key.space:  # Arm
+        elif key_ch == Key.space and not has_takeoff:  # Arm
             arm_toggle = not arm_toggle  # Flip the value of arm_toggle
             arm_msg = std_msgs.msg.Int32()
             arm_msg.data = arm_toggle
             teleop_cmd_pub.publish(arm_msg) # 0 or 1
             print(f"Arm/Disarm toggle: {arm_msg.data}")
+            has_takeoff = True
 
-        elif key_ch == 'l':  # Land
+        if isinstance(key_ch, str) and key_ch.lower() == 'l':  # Land
             arm_msg = std_msgs.msg.Int32()
             arm_msg.data = 2
             teleop_cmd_pub.publish(arm_msg)
             print(f"Landing engaged")
+            has_takeoff = False
         
         elif key == Key.esc:  # End/Quit
             # Stop listener
@@ -166,9 +160,9 @@ def main():
 
     node = rclpy.create_node('keyboard_teleop')
 
-    # Display the movement instructions
+    # Display the movement instructions and the cursor in terminal
     print(instruction_msg)
-    set_echo(False)
+    set_echo(False) 
 
     qos_profile = QoSProfile(
         reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -181,8 +175,8 @@ def main():
     teleop_cmd_pub = node.create_publisher(std_msgs.msg.Int32, '/teleop_command', qos_profile)
     arm_toggle = False
 
-    speed = 5.0 # Moves at 5 meters per second
-    turn = 2.0  # Rotates at 2 radians per second (approx 115 degrees/sec)
+    speed = 5.0     # Moves at 5 meters per second
+    turn = 5.0      # Rotates at 5 radians per second (approx 115 degrees/sec)
     x = 0.0
     y = 0.0
     z = 0.0
@@ -193,18 +187,18 @@ def main():
     z_val = 0.0
     yaw_val = 0.0
 
-    settings = saveTerminalSettings()
-
     moveBindings = {
         'w': (0, 0, 1, 0),          # Z+
         's': (0, 0, -1, 0),         # Z-
-        'a': (0, 0, 0, -1),          # Yaw+
+        'a': (0, 0, 0, -1),         # Yaw+
         'd': (0, 0, 0, 1),          # Yaw-
-        Key.up : (-1, 0, 0, 0),    # Pitch forward -> Up Arrow
-        Key.down : (1, 0, 0, 0),   # Pitch backwards -> Down Arrow
-        Key.right : (0, -1, 0, 0), # Right Arrow
-        Key.left : (0, 1, 0, 0),   # Left Arrow
+        Key.up : (-1, 0, 0, 0),     # Pitch forward -> Up Arrow
+        Key.down : (1, 0, 0, 0),    # Pitch backwards -> Down Arrow
+        Key.right : (0, -1, 0, 0),  # Right Arrow
+        Key.left : (0, 1, 0, 0),    # Left Arrow
     }
+
+    has_takeoff = False
 
     try:
         # Collect all event until released
@@ -215,6 +209,8 @@ def main():
         print(e)
 
     finally:
+        set_echo(True)
+
         twist = geometry_msgs.msg.Twist()
         twist.linear.x = 0.0
         twist.linear.y = 0.0
@@ -223,8 +219,6 @@ def main():
         twist.angular.y = 0.0
         twist.angular.z = 0.0
         pub.publish(twist)
-
-    restoreTerminalSettings(settings)
 
 
 if __name__ == '__main__':
