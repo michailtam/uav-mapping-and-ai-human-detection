@@ -29,7 +29,7 @@ find_package(rosidl_default_generators REQUIRED)
 install(PROGRAMS
   scripts/simple_commander.py
   scripts/simple_commander_2.py
-  scripts/control.py
+  scripts/keyboard_teleop.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
