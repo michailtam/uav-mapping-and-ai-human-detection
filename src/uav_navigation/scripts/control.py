@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import math
 import geometry_msgs.msg
 import std_msgs.msg
 import rclpy
@@ -32,12 +33,12 @@ Press SPACE to arm/disarm the drone
 moveBindings = {
     'w': (0, 0, 1, 0),          # Z+
     's': (0, 0, -1, 0),         # Z-
-    'a': (0, 0, 0, -1),         # Yaw+
+    'a': (0, 0, 0, -1),          # Yaw+
     'd': (0, 0, 0, 1),          # Yaw-
-    '\x1b[A' : (-1, 0, 0, 0),   # Pitch forward -> Up Arrow
-    '\x1b[B' : (1, 0, 0, 0),    # Pitch backwards -> Down Arrow
-    '\x1b[C' : (0, -1, 0, 0),   # Right Arrow
-    '\x1b[D' : (0, 1, 0, 0),    # Left Arrow
+    '\x1b[A' : (-1, 0, 0, 0),    # Pitch forward -> Up Arrow
+    '\x1b[B' : (1, 0, 0, 0),   # Pitch backwards -> Down Arrow
+    '\x1b[C' : (0, -1, 0, 0),    # Right Arrow
+    '\x1b[D' : (0, 1, 0, 0),   # Left Arrow
 }
 
 
@@ -84,11 +85,11 @@ def main():
     )
 
     pub = node.create_publisher(geometry_msgs.msg.Twist, '/offboard_velocity_cmd', qos_profile)
-    arm_pub = node.create_publisher(std_msgs.msg.Bool, '/arm_message', qos_profile)
+    teleop_cmd_pub = node.create_publisher(std_msgs.msg.Int32, '/teleop_command', qos_profile)
     arm_toggle = False
     
-    speed = 0.15 # 0.5
-    turn = 0.2
+    speed = 5.0 # Moves at 5 meters per second (approx 11 mph)
+    turn = 2.0  # Rotates at 2 radians per second (approx 115 degrees/sec)
     x = 0.0
     y = 0.0
     z = 0.0
@@ -118,23 +119,34 @@ def main():
 
             if key == ' ':  # ASCII value for space
                 arm_toggle = not arm_toggle  # Flip the value of arm_toggle
-                arm_msg = std_msgs.msg.Bool()
+                arm_msg = std_msgs.msg.Int32()
                 arm_msg.data = arm_toggle
-                arm_pub.publish(arm_msg)
-                print(f"Arm toggle is now: {arm_toggle}")
+                teleop_cmd_pub.publish(arm_msg) # 0 or 1
+                print(f"Arm/Disarm toggle: {arm_msg.data}")
+
+            if key == 'l':  # ASCII value for l
+                arm_msg = std_msgs.msg.Int32()
+                arm_msg.data = 2
+                teleop_cmd_pub.publish(arm_msg)
+                print(f"Landing engaged")
 
             twist = geometry_msgs.msg.Twist()
             
-            x_val = (x * speed) + x_val
-            y_val = (y * speed) + y_val
-            z_val = (z * speed) + z_val
-            yaw_val = (th * turn) + yaw_val
-            twist.linear.x = x_val
-            twist.linear.y = y_val
-            twist.linear.z = z_val
+            # x_val = (x * speed) + x_val
+            # y_val = (y * speed) + y_val
+            # z_val = (z * speed) + z_val
+            # yaw_val = (th * turn) + yaw_val
+            
+            # # Keep value between -pi and pi
+            # if yaw_val > math.pi: yaw_val -= 2 * math.pi
+            # if yaw_val < -math.pi: yaw_val += 2 * math.pi
+
+            twist.linear.x = float(x * speed)
+            twist.linear.y = float(y * speed)
+            twist.linear.z = float(z * speed)
             twist.angular.x = 0.0
             twist.angular.y = 0.0
-            twist.angular.z = yaw_val
+            twist.angular.z = float(th * turn)
             pub.publish(twist)
 
             print("X:",twist.linear.x, "   Y:",twist.linear.y, "   Z:",twist.linear.z, "   Yaw:",twist.angular.z)

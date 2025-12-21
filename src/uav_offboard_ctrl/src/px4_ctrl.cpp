@@ -1,5 +1,7 @@
 #include "uav_offboard_ctrl/px4_ctrl.h"
 
+#define DEG_TO_RAD 0.01745329251
+
 
 OffboardControl::OffboardControl() : Node("offboard_ctrl"), 
     /**
@@ -63,12 +65,11 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
             std::bind(&OffboardControl::statusCallback, this, std::placeholders::_1));
     uav_attitude_sub_ = this->create_subscription<px4_msgs::msg::VehicleAttitude>("/fmu/out/vehicle_attitude", qos_profile, 
             std::bind(&OffboardControl::vehicleAttitudeCallback, this, std::placeholders::_1));
-    uav_velocity_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/fmu/in/setpoint_velocity/cmd_vel_unstamped", qos_profile);
-
+    
     // Subscribers and Publishers for vehicle management
     uav_velocity_sub_ = this->create_subscription<geometry_msgs::msg::Twist>("/offboard_velocity_cmd", qos_profile, 
             std::bind(&OffboardControl::velocityCallback, this, std::placeholders::_1));
-    teleop_armed_sub_ = this->create_subscription<std_msgs::msg::Bool>("/arm_message", qos_profile, 
+    teleop_armed_sub_ = this->create_subscription<std_msgs::msg::Int32>("/teleop_command", qos_profile, 
             std::bind(&OffboardControl::teleopArmedCallback, this, std::placeholders::_1));
     lidar_scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>("/scan", qos_profile, 
             std::bind(&OffboardControl::lidarScanCallback, this, std::placeholders::_1));
@@ -136,8 +137,15 @@ void OffboardControl::publishOffboardControlMode() {
      * @brief Change to offboard mode with the desired parameters.
      */
     OffboardControlMode mode{};
-    mode.position = true;   // Required for Takeoff/Hover
-    mode.velocity = true;   // Required for Teleop/Yawspeed
+    if(state_ == State::TAKEOFF_MODE || state_ == State::LAND_MODE) {
+        // Pure position control for stability
+        mode.position = true;    // Required for Takeoff/Hover
+        mode.velocity = false;    // Required for Teleop/Yawspeed
+    } else {
+        // Direct velocity control for movement
+        mode.position = false;    
+        mode.velocity = true;
+    }
     mode.acceleration = false;
     mode.attitude = false;
     mode.body_rate = false;
@@ -156,16 +164,23 @@ void OffboardControl::publishTrajectorySetpoint(float pos_x, float pos_y, float 
     float vel_global_x = (velocity_.linear_x * cos_yaw - velocity_.linear_y * sin_yaw);
     float vel_global_y = (velocity_.linear_x * sin_yaw + velocity_.linear_y * cos_yaw);
 
-    // Create and publish TrajectorySetpoint message with NaN values for acceleration
+    // Check if position or velocity mode is desired
     TrajectorySetpoint traj_msg{};
-	traj_msg.position = {pos_x, pos_y, pos_z};
-    traj_msg.velocity = {vel_global_x, vel_global_y, velocity_.linear_z};
-    traj_msg.acceleration = {std::nanf(""), std::nanf(""), std::nanf("")};
-	traj_msg.yaw = curr_loc_.yaw; // std::nanf("");
-	traj_msg.yawspeed = 0.0;
+	if (std::isnan(pos_x)) {   // Velocity
+        RCLCPP_INFO(this->get_logger(), "YAW:%f", cmd_yaw_);
+        traj_msg.position = {std::nanf(""), std::nanf(""), std::nanf("")};
+        traj_msg.velocity = {vel_global_x, vel_global_y, velocity_.linear_z};
+        traj_msg.yaw = std::nanf("");   // Must be NaN to use yawspeed
+        traj_msg.yawspeed = cmd_yaw_;   // Controlling turn rate
+    } else {    // Position
+        traj_msg.position = {pos_x, pos_y, pos_z};
+        traj_msg.velocity = {std::nanf(""), std::nanf(""), std::nanf("")};
+        traj_msg.yaw = pos_yaw;
+        traj_msg.yawspeed = std::nanf("");
+        RCLCPP_INFO(this->get_logger(), "POSITION:%f", pos_x);
+    }
+
     traj_msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-	
-    RCLCPP_INFO(this->get_logger(), "YAW:%f", curr_loc_.yaw);
     traj_setpoint_pub_->publish(traj_msg);
 }
 
@@ -198,6 +213,22 @@ void OffboardControl::sendVehicleCommand(uint16_t command, float param1, float p
     RCLCPP_INFO(this->get_logger(), "Command send");
 }
 
+void OffboardControl::velocityCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
+    /**
+     * @brief Publishes the twist commands from Teleop and converts NED -> FLU.
+     */
+    if (teleop_armed_) {
+        // NED -> FLU Transformation. FLU is the body frame coordinate system of the drone (Front-Left-Up)
+        velocity_.linear_x = msg->linear.x;    // Forward/Backward - X (FLU) is -Y (NED)
+        velocity_.linear_y = msg->linear.y;     // Left/Right - Y (FLU) is X (NED)
+        velocity_.linear_z = -msg->linear.z;    // Convert ROS "Up" (+) to PX4 "Down" (-) - Z (FLU) is -Z (NED)
+        // A conversion for angular z is done in the vehicleAttitudeCallback method (it's the '-' in front of true_yaw)
+        cmd_yaw_ = msg->angular.z;
+
+        RCLCPP_INFO(this->get_logger(), "angz:%f", cmd_yaw_);
+    }
+}
+
 void OffboardControl::timerUpdateStateMachine(void) {
     /**
      * @brief Finite-State-Machine (FSM) to switch from state to state in specific intervals.
@@ -222,7 +253,7 @@ void OffboardControl::timerUpdateStateMachine(void) {
             if (++num_of_steps > 10) {
                 RCLCPP_INFO(this->get_logger(), "Entered offboard mode");
                 RCLCPP_INFO(this->get_logger(), "Arming mode engaged");
-                state_ = State::ARMING_MODE;
+                state_ = State::ARM_MODE;
                 arm();
             }
         } else {
@@ -230,7 +261,7 @@ void OffboardControl::timerUpdateStateMachine(void) {
             rclcpp::shutdown();
         } 
 		break;
-    case State::ARMING_MODE:
+    case State::ARM_MODE:
         if(service_done_) {
 			if (service_result_==0) {
                 RCLCPP_INFO(this->get_logger(), "Vehicle armed");
@@ -267,41 +298,34 @@ void OffboardControl::timerUpdateStateMachine(void) {
     case State::TELEOP_MODE:
         teleop();
         break;
-    case State::NAVIGATION_MODE:
+    case State::LAND_MODE:
+        if(service_done_) {
+            if(service_result_==0 and curr_loc_.z >= -0.0) {
+                if (!msg_logged_) {
+                    RCLCPP_INFO(this->get_logger(), "Landing completed");
+                    RCLCPP_INFO(this->get_logger(), "Disarming mode engaged");
+                    state_ = State::DISARM_MODE;
+                    msg_logged_ = true;
+                    disarm();
+                } else {
+                    RCLCPP_ERROR(this->get_logger(), "Landing mode failed, exiting!");
+                    rclcpp::shutdown(); 
+                } 
+            } 
+        }
+        break;
+    case State::DISARM_MODE:
         if(service_done_) {
             if(service_result_==0) {
                 if (!msg_logged_) {
-                    RCLCPP_INFO(this->get_logger(), "Navigation mode engaged");
-                }
-            } 
-        } else {
-            RCLCPP_ERROR(this->get_logger(), "Navigation mode failed, exiting!");
-            rclcpp::shutdown();
-        } 
-        break;
-    case State::LANDING_MODE:
-        land();
-        if(service_done_) {
-            if(service_result_==0) {
-                    RCLCPP_INFO(this->get_logger(), "Landing completed");
-                    RCLCPP_INFO(this->get_logger(), "Disarming mode engaged");
-                    state_ = State::DISARMING_MODE;
-                    disarm();
-            } 
-        } else {
-            RCLCPP_ERROR(this->get_logger(), "Landing mode failed, exiting!");
-            rclcpp::shutdown();
-        }
-        break;
-    case State::DISARMING_MODE:
-        if(service_done_) {
-            if(service_result_==0) {
-                RCLCPP_INFO(this->get_logger(), "Vehicle disarmed!");
+                    RCLCPP_INFO(this->get_logger(), "Vehicle disarmed!");
+                    msg_logged_ = true;
+                } 
+            } else {
+                RCLCPP_ERROR(this->get_logger(), "Disarming mode failed, exiting!");
+                rclcpp::shutdown();
             }
-        } else {
-            RCLCPP_ERROR(this->get_logger(), "Disarming mode failed, exiting!");
-            rclcpp::shutdown();
-        }
+        } 
         break;
 	default:
         if (!msg_logged_) {
@@ -326,6 +350,7 @@ void OffboardControl::disarm() {
      */
     sendVehicleCommand(VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, 
         VehicleCommand::ARMING_ACTION_DISARM, 0.0); // param 2 = 0.0
+        msg_logged_ = false;
 }
 
 void OffboardControl::takeOff() {
@@ -350,6 +375,13 @@ void OffboardControl::takeOff() {
     }
 }
 
+void OffboardControl::land() {
+    /**
+     * @brief The landing process gets fully taken charged by PX4 and not by the program.
+     */
+    sendVehicleCommand(VehicleCommand::VEHICLE_CMD_NAV_LAND, 0.0, 0.0);
+}
+
 void OffboardControl::hover() {
     /**
      * @brief The drone hovers on position and checks if teleop mode is desired.
@@ -360,13 +392,6 @@ void OffboardControl::hover() {
     } else {
         publishTrajectorySetpoint(hover_pos_loc_.x, hover_pos_loc_.y, hover_pos_loc_.z, hover_pos_loc_.yaw);
     }
-}
-
-void OffboardControl::land() {
-    /**
-     * @brief The landing process gets fully taken charged by PX4 and not from the program.
-     */
-    sendVehicleCommand(VehicleCommand::VEHICLE_CMD_NAV_LAND, 0.0, 0.0);
 }
 
 void OffboardControl::teleop() {
@@ -433,20 +458,6 @@ void OffboardControl::goalPoseCallback(const px4_msgs::msg::PositionSetpointTrip
     }
 }
 
-void OffboardControl::velocityCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
-    /**
-     * @brief Publishes the twist commands from Teleop and converts NED -> FLU.
-     */
-    if (teleop_armed_) {
-        // NED -> FLU Transformation. FLU is the body frame coordinate system of the drone (Front-Left-Up)
-        velocity_.linear_x = msg->linear.x;     // Forward/Backward
-        velocity_.linear_y = msg->linear.y;     // Left/Right
-        velocity_.linear_z = -msg->linear.z;    // Convert ROS "Up" (+) to PX4 "Down" (-)
-        // A conversion for angular z is done in the vehicleAttitudeCallback method (it's the '-' in front of true_yaw)
-        cmd_yaw_ = msg->angular.z;
-    }
-}
-
 void OffboardControl::vehicleAttitudeCallback(const px4_msgs::msg::VehicleAttitude::SharedPtr msg) {
     /**
      * @brief Receives the current trajectory values from the drone and extracts the yaw value of the orientation.
@@ -461,14 +472,18 @@ void OffboardControl::vehicleAttitudeCallback(const px4_msgs::msg::VehicleAttitu
     true_yaw_ = -(std::atan2(2.0 * (q3 * q0 + q1 * q2), 1.0 - 2.0 * (q0 * q0 + q1 * q1)));
 }
 
-void OffboardControl::teleopArmedCallback(const std_msgs::msg::Bool::SharedPtr msg) {
+void OffboardControl::teleopArmedCallback(const std_msgs::msg::Int32::SharedPtr msg) {
     /**
      * @brief Changes the stat to TELEOP_MODE if the space bar was pressed. This starts user interaction.
      */
+    int cmd = msg->data;
 
-    if (msg->data == 1) {
-        teleop_armed_ = msg->data;
-        RCLCPP_INFO(this->get_logger(), "Arm Message:%i", teleop_armed_);
+    if (cmd == 1 or cmd == 0) {
+        teleop_armed_ = cmd;
+    } else if(cmd == 2) {
+        state_ = State::LAND_MODE;
+        RCLCPP_INFO(this->get_logger(), "Landing mode engaged. Disarming after landed.");
+        land();
     }
 }
 

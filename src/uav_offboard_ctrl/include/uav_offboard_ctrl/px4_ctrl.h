@@ -19,7 +19,7 @@
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist.hpp>
-#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/int32.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <cmath>
 
@@ -82,7 +82,7 @@ public:
     void statusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg);
     void vehicleAttitudeCallback(const px4_msgs::msg::VehicleAttitude::SharedPtr msg);
     void velocityCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
-    void teleopArmedCallback(const std_msgs::msg::Bool::SharedPtr msg);
+    void teleopArmedCallback(const std_msgs::msg::Int32::SharedPtr msg);
     void lidarScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
     void batteryStatusCallback(const px4_msgs::msg::BatteryStatus::SharedPtr msg);
     
@@ -96,17 +96,16 @@ private:
     void timerUpdateStateMachine(void);
 
     enum class State{
-		INIT_MODE,              // Initialization Mode
+        INIT_MODE,              // Initialization Mode
 		OFFBOARD_MODE,          // Flight Mode
-		ARMING_MODE,            // Flight Mode
-        DISARMING_MODE,         // Flight Mode
+		ARM_MODE,               // Flight Mode
+        DISARM_MODE,            // Flight Mode
         TAKEOFF_MODE,           // Flight Mode
         HOVER_MODE,             // Flight Mode
         POSITION_MODE,          // Flight Mode    
-        LANDING_MODE,           // Flight Mode
+        LAND_MODE,              // Flight Mode
         RTL_MODE,               // Flight Mode (Return To Land)
-        TELEOP_MODE,            // Teleoperation Mode
-        NAVIGATION_MODE         // Nav2 Navigation Mode (executes ROS2 Nav2 for navigation)
+        TELEOP_MODE             // Teleoperation Mode
 	} state_;
 
 	uint8_t service_result_;
@@ -137,9 +136,8 @@ private:
     rclcpp::Subscription<px4_msgs::msg::VehicleAttitude>::SharedPtr uav_attitude_sub_;
     rclcpp::Subscription<px4_msgs::msg::BatteryStatus>::SharedPtr battery_status_sub_;
     
-    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr uav_velocity_pub_;
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr uav_velocity_sub_;
-    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr teleop_armed_sub_;
+    rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr teleop_armed_sub_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr lidar_scan_sub_;
 
     rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
