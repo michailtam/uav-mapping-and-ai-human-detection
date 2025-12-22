@@ -9,21 +9,27 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(px4_msgs REQUIRED)
+find_package(px4_ros_com REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_eigen REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 ## CPP EXECUTABLES
-# include_directories(include)
+include_directories(include)
 
 ## Create the cpp executables
-# add_executable(cpp_node src/cpp_node.cpp)
-# ament_target_dependencies(cpp_node rclcpp)
+add_executable(odometry_to_vehicle_odometry src/ros_odometry_to_vehicle_odometry.cpp)
+ament_target_dependencies(odometry_to_vehicle_odometry rclcpp px4_msgs px4_ros_com tf2_ros tf2_eigen nav_msgs)
 
 # # Install C++ executables
-# install(TARGETS
-#   cpp_node
-#   DESTINATION lib/${PROJECT_NAME}
-# )
+install(TARGETS
+  odometry_to_vehicle_odometry
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 # Install Python scripts
 install(PROGRAMS
@@ -34,7 +40,7 @@ install(PROGRAMS
 )
 
 install(
-  DIRECTORY launch config maps bt
+  DIRECTORY launch config maps scripts 
   DESTINATION share/${PROJECT_NAME}
 )
 

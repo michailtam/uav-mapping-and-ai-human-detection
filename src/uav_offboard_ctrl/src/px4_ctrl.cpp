@@ -167,7 +167,7 @@ void OffboardControl::publishTrajectorySetpoint(float pos_x, float pos_y, float 
     // Check if position or velocity mode is desired
     TrajectorySetpoint traj_msg{};
 	if (std::isnan(pos_x)) {   // Velocity
-        RCLCPP_INFO(this->get_logger(), "YAW:%f", cmd_yaw_);
+        // RCLCPP_INFO(this->get_logger(), "YAW:%f", cmd_yaw_);
         traj_msg.position = {std::nanf(""), std::nanf(""), std::nanf("")};
         traj_msg.velocity = {vel_global_x, vel_global_y, velocity_.linear_z};
         traj_msg.yaw = std::nanf("");   // Must be NaN to use yawspeed
@@ -177,7 +177,7 @@ void OffboardControl::publishTrajectorySetpoint(float pos_x, float pos_y, float 
         traj_msg.velocity = {std::nanf(""), std::nanf(""), std::nanf("")};
         traj_msg.yaw = pos_yaw;
         traj_msg.yawspeed = std::nanf("");
-        RCLCPP_INFO(this->get_logger(), "POSITION:%f", pos_x);
+        // RCLCPP_INFO(this->get_logger(), "POSITION:%f", pos_x);
     }
 
     traj_msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
@@ -224,8 +224,6 @@ void OffboardControl::velocityCallback(const geometry_msgs::msg::Twist::SharedPt
         velocity_.linear_z = -msg->linear.z;    // Convert ROS "Up" (+) to PX4 "Down" (-) - Z (FLU) is -Z (NED)
         // A conversion for angular z is done in the vehicleAttitudeCallback method (it's the '-' in front of true_yaw)
         cmd_yaw_ = msg->angular.z;
-
-        RCLCPP_INFO(this->get_logger(), "angz:%f", cmd_yaw_);
     }
 }
 

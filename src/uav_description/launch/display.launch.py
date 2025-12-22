@@ -9,22 +9,24 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
+
     # Package and file paths
-    share_dir = get_package_share_directory('uav_description')
-    rviz_config_file = os.path.join(share_dir, 'rviz', 'rviz_conf_new.rviz')
+    pkg_uav_description_share_dir = get_package_share_directory('uav_description')
+    pkg_uav_mapping_share_dir = get_package_share_directory('uav_mapping')
+    rviz_config_file = os.path.join(pkg_uav_mapping_share_dir, 'rviz', 'default_config.rviz')
 
     # Create the robot_description from xacro file
-    xacro_file = os.path.join(share_dir, 'urdf', 'uav.urdf.xacro') 
+    xacro_file = os.path.join(pkg_uav_description_share_dir, 'urdf', 'uav.urdf.xacro') 
     robot_description_config = xacro.process_file(xacro_file)
     robot_urdf = robot_description_config.toxml()
 
     # Declare launch arguments and default parameters
-    gui = LaunchConfiguration('gui')
+    use_rviz = LaunchConfiguration('use_rviz'),
     use_sim_time = LaunchConfiguration('use_sim_time')
 
-    gui_arg = DeclareLaunchArgument(
-        name='gui',
-        default_value='true'
+    use_rviz_decl = DeclareLaunchArgument(
+        name='use_rviz',
+        default_value='false'
     )
 
     use_sim_time_arg = DeclareLaunchArgument(
@@ -32,7 +34,7 @@ def generate_launch_description():
         default_value='true'
     )
 
-    # Create the robot-state-publisher node
+    # Launch the robot-state-publisher node
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -42,18 +44,18 @@ def generate_launch_description():
                 'robot_description': robot_urdf
             }])
 
-    # Create RViz node
+    # Launch RViz node
     rviz_node = Node(
-        condition=IfCondition(gui),
+        condition=IfCondition(use_rviz),
         package='rviz2',
         executable='rviz2',
-        name='rviz2',
+        output='screen',
         arguments=['-d', rviz_config_file],
-        output='screen'
+        parameters=[{"use_sim_time": use_sim_time}]
     )
 
     ld = LaunchDescription()
-    ld.add_action(gui_arg)
+    ld.add_action(use_rviz_decl)
     ld.add_action(use_sim_time_arg)
     ld.add_action(robot_state_publisher_node)
     ld.add_action(rviz_node)

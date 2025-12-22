@@ -8,20 +8,25 @@
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <build_depend>rosidl_default_generators</build_depend>
 
   <depend>rclcpp</depend>
   <depend>rclpy</depend>
+  <depend>px4_msgs</depend>
+  <depend>px4_ros_com</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_eigen</depend>
+  <depend>nav_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
 
-  <exec_depend>rplidar_ros</exec_depend>
-  <exec_depend>slam_toolbox</exec_depend>
+  <!-- <exec_depend>slam_toolbox</exec_depend>
   <exec_depend>map_saver_server</exec_depend>
   <exec_depend>nav2_lifecycle_manager</exec_depend>
-  <exec_depend>simple_commander</exec_depend>
+  <exec_depend>simple_commander</exec_depend> -->
 
   <exec_depend>rosidl_default_runtime</exec_depend>
   <member_of_group>rosidl_interface_packages</member_of_group>
+  <build_depend>rosidl_default_generators</build_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
