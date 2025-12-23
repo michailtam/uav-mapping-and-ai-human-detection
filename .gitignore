@@ -11,7 +11,4 @@ Logs/
 #**/models
 
 # Exclude specific PX4 folders
-**/PX4-Autopilot
-**/Micro-XRCE-DDS-Agent
-**/px4_msgs
-**/px4_ros_com
+**/ROS2_PX4_Offboard_Example

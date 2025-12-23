@@ -18,7 +18,7 @@ def launch_setup(context, *args, **kwargs):
         'frame_id':'base_link',
         'odom_frame_id': 'x650_0/odom',
         'guess_frame_id':'base_link_stabilized',
-        'approx_sync': False,
+        'approx_sync': True,
         'use_sim_time': use_sim_time,
         'subscribe_rgbd':True,
         'subscribe_odom_info':False,
@@ -39,10 +39,9 @@ def launch_setup(context, *args, **kwargs):
         'RGBD/StartAtOrigin': 'true'
     }
     
-    vslam_remappings=[('/imu/data', '/imu/data_raw'),  # Required for SLAM stability
-                      ('/map', '/map'),  # This is where the 2D occupancy grid is published for visualization
-                      ('/camera/image','/camera/rgb/image'),
-                      ('/camera/camera_info','/camera/rgb/camera_info'),
+    vslam_remappings=[('/map', '/map'),  # This is where the 2D occupancy grid is published for visualization
+                      ('/camera/image','/camera/image'),
+                      ('/camera/camera_info','/camera/camera_info'),
                       ('/camera/depth_image','/camera/depth/image'),
                     # ('navigate_to_pose', '/navigate_to_pose'), # nav2 action server
                       # For humble: https://github.com/ros2/ros2/issues/1312
@@ -53,11 +52,11 @@ def launch_setup(context, *args, **kwargs):
                     # ('navigate_to_pose/_action/send_goal', '/navigate_to_pose/_action/send_goal'),
                       ]
     
-    pkg_uav_navigation_share_dir = get_package_share_directory('uav_navigation')
-    nav2_params_file = os.path.join(pkg_uav_navigation_share_dir, 'config','nav2_params.yaml')
+    # pkg_uav_navigation_share_dir = get_package_share_directory('uav_navigation')
+    # nav2_params_file = os.path.join(pkg_uav_navigation_share_dir, 'config','nav2_params.yaml')
 
-    pkg_nav2_bringup_share_dir = get_package_share_directory('nav2_bringup')
-    nav2_launch = PathJoinSubstitution([pkg_nav2_bringup_share_dir, 'launch', 'navigation_launch.py'])
+    # pkg_nav2_bringup_share_dir = get_package_share_directory('nav2_bringup')
+    # nav2_launch = PathJoinSubstitution([pkg_nav2_bringup_share_dir, 'launch', 'navigation_launch.py'])
     
     rviz_config_file = os.path.join(
         get_package_share_directory('uav_mapping'), 'rviz', 'slam_config.rviz')
@@ -67,6 +66,7 @@ def launch_setup(context, *args, **kwargs):
         # compute imu orientation
         Node(
             package='imu_filter_madgwick', executable='imu_filter_madgwick_node', output='screen',
+            remappings=[('/imu/data_raw', '/imu/data_raw')], 
             parameters=[{
               'use_mag':False,
               'world_frame':'enu',
@@ -85,9 +85,9 @@ def launch_setup(context, *args, **kwargs):
             package='rtabmap_sync', executable='rgbd_sync', output='screen',
             namespace='rtabmap',
             parameters=[vslam_params],
-            remappings=[('rgb/image', '/camera/rgb/image'),             
-                        ('rgb/camera_info', '/camera/rgb/camera_info'),     
-                        ('depth/image', '/camera/depth/image')]),       
+            remappings=[('/camera/image', '/camera/image'),             
+                        ('/camera/camera_info', '/camera/camera_info'),     
+                        ('/camera/depth/image', '/camera/depth/image')]),       
 
         Node(
             package='rtabmap_odom', executable='rgbd_odometry', output='screen',
@@ -183,17 +183,16 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='base_link_to_footprint',
-            arguments=['0', '0', '0', '0', '0', '0', 'x650_0/base_footprint', 'base_link']
+            name='odom_to_stabilized_bridge',
+            arguments=['0', '0', '0', '0', '0', '0', '1', 'x650_0/base_footprint', 'base_link_stabilized']
         ),
 
-        # IncludeLaunchDescription(
-        #     PythonLaunchDescriptionSource([nav2_launch]),
-        #     launch_arguments=[
-        #         ('use_sim_time', 'true'),
-        #         ('params_file', nav2_params_file)
-        #     ]
-        # )
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='imu_sensor_bridge',
+            arguments=['0', '0', '0', '0', '0', '0', '1', 'base_link', 'x650_0/base_link/imu_sensor']
+        )
     ]
     
 def generate_launch_description():
