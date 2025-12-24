@@ -16,7 +16,7 @@ wmctrl -r "Micro-XRCE-DDS-Agent" -b add,hidden
 gnome-terminal --title="ROS-GZ-Bridge" --window --geometry=80x24+0+0 -- bash -c "source install/setup.bash && ros2 launch uav_simulation ros_gz_bridge.launch.py; exec bash" &
 wmctrl -r "ROS GZ Bridge" -b add,hidden
 
-# Terminal 5 (named & minimized): Start Nav 2 and SLAM
+# # Terminal 5 (named & minimized): Start Object Detection (i.e. human)
 gnome-terminal --title="Object Detection" --window --geometry=80x24+0+0 -- bash -c "source install/setup.bash && ros2 run uav_vision object_detection; exec bash" &
 wmctrl -r "Object Detection" -b add,hidden
 

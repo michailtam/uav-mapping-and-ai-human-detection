@@ -11,12 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=[
-        'setuptools',
-        'ultralytics<=8.2.70',
-        'numpy<2.0.0',
-        'opencv-python<=4.10.0.84',
-    ],
+    install_requires=['setuptools'],
     zip_safe=True,
     maintainer='mikelap',
     maintainer_email='mi.tamvak@gmail.com',

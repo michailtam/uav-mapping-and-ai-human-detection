@@ -64,8 +64,44 @@
     </spherical_coordinates>
 
     <!-- Dynamic objects -->
-
+    
     <!-- First Actor -->
+    <actor name="standing_suspect">
+      <pose>135 15 1.0 0 0 0</pose>
+      <link name='link'>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.166667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.166667</iyy>
+            <iyz>0</iyz>
+            <izz>0.166667</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.5 1.5 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <skin>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+
+      <script>
+        <loop>true</loop>
+        <delay_start>0.0</delay_start>
+        <auto_start>true</auto_start>
+      </script>
+    </actor>
+
+    <!-- Second Actor -->
     <actor name="walking_suspect">
       <link name='link'>
         <inertial>
@@ -135,6 +171,42 @@
             <pose>150 -5 1.0 0 0 0</pose>
           </waypoint>
         </trajectory>
+      </script>
+    </actor>
+
+    <!-- Third Actor -->
+    <actor name="temp">
+      <pose>10 -2 1.0 0 0 0</pose>
+      <link name='link'>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.166667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.166667</iyy>
+            <iyz>0</iyz>
+            <izz>0.166667</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.5 1.5 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <skin>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+
+      <script>
+        <loop>true</loop>
+        <delay_start>0.0</delay_start>
+        <auto_start>true</auto_start>
       </script>
     </actor>
     
