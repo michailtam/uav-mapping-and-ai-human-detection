@@ -154,6 +154,7 @@ def main():
 
         pub.publish(twist)
 
+
     # -------------------------------------------------------------------------------
 
     rclpy.init()
@@ -219,6 +220,9 @@ def main():
         twist.angular.y = 0.0
         twist.angular.z = 0.0
         pub.publish(twist)
+
+        node.get_logger().info("Keyboard teleop shutdown")
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
