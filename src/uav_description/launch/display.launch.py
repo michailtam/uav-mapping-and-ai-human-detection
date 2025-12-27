@@ -12,8 +12,7 @@ def generate_launch_description():
 
     # Package and file paths
     pkg_uav_description_share_dir = get_package_share_directory('uav_description')
-    pkg_uav_mapping_share_dir = get_package_share_directory('uav_mapping')
-    rviz_config_file = os.path.join(pkg_uav_mapping_share_dir, 'rviz', 'default_config.rviz')
+    rviz_config_file = os.path.join(pkg_uav_description_share_dir, 'rviz', 'default_config.rviz')
 
     # Create the robot_description from xacro file
     xacro_file = os.path.join(pkg_uav_description_share_dir, 'urdf', 'uav.urdf.xacro') 

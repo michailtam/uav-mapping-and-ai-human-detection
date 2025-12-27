@@ -175,8 +175,8 @@
     </actor>
 
     <!-- Third Actor -->
-    <actor name="temp">
-      <pose>10 -2 1.0 0 0 0</pose>
+    <!-- <actor name="temp">
+      <pose>10 -2 0.1 0 0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -208,7 +208,7 @@
         <delay_start>0.0</delay_start>
         <auto_start>true</auto_start>
       </script>
-    </actor>
+    </actor> -->
     
   </world>
 </sdf>
