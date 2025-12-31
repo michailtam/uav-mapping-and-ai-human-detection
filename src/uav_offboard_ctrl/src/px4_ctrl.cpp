@@ -325,6 +325,19 @@ void OffboardControl::timerUpdateStateMachine(void) {
             }
         } 
         break;
+    case State::RTL_MODE:
+        if(service_done_) {
+            if(service_result_==0) {
+                if (!msg_logged_) {
+                    RCLCPP_INFO(this->get_logger(), "Vehicle returned to base and landed!");
+                    msg_logged_ = true;
+                } 
+            } else {
+                RCLCPP_ERROR(this->get_logger(), "RTL mode failed, exiting!");
+                rclcpp::shutdown();
+            }
+        } 
+        break;
 	default:
         if (!msg_logged_) {
             RCLCPP_INFO(this->get_logger(), "Unknown state mode!");
@@ -378,6 +391,13 @@ void OffboardControl::land() {
      * @brief The landing process gets fully taken charged by PX4 and not by the program.
      */
     sendVehicleCommand(VehicleCommand::VEHICLE_CMD_NAV_LAND, 0.0, 0.0);
+}
+
+void OffboardControl::RTL() {
+    /**
+     * @brief This engages the Return To Land process that gets fully taken charged by PX4 and not by the program.
+     */
+    sendVehicleCommand(VehicleCommand::VEHICLE_CMD_NAV_RETURN_TO_LAUNCH, 0.0, 0.0);
 }
 
 void OffboardControl::hover() {
@@ -482,6 +502,10 @@ void OffboardControl::teleopArmedCallback(const std_msgs::msg::Int32::SharedPtr 
         state_ = State::LAND_MODE;
         RCLCPP_INFO(this->get_logger(), "Landing mode engaged. Disarming after landed.");
         land();
+    } else if(cmd == 3) {
+        state_ = State::RTL_MODE;
+        RCLCPP_INFO(this->get_logger(), "RTL mode engaged. Disarming after landed.");
+        RTL();
     }
 }
 

@@ -75,6 +75,7 @@ public:
     void takeOff();
     void hover();
     void land();
+    void RTL();
     void teleop();
     void run();
     void localPoseCallback(const px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);

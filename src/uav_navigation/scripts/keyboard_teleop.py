@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""unct
+"""
 This file contains functions on how to teleop a drone. When an key gets released the value gets set to zero.
 Example: When the key for forward pitch was pressed the drone flies forward, and when it get's released
 the drone stops.
@@ -28,18 +28,19 @@ Using the arrow keys and WASD you have Mode 2 RC controls.
 
 ########################## MOVEMENT ##########################
 #                                                            #
-#       w: Up                                                #
-#       s: Down                                              #
-#       a: Yaw Left                                          #
-#       d: Yaw Right                                         #
-#       Up Arrow: Pitch Forward                              #
-#       Down Arrow: Pitch Backward                           #
-#       Left Arrow: Roll Left                                #
-#       Right Arrow: Roll Right                              #
+#       (w): Up                                              #
+#       (s): Down                                            #
+#       (a): Yaw Left                                        #
+#       (d): Yaw Right                                       #
+#       (Up Arrow): Pitch Forward                            #
+#       (Down Arrow): Pitch Backward                         #
+#       (Left Arrow): Roll Left                              #
+#       (Right Arrow): Roll Right                            #
+#                                                            #                             
+#       Press (SPACE) to arm/disarm the drone                #
 #                                                            #
-#       Press SPACE to arm/disarm the drone                  #
-#                                                            #
-#       Press ESC to quit the application                    #
+#       Press (R) to return to base                          #
+#       Press (ESC) to quit the application                  #
 #                                                            #
 ##############################################################
 """
@@ -87,7 +88,7 @@ def main():
                 x_val = (x * speed) + x_val
                 y_val = (y * speed) + y_val
                 z_val = (z * speed) + z_val
-                yaw_val = (th * turn) + yaw_val
+                # yaw_val = (th * turn) + yaw_val
                 
                 # # Keep value between -pi and pi
                 # if yaw_val > math.pi: yaw_val -= 2 * math.pi
@@ -100,7 +101,7 @@ def main():
                 twist.linear.z = float(z * speed)
                 twist.angular.x = 0.0
                 twist.angular.y = 0.0
-                twist.angular.z = float(th * turn)
+                twist.angular.z = float(th * turn)  # 1*(-1) or 1*(1) -> velocity multiplication factor
                 pub.publish(twist)
 
                 print("X:",twist.linear.x, "   Y:",twist.linear.y, "   Z:",twist.linear.z, "   Yaw:",twist.angular.z)
@@ -119,6 +120,12 @@ def main():
             teleop_cmd_pub.publish(arm_msg)
             print(f"Landing engaged")
             has_takeoff = False
+
+        if isinstance(key_ch, str) and key_ch.lower() == 'r':  # RTL
+            arm_msg = std_msgs.msg.Int32()
+            arm_msg.data = 3
+            teleop_cmd_pub.publish(arm_msg)
+            print(f"RTL engaged")
         
         elif key == Key.esc:  # End/Quit
             # Stop listener
@@ -177,7 +184,7 @@ def main():
     arm_toggle = False
 
     speed = 5.0     # Moves at 5 meters per second
-    turn = 5.0      # Rotates at 5 radians per second (approx 115 degrees/sec)
+    turn = 1.0      # Rotates at 1 radians per second
     x = 0.0
     y = 0.0
     z = 0.0
