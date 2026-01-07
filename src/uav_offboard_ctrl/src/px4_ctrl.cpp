@@ -27,14 +27,6 @@ OffboardControl::OffboardControl() : Node("offboard_ctrl"),
         RCLCPP_INFO(this->get_logger(), "Service not available, waiting again...");
     }
 
-    // At startup, set all the scan distances to infinity
-    scan_dist_ = {
-        std::numeric_limits<float>::infinity(),
-        std::numeric_limits<float>::infinity(),
-        std::numeric_limits<float>::infinity(),
-        std::numeric_limits<float>::infinity()
-    };
-
     timer_ = this->create_wall_timer(100ms, std::bind(&OffboardControl::timerUpdateStateMachine, this)); // 10 Hz
 
     // To correctly receive data, set the quality of service
