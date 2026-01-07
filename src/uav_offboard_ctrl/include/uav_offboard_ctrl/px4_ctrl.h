@@ -122,8 +122,7 @@ private:
     bool key_pressed_ = false; // Determines if a key for velocity was pressed by the teleop node
 
     px4_msgs::msg::VehicleStatus::SharedPtr vehicle_status_msg_;
-    sensor_msgs::msg::LaserScan::SharedPtr lidar_scan_msg_;
-
+    
     rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_ctrl_mode_pub_;
     rclcpp::Publisher<TrajectorySetpoint>::SharedPtr traj_setpoint_pub_;
     rclcpp::Subscription<px4_msgs::msg::HomePosition>::SharedPtr uav_home_pos_sub_;
@@ -149,7 +148,6 @@ private:
     PosInWGS84 home_glob_;       // Global home position coordinates in NED
     PosInENU hover_pos_loc_;     // Fixed hover position
     Velocity velocity_;          // The linear and angular velocities to publish to PX4
-    ScanDistance scan_dist_;     // The distances detected by the lidar scanner
 };
 
 #endif
