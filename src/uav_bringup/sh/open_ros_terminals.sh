@@ -13,7 +13,7 @@ gnome-terminal --title="ROS-GZ-Bridge" --window --geometry=80x24+0+0 -- bash -c 
 wmctrl -r "ROS GZ Bridge" -b add,hidden
 
 # Terminal 4 (named & minimized): Start Mapping
-gnome-terminal --title="Object Detection" --window --geometry=80x24+0+0 -- bash -c "source install/setup.bash && ros2 launch uav_mapping rtabmap_online.launch.py; exec bash" &
+gnome-terminal --title="Mapping" --window --geometry=80x24+0+0 -- bash -c "source install/setup.bash && ros2 launch uav_mapping rtabmap_online.launch.py; exec bash" &
 wmctrl -r "Mapping" -b add,hidden
 
 # Terminal 5 (named & minimized): Start Object Detection

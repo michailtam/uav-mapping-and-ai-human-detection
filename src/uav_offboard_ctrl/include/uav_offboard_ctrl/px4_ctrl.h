@@ -84,7 +84,6 @@ public:
     void vehicleAttitudeCallback(const px4_msgs::msg::VehicleAttitude::SharedPtr msg);
     void velocityCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
     void teleopArmedCallback(const std_msgs::msg::Int32::SharedPtr msg);
-    void lidarScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
     void batteryStatusCallback(const px4_msgs::msg::BatteryStatus::SharedPtr msg);
     
 private:
@@ -115,14 +114,12 @@ private:
 	rclcpp::TimerBase::SharedPtr timer_;
     std::vector<PosInENU> trajectory_;
     size_t trajectory_index_ = 0;
-    bool navigating_ = false;
     bool msg_logged_ = false;
-    bool home_pos_set_ = false;
     bool teleop_armed_ = false;
-    bool target_pos_set_ = false;
     float true_yaw_ = 0.0;  // Current yaw value of drone
     float cmd_yaw_ = 0.0;    // The yaw value send as command
-    float battery_status_perc_;  
+    float battery_status_perc_;  // Saves the battery status in percent
+    bool key_pressed_ = false; // Determines if a key for velocity was pressed by the teleop node
 
     px4_msgs::msg::VehicleStatus::SharedPtr vehicle_status_msg_;
     sensor_msgs::msg::LaserScan::SharedPtr lidar_scan_msg_;
@@ -137,11 +134,12 @@ private:
     rclcpp::Subscription<px4_msgs::msg::VehicleAttitude>::SharedPtr uav_attitude_sub_;
     rclcpp::Subscription<px4_msgs::msg::BatteryStatus>::SharedPtr battery_status_sub_;
     
+    // Twist message subscribers for teleop
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr uav_velocity_sub_;
     rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr teleop_armed_sub_;
-    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr lidar_scan_sub_;
-
-    rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;
+    
+    // Service for vehicle commands
+    rclcpp::Client<px4_msgs::srv::VehicleCommand>::SharedPtr vehicle_cmd_client_;   
     
     PosInENU curr_loc_;          // Local position coordinates in NED
     PosInWGS84 curr_glob_;       // Global position coordinates in WGS84
@@ -151,7 +149,7 @@ private:
     PosInWGS84 home_glob_;       // Global home position coordinates in NED
     PosInENU hover_pos_loc_;     // Fixed hover position
     Velocity velocity_;          // The linear and angular velocities to publish to PX4
-    ScanDistance scan_dist_;     // The distances detected by the lidar scanner  
+    ScanDistance scan_dist_;     // The distances detected by the lidar scanner
 };
 
 #endif

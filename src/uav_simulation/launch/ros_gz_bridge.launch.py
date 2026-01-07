@@ -50,7 +50,6 @@ def generate_launch_description():
     ld = LaunchDescription()
     ld.add_action(gazebo_ros_bridge_cmd)
     ld.add_action(odom_to_tf_node)
-    # ld.add_action(image_tools_rgb_node)
     ld.add_action(offboard_ctrl_node)
 
     return ld
