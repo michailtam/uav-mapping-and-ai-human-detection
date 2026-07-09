@@ -238,7 +238,7 @@
         </camera>
         <always_on>true</always_on>
         <topic>camera</topic>
-        <update_rate>5</update_rate>
+        <update_rate>100</update_rate>
         <visualize>true</visualize>
       </sensor>
 
@@ -246,7 +246,7 @@
       <sensor name="laser_sensor" type="gpu_lidar">
         <pose>-0.00044268 -0.00016922 0.12747 0.0038504 -0.0036204 -0.013619</pose>
         <topic>scan</topic>
-        <update_rate>5</update_rate>
+        <update_rate>100</update_rate>
         <always_on>true</always_on>
         <visualize>true</visualize>
         <gz_frame_id>lidar_link</gz_frame_id>

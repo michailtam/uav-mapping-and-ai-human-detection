@@ -174,7 +174,6 @@ void OffboardControl::publishTrajectorySetpoint(float pos_x, float pos_y, float 
 
     traj_msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
     traj_setpoint_pub_->publish(traj_msg);
-    key_pressed_ = false;
 }
 
 void OffboardControl::sendVehicleCommand(uint16_t command, float param1, float param2) {
@@ -215,9 +214,12 @@ void OffboardControl::velocityCallback(const geometry_msgs::msg::Twist::SharedPt
         velocity_.linear_x = msg->linear.x;    // Forward/Backward - X (FLU) is -Y (NED)
         velocity_.linear_y = msg->linear.y;     // Left/Right - Y (FLU) is X (NED)
         velocity_.linear_z = -msg->linear.z;    // Convert ROS "Up" (+) to PX4 "Down" (-) - Z (FLU) is -Z (NED)
-        // A conversion for angular z is done in the vehicleAttitudeCallback method (it's the '-' in front of true_yaw)
-        cmd_yaw_ = msg->angular.z;
-        key_pressed_ = true;
+        
+        if (velocity_.linear_x != 0 || velocity_.linear_y != 0 || velocity_.linear_z != 0 || cmd_yaw_ != 0) {
+            key_pressed_ = true;
+        } else {
+            key_pressed_ = false; // If key gets released return to position (Hover)
+        }
     }
 }
 
@@ -417,11 +419,12 @@ void OffboardControl::teleop() {
     // Passing NaNs tells the function to use velocity control
     if (teleop_armed_ && key_pressed_) {
         publishTrajectorySetpoint(std::nanf(""), std::nanf(""), std::nanf(""), std::nanf(""));
+    } else if(!key_pressed_) {  // Position control
         hover_pos_loc_.x = curr_loc_.x;
         hover_pos_loc_.y = curr_loc_.y;
         hover_pos_loc_.z = curr_loc_.z;
         hover_pos_loc_.yaw = curr_loc_.yaw;
-    } else if(!key_pressed_) {  // Position control
+        
         publishTrajectorySetpoint(hover_pos_loc_.x, hover_pos_loc_.y, hover_pos_loc_.z, hover_pos_loc_.yaw);
     }
 }
@@ -503,7 +506,7 @@ void OffboardControl::teleopArmedCallback(const std_msgs::msg::Int32::SharedPtr 
         land();
     } else if(cmd == 3) {
         state_ = State::RTL_MODE;
-        RCLCPP_INFO(this->get_logger(), "RTL mode engaged. Disarming after landed.");
+        RCLCPP_INFO(this->get_logger(), "RTL mode engaged. Disarming after UAV has landed.");
         RTL();
     }
 }

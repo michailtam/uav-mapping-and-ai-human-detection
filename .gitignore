@@ -9,6 +9,3 @@ Logs/
 
 # Exclude Gazebo folders
 #**/models
-
-# Exclude specific PX4 folders
-**/ROS2_PX4_Offboard_Example

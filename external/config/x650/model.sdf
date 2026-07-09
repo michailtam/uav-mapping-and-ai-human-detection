@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sdf version="1.11">
+  <model name="x650">
+    <self_collide>false</self_collide>
+    <static>false</static>
+
+    <link name="base_link">
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>3.0871299224127111</mass>
+        <inertia>
+          <ixx>0.0057000452252874154</ixx>
+          <ixy>-8.1589121398996725e-05</ixy>
+          <ixz>0.00039875383293580102</ixz>
+          <iyy>0.01291048663697434</iyy>
+          <iyz>-0.00015981137616381371</iyz>
+          <izz>0.0085467646528533062</izz>
+        </inertia>
+      </inertial>
+      <gravity>true</gravity>
+      <velocity_decay />
+      <collision name="base_link_collision">
+        <pose>0 0 -0.26 0 0 0</pose>  <!-- NOTE: Adjust the pose according to the word surface-->
+        <geometry>
+          <cylinder>
+            <!-- tune to your frame size; small footprint so the craft can lift cleanly -->
+            <radius>0.12</radius>
+            <length>0.06</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <min_depth>0.001</min_depth>
+              <max_vel>0</max_vel>
+            </ode>
+          </contact>
+          <friction>
+            <ode />
+          </friction>
+        </surface>
+      </collision>
+      <visual name="base_link_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/base_link.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <specular>1 1 1 1</specular>
+          <pbr>
+            <metal>
+              <metalness>1.0</metalness>  
+              <roughness>0.3</roughness> 
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+
+      <visual name="base_link_fixed_joint_lump__depth_camera_link_visual_1">
+        <pose>0.13758 -0.00058142 -0.0090308 -3.1377 -0.0036204 -0.013619</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/depth_camera_link.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <specular>1 1 1 1</specular>
+          <pbr>
+            <metal>
+              <metalness>0.0</metalness>  
+              <roughness>0.2</roughness>  
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+
+      <visual name="base_link_fixed_joint_lump__gps_module_link_visual_2">
+        <pose>-0.13598 0.0015189 0.10049 0.0025723 0.004617 -1.8307</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/gps_module_link.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 1</ambient>
+          <diffuse>0.1 0.1 0.1 1</diffuse>
+          <specular>1 1 1 1</specular>
+          <pbr>
+            <metal>
+              <!-- <albedo_map>model://uav_simulation/materials/textures/black_base.png</albedo_map> -->
+              <metalness>0.9</metalness>  
+              <roughness>0.2</roughness>  
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+
+      <visual name="base_link_fixed_joint_lump__lidar_link_visual_3">
+        <pose>-0.00044268 -0.00016922 0.12747 0.0038504 -0.0036204 -0.013619</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/lidar_link.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>1 1 1 1</specular>
+          <pbr>
+            <metal>
+              <metalness>0.9</metalness>  
+              <roughness>0.3</roughness>  
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+
+      <gravity>true</gravity>
+
+      <!-- Sensors -->
+      <sensor name="air_pressure_sensor" type="air_pressure">
+        <pose relative_to="base_link">0 0 0 0 0 0</pose>
+        <always_on>1</always_on>
+        <update_rate>75</update_rate>
+        <air_pressure>
+          <pressure>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>3</stddev>
+            </noise>
+          </pressure>
+        </air_pressure>
+      </sensor>
+
+      <sensor name="magnetometer_sensor" type="magnetometer">
+        <pose relative_to="base_link">0 0 0 0 0 0</pose>
+        <always_on>1</always_on>
+        <update_rate>50</update_rate>
+        <magnetometer>
+          <x>
+            <noise type="gaussian">
+              <stddev>0.0001</stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian">
+              <stddev>0.0001</stddev>
+            </noise>
+          </y>
+          <z>
+            <noise type="gaussian">
+              <stddev>0.0001</stddev>
+            </noise>
+          </z>
+        </magnetometer>
+      </sensor>
+
+      <sensor name="imu_sensor" type="imu">
+        <pose relative_to="base_link">0 0 0 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <imu>
+          <angular_velocity>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>2e-4</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>2e-4</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>2e-4</stddev>
+              </noise>
+            </z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>1.7e-2</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>1.7e-2</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>1.7e-2</stddev>
+              </noise>
+            </z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+
+      <sensor name="navsat_sensor" type="navsat">
+        <pose relative_to="base_link">0 0 0 0 0 0</pose>
+        <always_on>1</always_on>
+        <update_rate>10</update_rate>
+        <navsat/>
+      </sensor>
+
+      <!-- RGB-D camera -->
+      <sensor name="rgbd_cam" type="rgbd_camera">
+        <pose>0 0 0 0 0 0</pose>
+        <camera>
+          <horizontal_fov>1.2</horizontal_fov>
+          <image>
+            <width>600</width>
+            <height>480</height>
+            <format>RGB_INT8</format>
+          </image>
+          <clip>
+            <near>0.6</near>
+            <far>100.0</far>
+          </clip>
+          <point_cloud>true</point_cloud>
+        </camera>
+        <always_on>true</always_on>
+        <topic>camera</topic>
+        <update_rate>100</update_rate>
+        <visualize>true</visualize>
+      </sensor>
+
+      <!-- 2D LiDAR -->
+      <sensor name="laser_sensor" type="gpu_lidar">
+        <pose>-0.00044268 -0.00016922 0.12747 0.0038504 -0.0036204 -0.013619</pose>
+        <topic>scan</topic>
+        <update_rate>100</update_rate>
+        <always_on>true</always_on>
+        <visualize>true</visualize>
+        <gz_frame_id>lidar_link</gz_frame_id>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>360</samples>
+              <resolution>1</resolution>
+              <min_angle>0.000000</min_angle>
+              <max_angle>6.280000</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>1</samples>
+              <resolution>1</resolution>
+              <min_angle>0</min_angle>
+              <max_angle>0</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.2</min>
+            <max>12.0</max>
+            <resolution>0.001</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </lidar>
+      </sensor>
+    </link>
+
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <plugin filename="gz-sim-air-pressure-system" name="gz::sim::systems::AirPressure"/>
+    <plugin filename="gz-sim-air-speed-system" name="gz::sim::systems::AirSpeed"/>
+    <plugin filename="gz-sim-apply-link-wrench-system" name="gz::sim::systems::ApplyLinkWrench"/>
+    <plugin filename="gz-sim-navsat-system" name="gz::sim::systems::NavSat"/>
+    <plugin filename="gz-sim-magnetometer-system" name="gz::sim::systems::Magnetometer"/>
+    
+    <!-- Motors -->
+    <joint name="front_prop_cw_joint" type="revolute">
+      <pose relative_to="base_link">0.23106 0.22649 0.090005 0 0 0</pose>
+      <parent>base_link</parent>
+      <child>front_prop_cw_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="front_prop_cw_link">
+      <gravity>true</gravity>
+      <self_collide>false</self_collide>
+      <velocity_decay />
+      <pose relative_to="front_prop_cw_joint">0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>1.89889458346304e-06 -0.000131188965704798 0.00588670324654172 0 0 0</pose>
+        <mass>0.0232860557198823</mass>
+        <inertia>
+          <ixx>6.4876167457581197e-07</ixx>
+          <ixy>-1.71419194967408e-07</ixy>
+          <ixz>1.28654962833368e-10</ixz>
+          <iyy>2.84759689374051e-05</iyy>
+          <iyz>5.3921637440474097e-11</iyz>
+          <izz>2.9078525271559699e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name="front_prop_cw_link_collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.06</radius>
+            <length>0.005</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <min_depth>0.001</min_depth>
+              <max_vel>0</max_vel>
+            </ode>
+          </contact>
+          <friction>
+            <ode />
+          </friction>
+        </surface>
+      </collision>
+      <visual name="front_prop_cw_link_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/front_prop_cw_link.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.05 0.05 0.05 1</ambient>
+          <diffuse>0.15 0.15 0.15 1</diffuse>
+          <specular>1 1 1 1</specular>
+          <pbr>
+            <metal>
+              <metalness>1.0</metalness>  
+              <roughness>0.2</roughness> 
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="back_prop_cw_joint" type="revolute">
+      <pose relative_to="base_link">-0.23496 -0.22701 0.086701 0 0 0</pose>
+      <parent>base_link</parent>
+      <child>back_prop_cw_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="back_prop_cw_link">
+      <gravity>true</gravity>
+      <self_collide>false</self_collide>
+      <velocity_decay />
+      <pose relative_to="back_prop_cw_joint">0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>2.5989393493130999e-06 -0.00013126973913305 0.00575531220060893 0 0 0</pose>
+        <mass>0.0232866239768517</mass>
+        <inertia>
+          <ixx>6.4878960917419903e-07</ixx>
+          <ixy>-1.71375304374027e-07</ixy>
+          <ixz>1.27526457477932e-10</ixz>
+          <iyy>2.8477411358960901e-05</iyy>
+          <iyz>5.4816733334785403e-11</iyz>
+          <izz>2.90799957464871e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name="back_prop_cw_link_collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.06</radius>
+            <length>0.005</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <min_depth>0.001</min_depth>
+              <max_vel>0</max_vel>
+            </ode>
+          </contact>
+          <friction>
+            <ode />
+          </friction>
+        </surface>
+      </collision>
+      <visual name="back_prop_cw_link_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/back_prop_cw_link.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.05 0.05 0.05 1</ambient>
+          <diffuse>0.15 0.15 0.15 1</diffuse>
+          <specular>1 1 1 1</specular>
+          <pbr>
+            <metal>
+              <metalness>1.0</metalness>  
+              <roughness>0.2</roughness> 
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="front_prop_ccw_joint" type="revolute">
+      <pose relative_to="base_link">0.22481 -0.23326 0.086028 0 0 0</pose>
+      <parent>base_link</parent>
+      <child>front_prop_ccw_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="front_prop_ccw_link">
+      <gravity>true</gravity>
+      <self_collide>false</self_collide>
+      <velocity_decay />
+      <pose relative_to="front_prop_ccw_joint">0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>1.9285e-05 -0.0005696 0.0086392 0 0 0</pose>
+        <mass>0.023288</mass>
+        <inertia>
+          <ixx>7.8138e-07</ixx>
+          <ixy>-1.9303e-06</ixy>
+          <ixz>-5.8432e-08</ixz>
+          <iyy>2.8365e-05</iyy>
+          <iyz>-3.958e-08</iyz>
+          <izz>2.9095e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name="front_prop_ccw_link_collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.06</radius>
+            <length>0.005</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <min_depth>0.001</min_depth>
+              <max_vel>0</max_vel>
+            </ode>
+          </contact>
+          <friction>
+            <ode />
+          </friction>
+        </surface>
+      </collision>
+      <visual name="front_prop_ccw_link_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/front_prop_ccw_link.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.05 0.05 0.05 1</ambient>
+          <diffuse>0.15 0.15 0.15 1</diffuse>
+          <specular>1 1 1 1</specular>
+          <pbr>
+            <metal>
+              <metalness>1.0</metalness>  
+              <roughness>0.2</roughness> 
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="back_prop_ccw_joint" type="revolute">
+      <pose relative_to="base_link">-0.2287 0.23276 0.086501 0 0 0</pose>
+      <parent>base_link</parent><child>back_prop_ccw_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="back_prop_ccw_link">
+      <gravity>true</gravity>
+      <self_collide>false</self_collide>
+      <velocity_decay />
+      <pose relative_to="back_prop_ccw_joint">0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>1.9244838497967098e-05 -0.00054790647153496496 0.0082724928504486796 0 0 0</pose>
+        <mass>0.023287603511287301</mass>
+        <inertia>
+          <ixx>7.8128240375094601e-07</ixx>
+          <ixy>-1.9296761476329199e-06</ixy>
+          <ixz>-5.8395414548840802e-08</ixz>
+          <iyy>2.8362782418367299e-05</iyy>
+          <iyz>-3.9575409052290702e-08</iyz>
+          <izz>2.90934055502375e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name="back_prop_ccw_link_collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.06</radius>
+            <length>0.005</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <min_depth>0.001</min_depth>
+              <max_vel>0</max_vel>
+            </ode>
+          </contact>
+          <friction>
+            <ode />
+          </friction>
+        </surface>
+      </collision>
+      <visual name="back_prop_ccw_link_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://x650/meshes/back_prop_ccw_link.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.05 0.05 0.05 1</ambient>
+          <diffuse>0.15 0.15 0.15 1</diffuse>
+          <specular>1 1 1 1</specular>
+          <pbr>
+            <metal>
+              <metalness>1.0</metalness>  
+              <roughness>0.2</roughness> 
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+    </link>
+
+    <!-- Multicopter motor plugins -->
+    
+    <!-- PX4 motor 1: FRONT RIGHT, CCW -->
+    <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
+      <jointName>front_prop_ccw_joint</jointName>     
+      <linkName>front_prop_ccw_link</linkName>
+      <turningDirection>ccw</turningDirection>
+      <timeConstantUp>0.04</timeConstantUp>
+      <timeConstantDown>0.06</timeConstantDown>
+      <maxRotVelocity>1200</maxRotVelocity>
+      <motorConstant>1.1e-05</motorConstant>
+      <momentConstant>1.3e-06</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>0</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <!-- <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim> -->
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <!-- PX4 motor 2: BACK LEFT, CCW -->
+    <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
+      <jointName>back_prop_ccw_joint</jointName>     
+      <linkName>back_prop_ccw_link</linkName>
+      <turningDirection>ccw</turningDirection>
+      <timeConstantUp>0.04</timeConstantUp>
+      <timeConstantDown>0.06</timeConstantDown>
+      <maxRotVelocity>1200</maxRotVelocity>
+      <motorConstant>1.1e-05</motorConstant>
+      <momentConstant>1.3e-06</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>1</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <!-- <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim> -->
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <!-- PX4 motor 3: FRONT LEFT, CW -->
+    <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
+      <jointName>front_prop_cw_joint</jointName>    
+      <linkName>front_prop_cw_link</linkName>
+      <turningDirection>cw</turningDirection>
+      <timeConstantUp>0.04</timeConstantUp>
+      <timeConstantDown>0.06</timeConstantDown>
+      <maxRotVelocity>1200</maxRotVelocity>
+      <motorConstant>1.1e-05</motorConstant>
+      <momentConstant>1.3e-06</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>2</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <!-- <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim> -->
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <!-- PX4 motor 4: BACK RIGHT, CW -->
+    <plugin name="gz::sim::systems::MulticopterMotorModel" filename="gz-sim-multicopter-motor-model-system">
+      <jointName>back_prop_cw_joint</jointName>     
+      <linkName>back_prop_cw_link</linkName>
+      <turningDirection>cw</turningDirection>
+      <timeConstantUp>0.04</timeConstantUp>
+      <timeConstantDown>0.06</timeConstantDown>
+      <maxRotVelocity>1200</maxRotVelocity>
+      <motorConstant>1.1e-05</motorConstant>
+      <momentConstant>1.3e-06</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>3</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <!-- <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim> -->
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <plugin filename="MotorFailurePlugin" name="gz::sim::systems::MotorFailureSystem"/>
+    <plugin filename="gz-sim-odometry-publisher-system" name="gz::sim::systems::OdometryPublisher">
+      <dimensions>3</dimensions>
+    </plugin>
+    
+  </model>
+</sdf>
