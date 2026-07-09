@@ -4,34 +4,8 @@
 [![Degree](https://img.shields.io/badge/Degree-M.Sc._Thesis-blue.svg)](#)
 [![Domain](https://img.shields.io/badge/Domain-Computer_Science_%26_Software_Eng-informational.svg)](#)
 
-[![Latest release](https://img.shields.io/github/v/release/PX4/px4_msgs?logo=github&label=release&color=blue)](https://github.com/PX4/px4_msgs/releases/latest)
-[![Last commit](https://img.shields.io/github/last-commit/PX4/px4_msgs/main?logo=git&logoColor=white)](https://github.com/PX4/px4_msgs/commits/main)
-<!-- ecosystem -->
-[![ROS 2](https://img.shields.io/badge/ROS%202-Humble%20%7C%20Jazzy%20%7C%20Kilted%20%7C%20Rolling%20%7C%20Lyrical-22314E?logo=ros&logoColor=white)](https://index.ros.org/p/px4_msgs/)
-
 ## Description
-The rapid advancement of Unmanned Aerial Vehicles (UAVs) has significantly
-expanded their application range, including surveillance, mapping, and search and
-rescue operations. These systems can operate either via remote control or
-autonomously, depending on mission requirements. The integration of advanced
-sensors and Artificial Intelligence (AI) algorithms enhances their navigation
-capabilities, enabling the execution of complex operations without continuous human
-intervention.
-The objective of this thesis is the digital design and modeling of an aerial robotic
-system, and its export into a format compatible with modern simulation
-environments. The study focuses on the development and integration of algorithms
-for human detection.
-Implementation was based on the C++ and Python programming languages, utilizing
-the Robot Operating System 2 (ROS 2) ecosystem and the Gazebo simulator.
-Additionally, tools such as RViz, the PX4 Control Stack, and QGroundControl were
-employed. Vehicle guidance was performed via manual keyboard control. For
-environmental perception and safe navigation, Simultaneous Localization and
-Mapping (SLAM) techniques were utilized. Furthermore, the person recognition
-process was based on the integration of a computer vision model.
-Experimental results demonstrate satisfactory flight stability, reliable obstacle
-avoidance, and accurate real-time mapping. Overall, the combined utilization of
-digital modeling and AI techniques composes a scalable and efficient framework for
-the development of unmanned aerial systems in complex, large-scale missions.
+**Note💡:** Will be coming soon.
 
 ## System Setup
 Before running the application, ensure your system meets the OS requirements and has the necessary packages installed.
@@ -190,7 +164,7 @@ PX4_SYS_AUTOSTART=4229 PX4_GZ_MODEL=x650 ./external/PX4-Autopilot/build/px4_sitl
 ```
 
 ## Docker
-**Note💡:** Will come soon.
+**Note💡:** Will be coming soon.
 
 ## Run the project
 Move to the root folder of the project and execute the following **step-by-step**.
@@ -226,4 +200,4 @@ pkill -f ros && pkill -f gz && pkill -f gazebo && pkill –f px4pkill -f ros && 
 ```
 
 ## Screenshots
-**Note💡:** Will come soon.
+**Note💡:** Will be coming soon.
