@@ -4,6 +4,8 @@
 [![Degree](https://img.shields.io/badge/Degree-M.Sc._Thesis-blue.svg)](#)
 [![Domain](https://img.shields.io/badge/Domain-Computer_Science_%26_Software_Eng-informational.svg)](#)
 
+<img src="./images/flying.png" alt="Flying" width="1024" height="800" border="0" /> 
+
 ## Description
 This repository contains the project implementation for a Master's Thesis titled **"UAS Design and Simulation for Semantic Mapping and Human Detection using Computer Vision"**.
 
@@ -244,16 +246,60 @@ pkill -f ros && pkill -f gz && pkill -f gazebo && pkill –f px4pkill -f ros && 
 && pkill -f gazebo && pkill –f px4
 ```
 
-## Screenshots
-**Note💡:** Will be coming soon.
+## System Showcase and Media Verification
 
-<!-- <img src="./images/rtabmap-gazebo.png" alt="Gazebo office" width="660" height="400" border="0" />  -->
-<!-- | **Created 2D Map after SLAM** | **Created 3D Map after SLAM** |
-| :---: | :---: | 
-| The created 2D office map | The created 3D office map |
-| **Screenshots** | **Screenshots** |
-| <img src="./images/slam_rviz_01.png" alt="Created 2D map" width="360" height="600" border="0" /> | <img src="./images/slam_rviz_02.png" alt="Created 3D map" width="360" height="550" border="0" /> | -->
+### Real Appearance vs. CAD-to-Simulation Translation
+<p align="center">
+  <a href="./images/real_look.png" target="_blank">
+    <img src="./images/real_look.png" alt="Real Appearance View" width="42%" />
+  </a>
+  <a href="./images/uav_compare_solidworks_gazebo.png" target="_blank">
+    <img src="./images/uav_compare_solidworks_gazebo.png" alt="CAD to Simulation Fidelity" width="42%" />
+  </a>
+</p>
+<p align="center">
+  <em>Figure 1: Real appearance rendering within the simulation world (left) paired alongside the direct CAD-to-simulation structural translation model (right). Click images to expand.</em>
+</p>
 
-<!-- ## Video
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=ISHZB7u5ees
-" target="_blank"><img src="./_README/video_preview.JPG" alt="Puzzler YouTube Video" width="560" height="288" border="0" /></a> -->
+---
+
+### Baylands Google Maps vs. Gazebo World Validation
+<p align="center">
+  <a href="./images/baylands_google_maps_vers_baylands_gazebo.png" target="_blank">
+    <img src="./images/baylands_google_maps_vers_baylands_gazebo.png" alt="Baylands Google Maps vs Gazebo Environment" width="42%" />
+  </a>
+  <a href="./images/motor_spinning_tests_no_blades_Q_Menu-Actuators.png" target="_blank">
+    <img src="./images/motor_spinning_tests_no_blades_Q_Menu-Actuators.png" alt="Motor Configuration in QGroundControl" width="42%" />
+  </a>
+</p>
+<p align="center">
+  <em>Figure 2: Real-world satellite imagery from Google Maps contrasted against the simulated Baylands digital twin (left), alongside mixer actuator telemetry profiles inside QGroundControl (right). Click images to expand.</em>
+</p>
+
+---
+
+### Semantic SLAM with RViz Analysis and Computer Vision Inference
+<p align="center">
+  <a href="./images/rviz_rtabmap_gz.png" target="_blank">
+    <img src="./images/rviz_rtabmap_gz.png" alt="RTAB-Map 3D Mapping and RViz Analysis" width="42%" />
+  </a>
+  <a href="./images/yolo_suspect_qgc.png" target="_blank">
+    <img src="./images/yolo_suspect_qgc.png" alt="YOLO Human Detection Stream" width="42%" />
+  </a>
+</p>
+<p align="center">
+  <em>Figure 3: Real-time 3D spatial dense cloud generation analyzed in RViz (left) paired with concurrent AI human target classification utilizing the YOLO model feed (right). Click images to expand.</em>
+</p>
+
+---
+
+## Simulation in Action
+
+<p align="center">
+  <a href="https://youtu.be/vV1-DPZRsh8" target="_blank">
+    <img src="./images/start_gz_qgc_yolo.png" alt="Whole UAV simulation" width="60%" />
+  </a>
+</p>
+<p align="center">
+  <em>Video: Complete end-to-end UAV simulation demonstration featuring Gazebo, QGroundControl telemetry, and real-time YOLO human detection inference. Click the preview image to watch the full video on YouTube in a new tab.</em>
+</p>
