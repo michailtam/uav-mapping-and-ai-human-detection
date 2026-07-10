@@ -4,7 +4,7 @@
 [![Degree](https://img.shields.io/badge/Degree-M.Sc._Thesis-blue.svg)](#)
 [![Domain](https://img.shields.io/badge/Domain-Computer_Science_%26_Software_Eng-informational.svg)](#)
 
-<img src="./images/flying.png" alt="Flying" width="1024" height="800" border="0" /> 
+<img src="./images/flying.jpg" alt="Flying" width="1024" height="800" border="0" /> 
 
 ## Description
 This repository contains the project implementation for a Master's Thesis titled **"UAS Design and Simulation for Semantic Mapping and Human Detection using Computer Vision"**.
@@ -250,11 +250,11 @@ pkill -f ros && pkill -f gz && pkill -f gazebo && pkill –f px4pkill -f ros && 
 
 ### Real Appearance vs. CAD-to-Simulation Translation
 <p align="center">
-  <a href="./images/real_look.png" target="_blank">
-    <img src="./images/real_look.png" alt="Real Appearance View" width="42%" />
+  <a href="./images/real_look.jpg" target="_blank">
+    <img src="./images/real_look.jpg" alt="Real Appearance View" width="42%" />
   </a>
-  <a href="./images/uav_compare_solidworks_gazebo.png" target="_blank">
-    <img src="./images/uav_compare_solidworks_gazebo.png" alt="CAD to Simulation Fidelity" width="42%" />
+  <a href="./images/uav_compare_solidworks_gazebo.jpg" target="_blank">
+    <img src="./images/uav_compare_solidworks_gazebo.jpg" alt="CAD to Simulation Fidelity" width="42%" />
   </a>
 </p>
 <p align="center">
@@ -265,11 +265,11 @@ pkill -f ros && pkill -f gz && pkill -f gazebo && pkill –f px4pkill -f ros && 
 
 ### Baylands Google Maps vs. Gazebo World Validation
 <p align="center">
-  <a href="./images/baylands_google_maps_vers_baylands_gazebo.png" target="_blank">
-    <img src="./images/baylands_google_maps_vers_baylands_gazebo.png" alt="Baylands Google Maps vs Gazebo Environment" width="42%" />
+  <a href="./images/baylands_google_maps_vers_baylands_gazebo.jpg" target="_blank">
+    <img src="./images/baylands_google_maps_vers_baylands_gazebo.jpg" alt="Baylands Google Maps vs Gazebo Environment" width="42%" />
   </a>
-  <a href="./images/motor_spinning_tests_no_blades_Q_Menu-Actuators.png" target="_blank">
-    <img src="./images/motor_spinning_tests_no_blades_Q_Menu-Actuators.png" alt="Motor Configuration in QGroundControl" width="42%" />
+  <a href="./images/motor_spinning_tests_no_blades_Q_Menu-Actuators.jpg" target="_blank">
+    <img src="./images/motor_spinning_tests_no_blades_Q_Menu-Actuators.jpg" alt="Motor Configuration in QGroundControl" width="42%" />
   </a>
 </p>
 <p align="center">
@@ -280,11 +280,11 @@ pkill -f ros && pkill -f gz && pkill -f gazebo && pkill –f px4pkill -f ros && 
 
 ### Semantic SLAM with RViz Analysis and Computer Vision Inference
 <p align="center">
-  <a href="./images/rviz_rtabmap_gz.png" target="_blank">
-    <img src="./images/rviz_rtabmap_gz.png" alt="RTAB-Map 3D Mapping and RViz Analysis" width="42%" />
+  <a href="./images/rviz_rtabmap_gz.jpg" target="_blank">
+    <img src="./images/rviz_rtabmap_gz.jpg" alt="RTAB-Map 3D Mapping and RViz Analysis" width="42%" />
   </a>
-  <a href="./images/yolo_suspect_qgc.png" target="_blank">
-    <img src="./images/yolo_suspect_qgc.png" alt="YOLO Human Detection Stream" width="42%" />
+  <a href="./images/yolo_suspect_qgc.jpg" target="_blank">
+    <img src="./images/yolo_suspect_qgc.jpg" alt="YOLO Human Detection Stream" width="42%" />
   </a>
 </p>
 <p align="center">
@@ -297,7 +297,7 @@ pkill -f ros && pkill -f gz && pkill -f gazebo && pkill –f px4pkill -f ros && 
 
 <p align="center">
   <a href="https://youtu.be/vV1-DPZRsh8" target="_blank">
-    <img src="./images/start_gz_qgc_yolo.png" alt="Whole UAV simulation" width="60%" />
+    <img src="./images/start_gz_qgc_yolo.jpg" alt="Whole UAV simulation" width="60%" />
   </a>
 </p>
 <p align="center">
