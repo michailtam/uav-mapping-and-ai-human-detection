@@ -5,7 +5,52 @@
 [![Domain](https://img.shields.io/badge/Domain-Computer_Science_%26_Software_Eng-informational.svg)](#)
 
 ## Description
-**Note💡:** Will be coming soon.
+This repository contains the project implementation for a Master's Thesis titled **"UAS Design and Simulation for Semantic Mapping and Human Detection using Computer Vision"**.
+
+The project focuses on the development of an Unmanned Aerial Vehicle (UAV) application designed for manual keyboard-controlled navigation, real-time Simultaneous Localization and Mapping (SLAM) utilizing RTAB-Map (Real-Time Appearance-Based Mapping), and advanced computer vision-based human detection using YOLO. By leveraging custom CAD digital modeling, modern robotics frameworks, and artificial intelligence, this system establishes a scalable platform suitable for complex, large-scale missions such as surveillance, mapping, and search-and-rescue operations.
+
+## Key Features and Project Status
+
+*   **UAV Design & Export:** The structural geometry of the UAV was completely designed and assembled within **SolidWorks**. It was subsequently translated into physical model parameters using the **URDF Exporter** plugin to generate the exact URDF and STL assets required for the simulation environment.
+*   **Manual Navigation (Current Implementation)**: Precise vehicle navigation is performed via manual keyboard control, allowing operators to maneuver through the environment dynamically.
+**Multi-Sensor Fusion & Semantic SLAM:** Utilizes **RTAB-Map** for high-fidelity 3D Semantic Simultaneous Localization and Mapping (SLAM). Advanced sensor fusion is achieved within RTAB-Map by dynamically fusing incoming streams from a **depth camera**, **odometry data**, and **LiDAR data** to ensure robust localization and accurate real-time mapping in unmapped environments.
+*   **AI-Powered Human Detection:** Integrates a robust **YOLO computer vision model** to accurately identify and track individuals in real time from the drone's sensory feed.
+*   **High-Fidelity Simulation:** Built and tested inside a realistic physics simulation environment ensuring flight stability and reliable obstacle avoidance. The simulation leverages a highly accurate digital twin of **Baylands**, a real-world open-space environment located in California, USA, providing an authentic setting for testing outdoor flight behavior and sensor perception.
+
+## Roadmap and Future Enhancements
+
+*   **Yaw Axis Stabilization:** Debugging and refinement are underway to address current issues with the yaw rotation movement within the PX4 Autopilot stack integration to ensure fully predictable rotational control.
+*   **3D Autonomous Navigation & Obstacle Avoidance:** Building upon the currently implemented 3D manual controls (including XY position and Z-axis altitude movement), development is planned to transition to full **3D autonomous navigation capabilities**. This includes integrating advanced obstacle avoidance algorithms to enhance the system's overall autonomy and enable the vehicle to safely chart trajectories and execute complex flight plans in three-dimensional space without continuous human intervention.
+*   **Human Pose Estimation (HPE):** Upgrading the computer vision pipeline to move beyond basic bounding-box person detection to full Human Pose Estimation, allowing the system to analyze human gestures, orientations, and states during search-and-rescue operations.
+*   **Swarm Robotics Integration:** Expanding the platform into a multi-UAV cooperative network. Future research will explore swarm robotics configurations designed to simultaneously map large, complex areas and dynamically share real-time localization and mapping information to collaboratively locate targets, drastically reducing the overall operational time required to complete a mission.
+
+## Tech Stack and Ecosystem
+
+The framework was developed, configured, and tested on an **Ubuntu 24.04 LTS** platform, utilizing industry-standard robotics tools to bridge the gap between simulation and core execution layers:
+
+| Component | Technology / Tool Used |
+| :--- | :--- |
+| **Operating System** | Ubuntu 24.04 LTS (Noble Numbat) |
+| **Robotics Framework** | ROS 2 (Jazzy Jalisco) |
+| **UAV Modeling**| **SolidWorks** with **URDF Exporter** plugin (URDF & STL generation) |
+| **Simulation Environment** | Gazebo Harmonic |
+| **Flight Control Stack**| PX4 Autopilot Stack |
+| **SLAM Package** | RTAB-Map (Real-Time Appearance-Based Mapping) |
+| **Computer Vision Packages** | OpenCV, YOLO (You Only Look Once) |
+| **Ground Control & Telemetry** | QGroundControl (Real-time flight operation management) |
+| **Sensor Data Visualization** | RViz |
+| **Programming Languages** | **C++** (Low-level performance/development) <br> **Python** (High-level script orchestration) |
+
+## Experimental Results
+
+Simulated testing within the Gazebo Harmonic environment demonstrates:
+
+1. **High-Fidelity Model Transfer:** The custom SolidWorks model structural dimensions, inertia tensors, and mass properties were successfully translated into the simulation environment via the URDF export pipeline, resulting in physical flight behavior that closely mirrors real-world UAV dynamics.
+2. **Robust Ecosystem Interoperability:** Reliable, low-latency communication was achieved across the core software stack, ensuring seamless real-time data exchange between ROS 2 Jazzy, the PX4 Autopilot Stack, and the QGroundControl interface.
+3. **Accurate Real-Time 3D Mapping:** The multi-sensor fusion architecture within RTAB-Map successfully generated dense, dependable 3D point clouds and semantic spatial maps, visualized in real time via RViz without frame drops.
+4. **Dependable Object Detection:** The integrated YOLO computer vision framework achieved highly reliable real-time human detection across the simulated test sequences.
+5. **Photorealistic Simulation Environmental Setup:** Environmental illumination and lighting conditions were explicitly configured to closely replicate real-world outdoor operational scenarios, validating the computer vision pipeline under realistic exposure constraints.
+6. **Responsive Flight Dynamics:** The vehicle demonstrated satisfactory flight stability under manual navigation inputs. The primary flight dynamics including takeoff, landing, roll, and pitch responded appropriately to control vectors, with the exception of the yaw rotation axis which remains a targeted area for optimization.
 
 ## System Setup
 Before running the application, ensure your system meets the OS requirements and has the necessary packages installed.
@@ -166,7 +211,7 @@ PX4_SYS_AUTOSTART=4229 PX4_GZ_MODEL=x650 ./external/PX4-Autopilot/build/px4_sitl
 ## Docker
 **Note💡:** Will be coming soon.
 
-## Run the project
+## Run the application
 Move to the root folder of the project and execute the following **step-by-step**.
 **Note💡:** Please be patient while the application loads and launches the simulator and all required packages.
 
@@ -201,3 +246,14 @@ pkill -f ros && pkill -f gz && pkill -f gazebo && pkill –f px4pkill -f ros && 
 
 ## Screenshots
 **Note💡:** Will be coming soon.
+
+<!-- <img src="./images/rtabmap-gazebo.png" alt="Gazebo office" width="660" height="400" border="0" />  -->
+<!-- | **Created 2D Map after SLAM** | **Created 3D Map after SLAM** |
+| :---: | :---: | 
+| The created 2D office map | The created 3D office map |
+| **Screenshots** | **Screenshots** |
+| <img src="./images/slam_rviz_01.png" alt="Created 2D map" width="360" height="600" border="0" /> | <img src="./images/slam_rviz_02.png" alt="Created 3D map" width="360" height="550" border="0" /> | -->
+
+<!-- ## Video
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=ISHZB7u5ees
+" target="_blank"><img src="./_README/video_preview.JPG" alt="Puzzler YouTube Video" width="560" height="288" border="0" /></a> -->
